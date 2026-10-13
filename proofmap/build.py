@@ -519,7 +519,7 @@ def computations_table(body_tex, tex):
 
 def status_box():
     """The line about AI at the top of the map (proofmap/status.html), linking to the public site's Made with AI page."""
-    return (HERE / 'status.html').read_text(encoding='utf8').strip()
+    return re.sub(r'<!--.*?-->', '', (HERE / 'status.html').read_text(encoding='utf8'), flags=re.S).strip()   # notes for us stay out of the page
 
 
 def build(site_dir=None):
