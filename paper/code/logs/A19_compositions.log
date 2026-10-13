@@ -1,0 +1,86 @@
+Computation 7.3 and Computation 9.2: the compositions at the level-1 lengths
+  l_1 = [7, 5, 10, 10, 8, 6, 10, 11] (alpha, beta, gamma, delta, epsilon, zeta, eta, theta), d_1 = 6
+  m=1 Gamma   omega=+1: rim    160,    640 ports: signature
+  m=1 Gamma   omega=-1: rim    160,    640 ports: signature
+  m=1 Delta   omega=+1: rim    182,    732 ports: signature, junction map
+  m=1 Delta   omega=-1: rim    182,    732 ports: signature, junction map
+  m=1 Theta   omega=+1: rim    182,    732 ports: signature
+  m=1 Theta   omega=-1: rim    182,    732 ports: signature
+  m=1 Lambda  omega=+1: rim    182,    732 ports: signature
+  m=1 Lambda  omega=-1: rim    182,    732 ports: signature
+  m=1 Xi      omega=+1: rim    182,    732 ports: signature
+  m=1 Xi      omega=-1: rim    182,    732 ports: signature
+  m=1 Pi      omega=+1: rim    182,    732 ports: signature
+  m=1 Pi      omega=-1: rim    182,    732 ports: signature
+  m=1 Sigma   omega=+1: rim    182,    732 ports: signature
+  m=1 Sigma   omega=-1: rim    182,    732 ports: signature
+  m=1 Phi     omega=+1: rim    182,    732 ports: signature
+  m=1 Phi     omega=-1: rim    182,    732 ports: signature
+  m=1 Psi     omega=+1: rim    182,    732 ports: signature
+  m=1 Psi     omega=-1: rim    182,    732 ports: signature
+Corroboration: the same at the level-m lengths
+  m=2 Gamma   omega=+1: rim    652,   2504 ports: signature
+  m=2 Gamma   omega=-1: rim    652,   2504 ports: signature
+  m=2 Delta   omega=+1: rim    758,   2868 ports: signature, junction map
+  m=2 Delta   omega=-1: rim    758,   2868 ports: signature, junction map
+  m=2 Theta   omega=+1: rim    758,   2868 ports: signature
+  m=2 Theta   omega=-1: rim    758,   2868 ports: signature
+  m=2 Lambda  omega=+1: rim    758,   2868 ports: signature
+  m=2 Lambda  omega=-1: rim    758,   2868 ports: signature
+  m=2 Xi      omega=+1: rim    758,   2868 ports: signature
+  m=2 Xi      omega=-1: rim    758,   2868 ports: signature
+  m=2 Pi      omega=+1: rim    758,   2868 ports: signature
+  m=2 Pi      omega=-1: rim    758,   2868 ports: signature
+  m=2 Sigma   omega=+1: rim    758,   2868 ports: signature
+  m=2 Sigma   omega=-1: rim    758,   2868 ports: signature
+  m=2 Phi     omega=+1: rim    758,   2868 ports: signature
+  m=2 Phi     omega=-1: rim    758,   2868 ports: signature
+  m=2 Psi     omega=+1: rim    758,   2868 ports: signature
+  m=2 Psi     omega=-1: rim    758,   2868 ports: signature
+  m=3 Gamma   omega=+1: rim   2736,  10400 ports: signature
+  m=3 Gamma   omega=-1: rim   2736,  10400 ports: signature
+  m=3 Delta   omega=+1: rim   3198,  11916 ports: signature, junction map
+  m=3 Delta   omega=-1: rim   3198,  11916 ports: signature, junction map
+  m=3 Theta   omega=+1: rim   3198,  11916 ports: signature
+  m=3 Theta   omega=-1: rim   3198,  11916 ports: signature
+  m=3 Lambda  omega=+1: rim   3198,  11916 ports: signature
+  m=3 Lambda  omega=-1: rim   3198,  11916 ports: signature
+  m=3 Xi      omega=+1: rim   3198,  11916 ports: signature
+  m=3 Xi      omega=-1: rim   3198,  11916 ports: signature
+  m=3 Pi      omega=+1: rim   3198,  11916 ports: signature
+  m=3 Pi      omega=-1: rim   3198,  11916 ports: signature
+  m=3 Sigma   omega=+1: rim   3198,  11916 ports: signature
+  m=3 Sigma   omega=-1: rim   3198,  11916 ports: signature
+  m=3 Phi     omega=+1: rim   3198,  11916 ports: signature
+  m=3 Phi     omega=-1: rim   3198,  11916 ports: signature
+  m=3 Psi     omega=+1: rim   3198,  11916 ports: signature
+  m=3 Psi     omega=-1: rim   3198,  11916 ports: signature
+  m=4 Gamma   omega=+1: rim  11564,  43848 ports: signature
+  m=4 Gamma   omega=-1: rim  11564,  43848 ports: signature
+  m=4 Delta   omega=+1: rim  13534,  50244 ports: signature, junction map
+  m=4 Delta   omega=-1: rim  13534,  50244 ports: signature, junction map
+  m=4 Theta   omega=+1: rim  13534,  50244 ports: signature
+  m=4 Theta   omega=-1: rim  13534,  50244 ports: signature
+  m=4 Lambda  omega=+1: rim  13534,  50244 ports: signature
+  m=4 Lambda  omega=-1: rim  13534,  50244 ports: signature
+  m=4 Xi      omega=+1: rim  13534,  50244 ports: signature
+  m=4 Xi      omega=-1: rim  13534,  50244 ports: signature
+  m=4 Pi      omega=+1: rim  13534,  50244 ports: signature
+  m=4 Pi      omega=-1: rim  13534,  50244 ports: signature
+  m=4 Sigma   omega=+1: rim  13534,  50244 ports: signature
+  m=4 Sigma   omega=-1: rim  13534,  50244 ports: signature
+  m=4 Phi     omega=+1: rim  13534,  50244 ports: signature
+  m=4 Phi     omega=-1: rim  13534,  50244 ports: signature
+  m=4 Psi     omega=+1: rim  13534,  50244 ports: signature
+  m=4 Psi     omega=-1: rim  13534,  50244 ports: signature
+Corroboration of Lemma 7.1 at level 1: every single move
+  single moves from (l_1, d_1): 1792 moves, each with both signs: 3584 of 3584 compositions keep the signature; 190 Delta moves (any cut on child 1 two edges clear of the ends of its side), both signs: 380 of 380 keep the junction map
+Negative controls
+  corners two apart (B = A +- 2): 18 of 18 compositions fail the signature check
+  junctions 12 and 16 exchanged in Table 6: the junction map check fails for 2 of 2 signs
+Junctions on the parent rim (Delta): (side, offset from its start, side length)
+  m=1: {9: (2, 16, 34), 12: (3, 8, 23), 16: (4, 19, 42), 17: (4, 27, 42), 21: (5, 19, 26)}
+  m=2: {9: (2, 68, 144), 12: (3, 34, 91), 16: (4, 87, 178), 17: (4, 121, 178), 21: (5, 87, 110)}
+  m=3: {9: (2, 288, 610), 12: (3, 144, 379), 16: (4, 375, 754), 17: (4, 519, 754), 21: (5, 375, 466)}
+  m=4: {9: (2, 1220, 2584), 12: (3, 610, 1599), 16: (4, 1595, 3194), 17: (4, 2205, 3194), 21: (5, 1595, 1974)}
+ALL CHECKS PASSED: 18 compositions have the signature and the junction map holds, levels 1-4

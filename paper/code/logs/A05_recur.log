@@ -1,0 +1,92 @@
+structure C_1 (composition 1->2) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_2 (composition 2->3) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_3 (composition 3->4) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_4 (composition 4->5) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_5 (composition 5->6) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_6 (composition 6->7) identical to C_1; A inherited from the Gamma child in all kinds: true
+structure C_7 (composition 7->8) identical to C_1; A inherited from the Gamma child in all kinds: true
+l_2 = M l_1: yes
+l_3 = M l_2: yes
+l_4 = M l_3: yes
+l_5 = M l_4: yes
+l_6 = M l_5: yes
+l_7 = M l_6: yes
+l_8 = M l_7: yes
+M: nonnegative integer 54x54, row sums 3,5,2,4,6
+M rows (parent side (T,J) = sum of child sides):
+  Gam0 = Gam5 + Phi3 + Phi4
+  Gam1 = Xi3 + Xi4 + Phi2
+  Gam2 = The3 + The4 + Xi1 + Xi2 + Sig2
+  Gam3 = Del2 + Del3 + The1 + The2 + Pi4
+  Gam4 = Pi2 + Pi3
+  Gam5 = Gam0 + Pi1
+  Del0 = Gam5 + Pi4 + Phi2 + Phi3 + Phi4
+  Del1 = Pi2 + Pi3
+  Del2 = Pi1 + Sig2 + Phi3 + Phi4
+  Del3 = Xi3 + Xi4 + Phi2
+  Del4 = Del2 + Xi1 + Xi2 + Xi3 + Xi4
+  Del5 = Gam0 + Xi1 + Xi2
+  The0 = Gam5 + Pi4 + Phi2 + Phi3 + Phi4
+  The1 = Pi2 + Pi3
+  The2 = Pi1 + Pi4 + Sig2 + Phi2 + Phi3 + Phi4
+  The3 = Pi2 + Pi3
+  The4 = Del2 + Pi1 + Psi2 + Psi3 + Psi4
+  The5 = Gam0 + Psi1
+  Lam0 = Gam5 + Pi4 + Phi2 + Phi3 + Phi4
+  Lam1 = Pi2 + Pi3
+  Lam2 = Pi1 + Sig2 + Phi3 + Phi4
+  Lam3 = Xi3 + Xi4 + Phi2
+  Lam4 = Del2 + Xi1 + Xi2 + Psi2 + Psi3 + Psi4
+  Lam5 = Gam0 + Psi1
+  Xi0 = Gam5 + Phi3 + Phi4
+  Xi1 = Phi2 + Psi2 + Psi3 + Psi4
+  Xi2 = Pi4 + Sig2 + Phi2 + Phi3 + Phi4 + Psi1
+  Xi3 = Pi2 + Pi3
+  Xi4 = Del2 + Pi1 + Psi2 + Psi3 + Psi4
+  Xi5 = Gam0 + Psi1
+  Pi0 = Gam5 + Phi3 + Phi4
+  Pi1 = Phi2 + Psi2 + Psi3 + Psi4
+  Pi2 = Sig2 + Phi3 + Phi4 + Psi1
+  Pi3 = Xi3 + Xi4 + Phi2
+  Pi4 = Del2 + Xi1 + Xi2 + Psi2 + Psi3 + Psi4
+  Pi5 = Gam0 + Psi1
+  Sig0 = Lam2 + Lam3 + Pi4
+  Sig1 = Pi2 + Pi3
+  Sig2 = Pi1 + Sig2 + Phi3 + Phi4
+  Sig3 = Xi3 + Xi4 + Phi2
+  Sig4 = Del2 + Xi1 + Xi2 + Xi3 + Xi4
+  Sig5 = Gam0 + Gam5 + Lam4 + Xi1 + Xi2
+  Phi0 = Gam5 + Pi4 + Phi2 + Phi3 + Phi4
+  Phi1 = Pi2 + Pi3
+  Phi2 = Pi1 + Sig2 + Phi3 + Phi4
+  Phi3 = Phi2 + Psi2 + Psi3 + Psi4
+  Phi4 = Del2 + Psi1 + Psi2 + Psi3 + Psi4
+  Phi5 = Gam0 + Psi1
+  Psi0 = Gam5 + Phi3 + Phi4
+  Psi1 = Phi2 + Psi2 + Psi3 + Psi4
+  Psi2 = Sig2 + Phi3 + Phi4 + Psi1
+  Psi3 = Phi2 + Psi2 + Psi3 + Psi4
+  Psi4 = Del2 + Psi1 + Psi2 + Psi3 + Psi4
+  Psi5 = Gam0 + Psi1
+A of Gamma: side 0, offset = 0; matches computed at levels 2..8: true
+A of Delta: side 0, offset = 0; matches computed at levels 2..8: true
+A of Theta: side 0, offset = 0; matches computed at levels 2..8: true
+A of Lambda: side 0, offset = 0; matches computed at levels 2..8: true
+A of Xi: side 0, offset = 0; matches computed at levels 2..8: true
+A of Pi: side 0, offset = 0; matches computed at levels 2..8: true
+A of Sigma: side 5, offset = Xi2 + Xi1 + Gam0 (child lengths); matches computed at levels 2..8: true
+A of Phi: side 0, offset = 0; matches computed at levels 2..8: true
+A of Psi: side 0, offset = 0; matches computed at levels 2..8: true
+v_1 = l_1 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_2 = l_2 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_3 = l_3 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_4 = l_4 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_5 = l_5 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_6 = l_6 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_7 = l_7 mod 2 = 110011010100011101010111101101100111010100010001100001
+v_8 = l_8 mod 2 = 110011010100011101010111101101100111010100010001100001
+M v_1 == v_1 (mod 2): true
+over F2: rank(M) = 14, rank(M - I) = 49, rank((M - I)^2) = 45, rank((M-I)^3) = 45
+powers of M mod 2: M^4 = M^2, so preperiod 2, period 2
+ratios l_8/l_7: 4.2357..4.2362 (phi^3 = 4.2361)
+min side length per level: 5 15 57 235 989 4183 17713 75027

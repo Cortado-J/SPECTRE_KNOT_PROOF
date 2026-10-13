@@ -1,0 +1,5 @@
+b=1: 30000 chains (seed 1), 141318 steps
+  first level N at which the arcs of X_b lie on one arc of X_N: 4:9360 5:6697 6:6211 7:3341 8:2179 9:1018 10:596 11:286 12:163 13:73 14:41 15:14 16:12 17:6 18:1 19:1
+  not on one arc by level 20: 1
+    Xi Pi:2,Xi:2,Pi:2,Sigma:5,Pi:4,Sigma:5,Sigma:4,Phi:4,Pi:3,Theta:2,Gamma:2,Gamma:6,Delta:7,Theta:1,Gamma:2,Sigma:7,Delta:4,Lambda:1,Sigma:6
+b=1: 29999 of 30000 chains reach a single arc by level 20

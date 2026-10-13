@@ -1,0 +1,6 @@
+b=1 Gamma: blocks per level 2..20: 14 3c1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+b=2 Gamma: blocks per level 3..20: 41 4c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2
+b=3 Gamma: blocks per level 4..20: 150 3c1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+b=1 Theta: blocks per level 2..20: 32 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2
+b=2 Theta: blocks per level 3..20: 126 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+b=3 Theta: blocks per level 4..20: 524 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2 3 3c2

@@ -1,0 +1,4 @@
+Krylov space span(M^i l_1): dimension 3 of 54; 51 independent relations valid for every real l_m
+even b: 67 deferred obligations, 67 certified, 0 NOT certified
+odd b: 59 deferred obligations, 59 certified, 0 NOT certified
+ALL OBLIGATIONS CERTIFIED (valid for every base b >= 2)

@@ -1,0 +1,111 @@
+### Stage A: the computations the proof depends on (A01-A07, A13, A15-A16, A19), and quick corroboration
+
+== node core/tile.js  (> logs/A01_tile.log)
+   TILE PAIRING = hooks at v2..v13 + crossover R(v0)-R(v1), L(v0)-L(v1): OK   [0 s]
+
+== node --max-old-space-size=6500 hierarchy/vertices.js 4 3  (> logs/A02_vertices_4_3.log)
+      Psi(E=3198,B=1): 0,379,989,1599,2209,2963   [69 s]
+
+== node --max-old-space-size=6500 hierarchy/vertices.js 6 2  (> logs/A03_vertices_6_2.log)
+      Psi(E=57318,B=1): 0,6767,17713,53135   [238 s]
+
+== node --max-old-space-size=6500 hierarchy/combin.js 8 hierarchy/vertices_4_3.json hierarchy/vertices_6_2.json  (> logs/A04_combin.log)
+   level 6 propagated vs observed (extra file): Gamma:equal Delta:equal Theta:equal Lambda:equal Xi:equal Pi:equal Sigma:equal Phi:equal Psi:observed 4 all propagated   [155 s]
+
+== node hierarchy/recur.js hierarchy/combin_8.json  (> logs/A05_recur.log)
+   min side length per level: 5 15 57 235 989 4183 17713 75027   [0 s]
+
+== python3 crosscheck/fig51_compare.py  (> logs/A06_fig51.log)
+   NO PROBLEMS   [29 s]
+
+== bash -c for d in crosscheck/neg_swap crosscheck/neg_label; do echo "== negative control $d"; python3 crosscheck/fig51_compare.py $d | sed -n "/PROBLEMS/,+2p"; python3 crosscheck/fig51_compare.py $d | grep -q "^PROBLEMS" || { echo "NOT REJECTED: $d"; exit 1; }; done; echo "BOTH CORRUPTED ENCODINGS REJECTED"  (> logs/A06b_fig51_negative.log)
+   BOTH CORRUPTED ENCODINGS REJECTED   [100 s]
+
+== python3 hierarchy/letters.py  (> logs/A07_letters.log)
+   LETTERS: ALL CHECKS PASS   [1 s]
+
+== python3 exact/exact.py 4 --nest 1,2,3 --nestL 7  (> logs/A13_exact.log)
+   EXACT: ALL CHECKS PASS   [159 s]
+
+== python3 hierarchy/compositions.py 4  (> logs/A19_compositions.log)
+   ALL CHECKS PASSED: 18 compositions have the signature and the junction map holds, levels 1-4   [10 s]
+
+== python3 hierarchy/sizes.py  (> logs/A15_sizes.log)
+   SIZES: OK   [0 s]
+
+== python3 crosscheck/fig41_render.py logs/A16_fig41_render.pdf  (> logs/A16_fig41_render.log)
+   wrote logs/A16_fig41_render.pdf   [2 s]
+
+== env FAM=fan21 node --max-old-space-size=6500 hierarchy/checks.js 01222222222222 3  (> logs/A08_base_L3.log)
+   reduced-vs-direct port checks 534 problems 0   [0 s]
+
+== node hierarchy/induction.js  (> logs/A09_induction.log)
+   INDUCTION STEP VERIFIED (18 skeletons)   [0 s]
+
+== node hierarchy/certnest.js 8  (> logs/A10_certnest.log)
+   symbolic run reproduces the synthetic label inputs; deferred obligations written to certnest_deferred.json   [0 s]
+
+== python3 hierarchy/certify.py  (> logs/A11_certify.log)
+   ALL OBLIGATIONS CERTIFIED (valid for every base b >= 2)   [2 s]
+
+== python3 hierarchy/certify_fib.py  (> logs/A12_certify_fib.log)
+   ALL OBLIGATIONS CERTIFIED BY THE FIBONACCI CLOSED FORM (every b >= 2)   [0 s]
+
+== env FAM=fan21 node --max-old-space-size=6500 core/nest.js 01222222222222 7 1,2,3  (> logs/A14_nest_L7.log)
+     base 1 vs 3: L1:DIFF L2:DIFF L3:same L4:same   [11 s]
+
+== python3 crosscheck/chain_check.py  (> logs/A20_chain_check.log)
+   ALL CHAINS OK   [59 s]
+
+== python3 crosscheck/junction_actual.py  (> logs/A21_junction_actual.log)
+   TABLE 6 HOLDS ON THE ACTUAL BLOCKS   [25 s]
+
+== A17, A18 skipped (set SMKGS_PDF to the spectre paper's PDF to compare with its Figs. 4.1 and 5.1)
+### Stage B: corroboration (direct composition in floating point, up to level 9)
+
+== env FAM=fan21 node --max-old-space-size=6500 core/reduce.js 01222222222222 9  (> logs/B01_reduce_L9.log)
+     level 8: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1 (differs from next)    [268 s]
+
+== env FAM=fan21 node --max-old-space-size=6500 hierarchy/checks.js 01222222222222 8  (> logs/B02_checks_L8.log)
+   reduced-vs-direct port checks 1424 problems 0   [57 s]
+
+== node --max-old-space-size=6500 hierarchy/synth.js hierarchy/combin_8.json 9  (> logs/B03_synth_L9.log)
+   ALL MATCH   [267 s]
+
+== node --max-old-space-size=6500 hierarchy/synthown.js 9  (> logs/B04_synthown_L9.log)
+   ALL MATCH (S and OWN, nested proxies)   [259 s]
+
+== node --max-old-space-size=6500 core/hier2.js fan21 01222222222222 9 1,2,3,4,5,6  (> logs/B05_hier2_L9.log)
+   level 9: rim 4356622 edges, 8.2^N = 167,619,550 (rough size, not a tile count), loops 0, 121s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 1; base 4 (3198 arcs): 1; base 5 (13534 arcs): 1; base 6 (57318 arcs): 1   [121 s]
+
+== env FAM=fan21 node --max-old-space-size=6500 core/nest.js 01222222222222 9 1,2,3,4,5,6  (> logs/B06_nest_L9.log)
+     base 4 vs 6: L1:same L2:same L3:same   [264 s]
+
+== node --max-old-space-size=6500 hierarchy/synthnest.js 9 1,2,3,4,5,6 u8:4,u10:6,u20:8,u100:10,l1,l2,l3,l4,l1+2l2,3l1+2l3,l1+l2+l4,l2+l3+l5  (> logs/B07_synthnest_L9.log)
+   ALL MATCH (nest label inputs = synthetic from (C, v, beta_b); proxies agree)   [272 s]
+
+== node --max-old-space-size=6500 crosscheck/overlap.js 5  (> logs/B08_overlap_L5.log)
+   ALL PASS   [7 s]
+
+== bash -c cd drawing && node --max-old-space-size=6500 checkmodel.js 3  (> logs/B09_checkmodel_L3.log)
+   level 3 Psi   : 559 tiles, 758 ribbon pieces drawn, model has 758 arcs | pairs agree 758, disagree 0, unmatched 0, closed 0, ports seen 1516/1516   [15 s]
+
+== bash -c cd drawing && node --max-old-space-size=6500 nestgap.js 7  (> logs/B10_nestgap_L7.log)
+   N_5 vs rim of N_7: shared vertices 0, smallest gap 138.534 edge lengths   [176 s]
+
+== bash -c cd drawing && node --max-old-space-size=6500 nestrim.js fan21 01222222222222 7  (> logs/B11_nestrim_L7.log)
+   base level 6 (rim 57318): edges on the rim of N_{b+k}: k=1: 10946   [50 s]
+
+== bash -c cd drawing && node --max-old-space-size=6500 onetile.js 5  (> logs/B12_onetile_L5.log)
+   tile 8 strands through it at levels 1..5: 3 3 2 2 1   [149 s]
+
+== node --max-old-space-size=6500 crosscheck/overlap.js 7 all 6  (> logs/B13_overlap_L6_7.log)
+   ALL PASS   [973 s]
+
+== python3 drawing/drawcheck.py  (> logs/B14_drawcheck.log)
+   edge e13: port at 0.35 from v13; piece ends there: 2; angle of each piece to the edge direction (deg): [-45.0, -135.0]   [19 s]
+
+== node --max-old-space-size=6500 hierarchy/induction.js 9  (> logs/B15_induction_L9.log)
+   INDUCTION STEP VERIFIED (18 skeletons), AND EQUAL TO THE ACTUAL SKELETONS AT LEVELS 2..9   [258 s]
+
+done in 4015 s; logs in paper/code/logs

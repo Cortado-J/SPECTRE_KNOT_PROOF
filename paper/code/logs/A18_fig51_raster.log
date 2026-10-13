@@ -1,0 +1,12 @@
+spectre paper PDF sha256 1a1c2123c63f7fe25efb0107ef5a3d1a8ad9d32b1e67a7d597b4723456c01be0 (ok)
+page 17 rendered at 400 dpi: 3308 x 4678 px
+Gamma   dots found 6, max distance to the encoded dots 0.5 px; Gamma centre (338,385) vs encoded (338, 385): 0.0 px  ok
+Delta   dots found 6, max distance to the encoded dots 0.6 px; Gamma centre (250,387) vs encoded (250, 387): 0.0 px  ok
+Theta   dots found 6, max distance to the encoded dots 1.5 px; Gamma centre (277,383) vs encoded (278, 383): 1.0 px  ok
+Lambda  dots found 6, max distance to the encoded dots 1.4 px; Gamma centre (277,389) vs encoded (278, 389): 1.0 px  ok
+Xi      dots found 6, max distance to the encoded dots 0.6 px; Gamma centre (259,338) vs encoded (259, 338): 0.0 px  ok
+Pi      dots found 6, max distance to the encoded dots 2.0 px; Gamma centre (263,365) vs encoded (264, 366): 1.4 px  ok
+Sigma   dots found 6, max distance to the encoded dots 0.6 px; Gamma centre (272,350) vs encoded (272, 350): 0.0 px  ok
+Phi     dots found 6, max distance to the encoded dots 0.5 px; Gamma centre (253,364) vs encoded (253, 364): 0.0 px  ok
+Psi     dots found 6, max distance to the encoded dots 1.4 px; Gamma centre (281,364) vs encoded (282, 364): 1.0 px  ok
+FIG. 5.1 RASTER DATA REPRODUCED

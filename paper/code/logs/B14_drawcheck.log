@@ -1,0 +1,17 @@
+pieces strictly inside the tile away from their ends: True ; min distance to boundary (excluding 5 end samples): 0.0041
+pieces 0 (e0-e1) and 1 (e0-e13) cross at [(0.621, 0.499)]
+   angle between the pieces there: 89.8 deg (transversal: True)
+edge e0: port at 0.65 from v0; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e1: port at 0.35 from v1; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e2: port at 0.65 from v2; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e3: port at 0.35 from v3; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e4: port at 0.65 from v4; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e5: port at 0.35 from v5; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e6: port at 0.65 from v6; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e7: port at 0.35 from v7; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e8: port at 0.65 from v8; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e9: port at 0.35 from v9; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e10: port at 0.65 from v10; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e11: port at 0.35 from v11; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e12: port at 0.65 from v12; piece ends there: 2; angle of each piece to the edge direction (deg): [-135.0, -45.0]
+edge e13: port at 0.35 from v13; piece ends there: 2; angle of each piece to the edge direction (deg): [-45.0, -135.0]

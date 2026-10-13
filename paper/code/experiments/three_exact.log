@@ -1,0 +1,5 @@
+built 0..8 in 352s
+b=1 Theta (exact): L2:32 L3:3 L4:3 L5:3 L6:3 L7:3 L8:3
+b=2 Gamma (exact): L3:41 L4:4 L5:3 L6:3 L7:3 L8:3
+b=3 Theta (exact): L4:524 L5:3 L6:3 L7:3 L8:3
+b=1 Gamma (exact): L2:14 L3:3 L4:1 L5:1 L6:1 L7:1 L8:1

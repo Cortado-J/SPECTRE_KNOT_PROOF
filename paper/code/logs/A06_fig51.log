@@ -1,0 +1,49 @@
+Gamma map {0: 'L', 1: 'D', 2: 'R', 3: 'S', 4: 'TR', 5: 'TL', 6: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0}
+   parent side J->label {4: 'b+', 3: 'd-', 2: 'g-', 1: 'a+', 0: 'a-', 5: 'b-'}
+Delta map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'g-', 3: 'a+', 2: 'e-', 1: 'b+', 0: 'g+', 5: 'z-'}
+Theta map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'h', 3: 'b+', 2: 't+', 1: 'b+', 0: 'g+', 5: 'b-'}
+Lambda map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 't-', 3: 'a+', 2: 'e-', 1: 'b+', 0: 'g+', 5: 'b-'}
+Xi map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'h', 3: 'b+', 2: 't+', 1: 'e+', 0: 'a-', 5: 'b-'}
+Pi map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 't-', 3: 'a+', 2: 'e-', 1: 'e+', 0: 'a-', 5: 'b-'}
+Sigma map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'g-', 3: 'a+', 2: 'e-', 1: 'b+', 0: 'z+', 5: 'd+'}
+Phi map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'h', 3: 'e+', 2: 'e-', 1: 'b+', 0: 'g+', 5: 'b-'}
+Psi map {0: 'L', 1: 'D', 2: 'B', 3: 'R', 4: 'S', 5: 'TR', 6: 'TL', 7: 'G'} sigma 1 parent(orient,shift) (-1, 1) amb []
+   rot {'TL': 2, 'TR': 1, 'G': 0, 'S': 1, 'L': 4, 'D': 5, 'R': 0, 'B': 5}
+   parent side J->label {4: 'h', 3: 'e+', 2: 'e-', 1: 'e+', 0: 'a-', 5: 'b-'}
+sigma(global) 1
+kappa per kind (fig42 edge of code side 0; must be constant):
+  Pi [3] 8 placements
+  Delta [3] 9 placements
+  Theta [3] 1 placements
+  Sigma [3] 9 placements
+  Xi [3] 7 placements
+  Phi [3] 16 placements
+  Gamma [3] 9 placements
+  Psi [3] 11 placements
+  Lambda [3] 1 placements
+code side j of kind s -> Fig 4.2 label:
+  Gamma ['a-', 'a+', 'g-', 'd-', 'b+', 'b-']
+  Delta ['g+', 'b+', 'e-', 'a+', 'g-', 'z-']
+  Theta ['g+', 'b+', 't+', 'b+', 'h', 'b-']
+  Lambda ['g+', 'b+', 'e-', 'a+', 't-', 'b-']
+  Xi ['a-', 'e+', 't+', 'b+', 'h', 'b-']
+  Pi ['a-', 'e+', 'e-', 'a+', 't-', 'b-']
+  Sigma ['z+', 'b+', 'e-', 'a+', 'g-', 'd+']
+  Phi ['g+', 'b+', 'e-', 'e+', 'h', 'b-']
+  Psi ['a-', 'e+', 'e-', 'e+', 'h', 'b-']
+NO PROBLEMS

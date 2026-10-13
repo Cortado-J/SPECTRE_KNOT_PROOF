@@ -1,0 +1,12 @@
+{
+  "_source": "Hand reading of Fig. 4.1 of Smith, Myers, Kaplan, Goodman-Strauss, A chiral aperiodic monotile (Combinatorial Theory 4(2) 2024, #13, p. 13): for each cluster, the six edge labels in anticlockwise order as printed, starting with the segment that leaves the leftmost marked dot. Letters: a alpha, b beta, g gamma, d delta, e epsilon, z zeta, h eta, t theta.",
+  "Gamma":  ["a-", "a+", "g-", "d-", "b+", "b-"],
+  "Delta":  ["g+", "b+", "e-", "a+", "g-", "z-"],
+  "Theta":  ["g+", "b+", "t+", "b+", "h",  "b-"],
+  "Lambda": ["g+", "b+", "e-", "a+", "t-", "b-"],
+  "Xi":     ["a-", "e+", "t+", "b+", "h",  "b-"],
+  "Pi":     ["a-", "e+", "e-", "a+", "t-", "b-"],
+  "Sigma":  ["z+", "b+", "e-", "a+", "g-", "d+"],
+  "Phi":    ["g+", "b+", "e-", "e+", "h",  "b-"],
+  "Psi":    ["a-", "e+", "e-", "e+", "h",  "b-"]
+}

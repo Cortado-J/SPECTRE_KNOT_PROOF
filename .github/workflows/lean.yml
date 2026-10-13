@@ -1,0 +1,29 @@
+# Build the Lean and check its axioms, sorry and comments, only when the Lean changes (about 3-6 minutes).
+# Runs in SPECTRE_KNOT_PROOF_DEV (private, so it uses the account's Actions minutes) and in SPECTRE_KNOT_PROOF, where
+# it skips while that repo is private and is free once it is public.
+name: lean
+on:
+  push:
+    paths: ['lean/**', '.github/workflows/lean.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lean-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  lean:
+    if: github.repository != 'Cortado-J/SPECTRE_KNOT_PROOF' || !github.event.repository.private
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+      - uses: actions/cache@v4
+        with:
+          path: lean/.lake
+          key: lake-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-${{ hashFiles('lean/**/*.lean') }}
+          restore-keys: lake-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-
+      - name: Build the Lean and check axioms, sorry and comments
+        run: cd lean && ./build.sh

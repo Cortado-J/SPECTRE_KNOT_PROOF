@@ -1,0 +1,9 @@
+== negative control crosscheck/neg_swap
+PROBLEMS:
+  Delta: parent labels ['g-', 'a+', 'e-', 'g+', 'b+', 'z-'] not a reflection of fig42 ['a+', 'g-', 'z-', 'g+', 'b+', 'e-']
+  Delta: parent side 1 labelled g+ in Fig 5.1, code indexing predicts b+
+== negative control crosscheck/neg_label
+PROBLEMS:
+  Gamma: 0 rotation solutions
+  Delta: 0 rotation solutions
+BOTH CORRUPTED ENCODINGS REJECTED

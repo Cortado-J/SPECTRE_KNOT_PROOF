@@ -1,0 +1,40 @@
+level-1 side lengths: min 5; Sigma: d_1 = 6, l_1(Sigma,5) = 10; order condition holds
+  Gamma  parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Delta  parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Theta  parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Lambda parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Xi     parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Pi     parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Sigma  parent A = Gamma child's vertex 0: on parent side 5 after Xi.2 + Xi.1 + Gamma.0
+  Phi    parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+  Psi    parent A = Gamma child's vertex 0: on parent side 0 after nothing (a parent vertex)
+Gamma  w=-1: 7 children, 21 marks, 45 runs, parent rim marks 9: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Delta  w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Theta  w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Lambda w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Xi     w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Pi     w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Sigma  w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Phi    w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Psi    w=-1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Gamma  w=+1: 7 children, 21 marks, 45 runs, parent rim marks 9: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Delta  w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Theta  w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Lambda w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Xi     w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Pi     w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Sigma  w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Phi    w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+Psi    w=+1: 8 children, 24 marks, 52 runs, parent rim marks 10: loops 0, non-hooks 2 = {A,B}, adjacent true, crossover R(A)-R(B) L(A)-L(B) true => OK
+parity lemma corroboration with (l_2, d_2): skeletons identical for all 18 cases
+parity lemma corroboration with (l_3, d_3): skeletons identical for all 18 cases
+parity lemma corroboration with (l_1 + 2 l_2, d_1 + 2 d_2): skeletons identical for all 18 cases
+level 2: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, -1) for all nine kinds: true
+level 3: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, +1) for all nine kinds: true
+level 4: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, -1) for all nine kinds: true
+level 5: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, +1) for all nine kinds: true
+level 6: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, -1) for all nine kinds: true
+level 7: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, +1) for all nine kinds: true
+level 8: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, -1) for all nine kinds: true
+level 9: actual skeletons (direct composition, floating point) = S_T(l_1, d_1, +1) for all nine kinds: true
+INDUCTION STEP VERIFIED (18 skeletons), AND EQUAL TO THE ACTUAL SKELETONS AT LEVELS 2..9

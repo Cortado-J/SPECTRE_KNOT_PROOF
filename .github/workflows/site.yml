@@ -1,0 +1,70 @@
+# Build the proof site and check that addresses.json is up to date, only when what the site is built from changes. In
+# SPECTRE_KNOT_PROOF only, once it is public, also deploy the site to GitHub Pages (Settings → Pages → Source: GitHub
+# Actions); after making it public, run this workflow once by hand (Actions → site → Run workflow) to deploy.
+# Runs in SPECTRE_KNOT_PROOF_DEV (private, so it uses the account's Actions minutes; never deploys) and in
+# SPECTRE_KNOT_PROOF, where it skips while that repo is private and is free once it is public.
+name: site
+on:
+  push:
+    paths: ['paper/**', 'proofmap/**', 'lean/**', 'vendor/**', 'addresses.json', '.github/workflows/site.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  site:
+    if: github.repository != 'Cortado-J/SPECTRE_KNOT_PROOF' || !github.event.repository.private
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Tools
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q poppler-utils
+          pip install -q pymupdf
+      - name: Check the Statement.lean reading covers every line
+        run: python3 lean/guide/build_guide.py
+      - name: Build the proof site
+        run: python3 proofmap/build.py
+      - name: addresses.json is up to date
+        run: |
+          git diff --exit-code addresses.json || { echo "addresses.json is out of date. Run python3 proofmap/build.py and commit it."; exit 1; }
+  pages:
+    # only in SPECTRE_KNOT_PROOF, once it is public: build the site again, upload it and deploy it (the upload is the only step
+    # that uses Actions artifact storage, which is limited per account)
+    needs: site
+    if: github.repository == 'Cortado-J/SPECTRE_KNOT_PROOF' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Tools
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q poppler-utils
+          pip install -q pymupdf
+      - name: Build the proof site
+        run: python3 proofmap/build.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out/site
+      - id: deploy
+        uses: actions/deploy-pages@v4

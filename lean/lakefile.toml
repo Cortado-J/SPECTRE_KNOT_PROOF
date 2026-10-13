@@ -1,0 +1,17 @@
+name = "SpectreKnot"
+defaultTargets = ["SpectreKnot", "Axioms", "Tests"]
+
+[[lean_lib]]
+name = "SpectreKnot"
+
+# Prints the axioms used by the main theorems; built as part of the default target.
+[[lean_lib]]
+name = "Axioms"
+
+# Tests of the definitions on concrete cases (#guard, interpreter); not part of any proof.
+[[lean_lib]]
+name = "Tests"
+
+# Slower tests (level 5); built by ./build.sh --slow only.
+[[lean_lib]]
+name = "TestsSlow"

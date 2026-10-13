@@ -1,0 +1,9 @@
+level 1: rim 46 edges, 8.2^N = 8 (rough size, not a tile count), loops 0, 0s | strands meeting nested blocks: base 1 (46 arcs): 46
+level 2: rim 182 edges, 8.2^N = 67 (rough size, not a tile count), loops 0, 0s | strands meeting nested blocks: base 1 (46 arcs): 10; base 2 (182 arcs): 182
+level 3: rim 758 edges, 8.2^N = 551 (rough size, not a tile count), loops 0, 0s | strands meeting nested blocks: base 1 (46 arcs): 2; base 2 (182 arcs): 37; base 3 (758 arcs): 758
+level 4: rim 3198 edges, 8.2^N = 4,521 (rough size, not a tile count), loops 0, 0s | strands meeting nested blocks: base 1 (46 arcs): 2; base 2 (182 arcs): 2; base 3 (758 arcs): 146; base 4 (3198 arcs): 3198
+level 5: rim 13534 edges, 8.2^N = 37,074 (rough size, not a tile count), loops 0, 0s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 2; base 4 (3198 arcs): 613; base 5 (13534 arcs): 13534
+level 6: rim 57318 edges, 8.2^N = 304,007 (rough size, not a tile count), loops 0, 1s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 2; base 4 (3198 arcs): 2; base 5 (13534 arcs): 2586; base 6 (57318 arcs): 57318
+level 7: rim 242790 edges, 8.2^N = 2,492,855 (rough size, not a tile count), loops 0, 5s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 1; base 4 (3198 arcs): 1; base 5 (13534 arcs): 2; base 6 (57318 arcs): 10949
+level 8: rim 1028462 edges, 8.2^N = 20,441,409 (rough size, not a tile count), loops 0, 22s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 1; base 4 (3198 arcs): 1; base 5 (13534 arcs): 2; base 6 (57318 arcs): 2
+level 9: rim 4356622 edges, 8.2^N = 167,619,550 (rough size, not a tile count), loops 0, 121s | strands meeting nested blocks: base 1 (46 arcs): 1; base 2 (182 arcs): 1; base 3 (758 arcs): 1; base 4 (3198 arcs): 1; base 5 (13534 arcs): 1; base 6 (57318 arcs): 1

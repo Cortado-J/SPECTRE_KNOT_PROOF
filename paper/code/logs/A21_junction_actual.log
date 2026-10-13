@@ -1,0 +1,4 @@
+N_1 in N_2 (omega_m = -1): 92 rim ports of N_1, hook: 14, J16: 46, J17: 10, J21: 22; 0 disagree with Table 6 (46 with junctions 12 and 16 exchanged)
+N_2 in N_3 (omega_m = +1): 364 rim ports of N_2, hook: 66, J9: 54, J12: 84, J16: 46, J17: 114; 0 disagree with Table 6 (130 with junctions 12 and 16 exchanged)
+N_3 in N_4 (omega_m = -1): 1516 rim ports of N_3, hook: 286, J16: 758, J17: 114, J21: 358; 0 disagree with Table 6 (758 with junctions 12 and 16 exchanged)
+TABLE 6 HOLDS ON THE ACTUAL BLOCKS

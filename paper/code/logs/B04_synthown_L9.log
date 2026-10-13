@@ -1,0 +1,17 @@
+N=3: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=4: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=5: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=6: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=7: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=8: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+N=9: Gamma:SO Delta:SO Theta:SO Lambda:SO Xi:SO Pi:SO Sigma:SO Phi:SO Psi:SO
+OWN (Delta) real:
+  N=2: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1
+  N=3: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1
+  N=4: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1
+  N=5: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1
+  N=6: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1
+  N=7: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1
+  N=8: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1
+  N=9: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1
+ALL MATCH (S and OWN, nested proxies)

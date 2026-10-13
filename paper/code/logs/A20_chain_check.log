@@ -1,0 +1,19 @@
+m=2 Gamma  :   356 moves back to (l_1, d_1),  714 compositions checked: ok
+m=2 Delta  :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Theta  :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Lambda :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Xi     :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Pi     :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Sigma  :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Phi    :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=2 Psi    :   411 moves back to (l_1, d_1),  824 compositions checked: ok
+m=3 Gamma  :  1864 moves back to (l_1, d_1),  152 compositions checked: ok
+m=3 Delta  :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Theta  :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Lambda :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Xi     :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Pi     :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Sigma  :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Phi    :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+m=3 Psi    :  2152 moves back to (l_1, d_1),  176 compositions checked: ok
+ALL CHAINS OK

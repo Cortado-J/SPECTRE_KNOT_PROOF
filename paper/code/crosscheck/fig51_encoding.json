@@ -1,0 +1,38 @@
+{
+ "_doc": "Hand encoding of Smith-Myers-Kaplan-Goodman-Strauss, A chiral aperiodic monotile, Fig. 4.2 (labels) and Fig. 5.1 (supertiles). Page coordinates, y down. Hexes pointy-top. Hex centre (X,Y) in units: X = half hex width, Y = quarter circumradius... Y = 3*row. Directions d: 0 E,1 NE,2 NW,3 W,4 SW,5 SE (ccw on page). Positions TL(3,0) TR(5,0) G(2,3) S(4,3) L(1,6) D(3,6) R(5,6) B(4,9). Fig 5.1 vertex dots and outer labels located from 400-dpi render (dots by blob detection, labels by eye, display coords of the 1414-px-wide page render).",
+ "fig42": {
+  "Gamma":  ["d-","b+","b-","a-","a+","g-"],
+  "Delta":  ["a+","g-","z-","g+","b+","e-"],
+  "Theta":  ["b+","h","b-","g+","b+","t+"],
+  "Lambda": ["a+","t-","b-","g+","b+","e-"],
+  "Xi":     ["b+","h","b-","a-","e+","t+"],
+  "Pi":     ["a+","t-","b-","a-","e+","e-"],
+  "Sigma":  ["a+","g-","d+","z+","b+","e-"],
+  "Phi":    ["e+","h","b-","g+","b+","e-"],
+  "Psi":    ["e+","h","b-","a-","e+","e-"]
+ },
+ "pos": {"TL":[3,0],"TR":[5,0],"G":[2,3],"S":[4,3],"L":[1,6],"D":[3,6],"R":[5,6],"B":[4,9]},
+ "fig51": {
+  "Gamma":  {"TL":"Phi","TR":"Xi","G":"Gamma","S":"Sigma","L":"Pi","D":"Delta","R":"Theta"},
+  "Delta":  {"TL":"Phi","TR":"Pi","G":"Gamma","S":"Sigma","L":"Xi","D":"Delta","R":"Phi","B":"Xi"},
+  "Theta":  {"TL":"Phi","TR":"Pi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Pi"},
+  "Lambda": {"TL":"Phi","TR":"Pi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Xi"},
+  "Xi":     {"TL":"Phi","TR":"Psi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Pi"},
+  "Pi":     {"TL":"Phi","TR":"Psi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Xi"},
+  "Sigma":  {"TL":"Lambda","TR":"Pi","G":"Gamma","S":"Sigma","L":"Xi","D":"Delta","R":"Phi","B":"Xi"},
+  "Phi":    {"TL":"Phi","TR":"Pi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Psi"},
+  "Psi":    {"TL":"Phi","TR":"Psi","G":"Gamma","S":"Sigma","L":"Psi","D":"Delta","R":"Phi","B":"Psi"}
+ },
+ "labels_display": {
+  "Gamma":  [["a+",437,365],["a-",310,435],["b-",268,505],["b+",222,605],["d-",398,633],["g-",488,490]],
+  "Delta":  [["g+",688,307],["b+",842,318],["e-",818,448],["a+",818,588],["g-",665,573],["z-",598,460]],
+  "Theta":  [["g+",1040,265],["b+",1192,275],["t+",1170,405],["b+",1105,628],["h",1018,528],["b-",955,415]],
+  "Lambda": [["g+",340,770],["b+",492,778],["e-",470,908],["a+",470,1048],["t-",318,1032],["b-",252,918]],
+  "Xi":     [["e+",757,738],["t+",822,865],["b+",757,1088],["h",670,990],["b-",603,877],["a-",640,804]],
+  "Pi":     [["e+",1095,778],["e-",1160,908],["a+",1160,1048],["t-",1005,1032],["b-",940,918],["a-",975,848]],
+  "Sigma":  [["z+",397,1210],["b+",487,1207],["e-",462,1338],["a+",462,1474],["g-",310,1462],["d+",245,1348]],
+  "Phi":    [["g+",685,1200],["b+",838,1210],["e-",815,1343],["e+",815,1480],["h",662,1465],["b-",597,1352]],
+  "Psi":    [["e+",1101,1215],["e-",1166,1343],["e+",1166,1480],["h",1015,1465],["b-",948,1352],["a-",985,1288]]
+ },
+ "crop_boxes_display": {"Gamma":[190,330,540,650],"Delta":[560,280,890,670],"Theta":[900,240,1240,650],"Lambda":[200,740,530,1125],"Xi":[560,720,890,1120],"Pi":[895,750,1240,1125],"Sigma":[195,1185,530,1560],"Phi":[555,1185,890,1560],"Psi":[895,1185,1240,1560]}
+}

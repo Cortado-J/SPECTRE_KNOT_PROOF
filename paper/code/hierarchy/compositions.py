@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+"""The compositions C_T(L, d, omega) of Section 7.1, walked port by port, and the junction map of Section 9.1.
+
+Built from the tables alone (Tables 1-3 from combin_8.json, the letters of Table 4 and l_1 from letters.json),
+with no geometry, no skeleton and no reduced walk: every child is a box with the signature (Def 4.3), glued to its
+siblings edge by edge as Table 2 says, and the ribbons are followed through the boxes and across every shared edge
+(Lemma 4.2). Standard library only. Written separately from the Lean formalisation (both by the AI system), which
+checks the same two computations in its kernel (Compose.compositions_level1, Compose.sig_base and Statement.step_base).
+
+  Computation 7.3  the 18 compositions C_T(l_1, d_1, +-1) have the signature.
+  Computation 9.2  in C_Delta(l_1, d_1, +-1), every arc of child 1 ends at the parent hook at the junction that
+                   Table 6 names (or, strictly inside side 2 of child 1, is a parent hook itself).
+  corroboration    the same at (l_m, d_m) for m = 2, 3, 4 (Prop 7.4, Lemma 9.3 checked directly); every single move
+                   from (l_1, d_1) keeps the signature (Lemma 7.1 checked directly on every instance at level 1), and
+                   keeps the junction map when the cut is at least two edges from both ends of its side.
+
+Usage: python3 hierarchy/compositions.py [max_level]   (default 4)
+"""
+import json
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ST = json.load(open(os.path.join(HERE, 'combin_8.json')))['ST']['1']
+LET = json.load(open(os.path.join(HERE, 'letters.json')))
+KINDS = ['Gamma', 'Delta', 'Theta', 'Lambda', 'Xi', 'Pi', 'Sigma', 'Phi', 'Psi']
+ORDER = LET['order']                                    # alpha, beta, ..., theta
+
+
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+
+def letter_lengths(m):
+    """Prop 6.2: the letter lengths at level m >= 1."""
+    F = fib
+    return {'alpha': F(3 * m + 2) + 2, 'beta': F(3 * m + 1) + 2, 'gamma': 2 * F(3 * m + 2), 'delta': 2 * F(3 * m + 2),
+            'epsilon': F(3 * m + 3), 'zeta': 2 * F(3 * m + 1), 'eta': 2 * F(3 * m + 2), 'theta': F(3 * m + 4) - 2}
+
+
+def d_off(m):
+    """Lemma 6.4: d_m = 2 F_{3m+1}."""
+    return 2 * fib(3 * m + 1)
+
+
+def parse(cj):
+    c, j = cj.split('.')
+    return int(c), int(j)
+
+
+class Comp:
+    """The composition of kind T: child c has side lengths L[c][0..5]; Sigma offset d; sign omega = +1 or -1."""
+
+    def __init__(self, T, L, d, omega, gap=1, swap=False):
+        self.T, self.L, self.d, self.omega = T, L, d, omega
+        self.swap = swap                                # negative control: junctions 12 and 16 exchanged in Table 6
+        st = ST[T]
+        self.kinds = st['kids']
+        self.n = len(self.kinds)
+        self.adj = [[None if s == 'R' else parse(s) for s in row] for row in st['sides']]
+        self.pcs = [parse(p) for side in st['pside'] for p in side]
+        self.U = []
+        self.E, self.A, self.B = [], [], []
+        for c in range(self.n):
+            U = [0]
+            for j in range(6):
+                U.append(U[-1] + L[c][j])
+            E = U[6]
+            A = U[5] + d if self.kinds[c] == 'Sigma' else 0
+            B = (A + gap) % E if omega > 0 else (A - gap) % E    # gap = 2: negative control
+            self.U.append(U); self.E.append(E); self.A.append(A); self.B.append(B)
+
+    def side_of(self, c, k):
+        U = self.U[c]
+        j = max(j for j in range(6) if U[j] <= k)
+        return j, k - U[j]
+
+    def mate(self, c, k):
+        """Edge k of child c is edge mate(c, k) of a sibling, traversed the other way; None on the parent's rim."""
+        j, o = self.side_of(c, k)
+        a = self.adj[c][j]
+        if a is None:
+            return None
+        c2, j2 = a
+        return c2, self.U[c2][j2] + self.L[c2][j2] - 1 - o
+
+    def tau(self, p):
+        """Inside a child, by its signature: hooks, and the crossover R(A) <-> R(B), L(A) <-> L(B)."""
+        c, u, s = p
+        if u == self.A[c]:
+            return c, self.B[c], s
+        if u == self.B[c]:
+            return c, self.A[c], s
+        return c, u, not s
+
+    def sigma(self, p):
+        """The straight-through rule: R_c(u) lies on edge u, L_c(u) on edge u - 1."""
+        c, u, s = p
+        if s:
+            m = self.mate(c, u)
+            return None if m is None else (m[0], m[1], True)
+        m = self.mate(c, (u - 1) % self.E[c])
+        return None if m is None else (m[0], (m[1] + 1) % self.E[m[0]], False)
+
+    def well_formed(self):
+        for c in range(self.n):
+            if self.A[c] == self.B[c]:
+                return False
+            for k in range(self.E[c]):
+                m = self.mate(c, k)
+                if m is not None:
+                    c2, k2 = m
+                    if c2 == c or not 0 <= k2 < self.E[c2] or self.mate(c2, k2) != (c, k):
+                        return False
+        return True
+
+    def walk_all(self):
+        """The end of the walk from every port (alternately tau and sigma until the parent's rim), or None if a walk
+        closes up. Each walk is followed once; the ports met on the way share its end."""
+        ends = {}
+        nports = 2 * sum(self.E)
+        for c in range(self.n):
+            for u in range(self.E[c]):
+                for s in (True, False):
+                    x = (c, u, s)
+                    if x in ends:
+                        continue
+                    path, end = [], None
+                    while True:
+                        if x in ends:
+                            end = ends[x]
+                            break
+                        path.append(x)
+                        if len(path) > nports:
+                            break                       # a closed strand
+                        y = self.tau(x)
+                        z = self.sigma(y)
+                        if z is None:
+                            end = y
+                            break
+                        x = z
+                    for p in path:
+                        ends[p] = end
+        return ends
+
+    def rim_vertices(self):
+        """The parent's rim vertices in the children's sense: the pair (L port, R port) at each, from Table 3."""
+        own = []
+        for c, j in self.pcs:
+            for i in range(self.L[c][j]):
+                own.append((c, self.U[c][j] + self.L[c][j] - 1 - i))
+        es = own[::-1]
+        out = []
+        for t in range(len(es)):
+            c1, k1 = es[t]
+            c2, k2 = es[(t + 1) % len(es)]
+            out.append(((c1, (k1 + 1) % self.E[c1], False), (c2, k2, True)))
+        return out
+
+    def signature(self, ends=None):
+        """Computation 7.3 for this composition: well formed; no closed strand; a hook at every parent rim vertex but the
+        Gamma child's corners A and B, which are adjacent (B after A in the children's sense iff omega = +1) and carry
+        the crossover. Returns a list of failures (empty if it has the signature)."""
+        bad = []
+        if not self.well_formed():
+            return ['not well formed']
+        ends = ends or self.walk_all()
+        loops = sum(1 for e in ends.values() if e is None)
+        if loops:
+            bad.append(f'{loops} ports on closed strands')
+        rv = self.rim_vertices()
+        g = self.n - 1                                  # the Gamma child is the last
+        tA = [t for t, (_, pR) in enumerate(rv) if pR == (g, self.A[g], True)]
+        tB = [t for t, (_, pR) in enumerate(rv) if pR == (g, self.B[g], True)]
+        if len(tA) != 1 or len(tB) != 1:
+            return bad + ['Gamma corners not on the rim']
+        tA, tB = tA[0], tB[0]
+        nonhooks = [t for t, (pL, pR) in enumerate(rv) if ends.get(pL) != pR]
+        if sorted(nonhooks) != sorted([tA, tB]):
+            bad.append(f'non-hooks at {nonhooks}, corners at {tA}, {tB}')
+        N = len(rv)
+        if tB != ((tA + 1) % N if self.omega > 0 else (tA - 1) % N):
+            bad.append('corners not adjacent as omega says')
+        if ends.get(rv[tA][1]) != rv[tB][1] or ends.get(rv[tA][0]) != rv[tB][0]:
+            bad.append('no crossover at A, B')
+        return bad
+
+    # ---- the junction map (Delta only) ----
+
+    def jR(self, q):
+        c, j = self.pcs[q]
+        return c, self.U[c][(j + 1) % 6], False
+
+    def jL(self, q):
+        c, j = self.pcs[q - 1]
+        return c, self.U[c][j], True
+
+    def tgt(self, u, s):
+        q = self.tgt0(u, s)
+        return {12: 16, 16: 12}.get(q, q) if self.swap else q
+
+    def tgt0(self, u, s):
+        """Table 6: the junction (piece number of Table 3) of the parent hook on which the arc of child 1 at port s of
+        its rim vertex u lies; None strictly inside side 2 of child 1 (a parent hook itself)."""
+        U = self.U[1]
+        if self.omega > 0:
+            if u in (0, 1):
+                return 17 if s else 9
+            if u <= U[2]: return 17
+            if u < U[3]: return None
+            if u < U[4]: return 16
+            if u < U[5]: return 12
+            return 9
+        if u in (0, U[6] - 1):
+            return 21 if s else 16
+        if u <= U[1]: return 21
+        if u <= U[2]: return 17
+        if u < U[3]: return None
+        return 16
+
+    def junction_map(self, ends=None):
+        """Computation 9.2 for this composition. Returns a list of failures."""
+        assert self.T == 'Delta'
+        ends = ends or self.walk_all()
+        bad = []
+        for u in range(self.E[1]):
+            for s in (True, False):
+                q = self.tgt(u, s)
+                r = ends.get((1, u, s))
+                if q is None:
+                    if r != (1, u, not s):
+                        bad.append((u, s, 'not a parent hook'))
+                elif r not in (self.jR(q), self.jL(q)):
+                    bad.append((u, s, q, r))
+        return bad
+
+    def junction_positions(self):
+        """Where the junctions 9, 12, 16, 17, 21 lie on the parent's rim, in its own order: (side, offset from its
+        start, side length)."""
+        Lp = [sum(self.L[c][j] for c, j in map(parse, sd)) for sd in ST[self.T]['pside']]
+        starts = [sum(Lp[:J]) for J in range(7)]
+        pos, out, q = 0, {}, 0
+        for J, sd in enumerate(ST[self.T]['pside']):
+            for cj in sd:
+                out[q] = (J, pos - starts[J], Lp[J])
+                c, j = parse(cj)
+                pos += self.L[c][j]
+                q += 1
+        return {q: out[q] for q in (9, 12, 16, 17, 21)}
+
+
+def lens_of(T, lam):
+    return [[lam[LET['letter'][K][j]] for j in range(6)] for K in ST[T]['kids']]
+
+
+def check_level(m):
+    lam, d = letter_lengths(m), d_off(m)
+    ok = True
+    for T in KINDS:
+        for omega in (1, -1):
+            C = Comp(T, lens_of(T, lam), d, omega)
+            ends = C.walk_all()
+            bad = C.signature(ends)
+            msg = 'signature' if not bad else 'FAIL ' + '; '.join(bad)
+            if T == 'Delta':
+                jb = C.junction_map(ends)
+                msg += ', junction map' if not jb else f', JUNCTION MAP FAILS at {len(jb)} ports, e.g. {jb[:3]}'
+                bad = bad + jb
+            ok = ok and not bad
+            print(f'  m={m} {T:7s} omega={omega:+d}: rim {len(C.rim_vertices()):6d}, '
+                  f'{2 * sum(C.E):6d} ports: {msg}')
+    return ok
+
+
+def check_moves():
+    """Every single move from (l_1, d_1): lengthen one side by 2 (and its partner), cutting at offset r (not the first
+    or last edge, and clear of the Sigma corner); the Sigma corner moves on by 2 if the cut lies before it."""
+    lam, d1 = letter_lengths(1), d_off(1)
+    total, kept, jtotal, jkept = 0, 0, 0, 0
+    for T in KINDS:
+        base = lens_of(T, lam)
+        kinds = ST[T]['kids']
+        adj = [[None if s == 'R' else parse(s) for s in row] for row in ST[T]['sides']]
+        for omega in (1, -1):
+            for c in range(len(kinds)):
+                for j in range(6):
+                    a = adj[c][j]
+                    if a is not None and (a[0], a[1]) < (c, j):
+                        continue                        # each glued pair once
+                    Lj = base[c][j]
+                    for r in range(1, Lj - 1):
+                        d = d1
+                        sides = [(c, j, r)] + ([] if a is None else [(a[0], a[1], Lj - 1 - r)])
+                        clear = True
+                        for (cc, jj, rr) in sides:
+                            if kinds[cc] == 'Sigma' and jj == 5:
+                                if not (d1 + 1 <= rr or rr + 2 <= d1):
+                                    clear = False
+                                elif rr + 2 <= d1:
+                                    d = d1 + 2
+                        if not clear:
+                            continue
+                        L = [row[:] for row in base]
+                        for (cc, jj, _) in sides:
+                            L[cc][jj] += 2
+                        C = Comp(T, L, d, omega)
+                        ends = C.walk_all()
+                        total += 1
+                        kept += not C.signature(ends)
+                        if T == 'Delta' and all(2 <= rr and rr + 3 <= Lj for (cc, jj, rr) in sides if cc == 1):
+                            jtotal += 1
+                            jkept += not C.junction_map(ends)
+    print(f'  single moves from (l_1, d_1): {total // 2} moves, each with both signs: {kept} of {total} compositions keep the '
+          f'signature; {jtotal // 2} Delta moves (any cut on child 1 two edges clear of the ends of its side), both signs: '
+          f'{jkept} of {jtotal} keep the junction map')
+    return kept == total and jkept == jtotal
+
+
+def main():
+    top = int(sys.argv[1]) if len(sys.argv) > 1 else 4
+    print('Computation 7.3 and Computation 9.2: the compositions at the level-1 lengths')
+    print(f'  l_1 = {[letter_lengths(1)[x] for x in ORDER]} ({", ".join(ORDER)}), d_1 = {d_off(1)}')
+    ok1 = check_level(1)
+    print('Corroboration: the same at the level-m lengths')
+    okm = all([check_level(m) for m in range(2, top + 1)])
+    print('Corroboration of Lemma 7.1 at level 1: every single move')
+    okmv = check_moves()
+    print('Negative controls')
+    lam, d1 = letter_lengths(1), d_off(1)
+    gapfail = sum(1 for T in KINDS for o in (1, -1) if Comp(T, lens_of(T, lam), d1, o, gap=2).signature())
+    swapfail = sum(1 for o in (1, -1) if Comp('Delta', lens_of('Delta', lam), d1, o, swap=True).junction_map())
+    print(f'  corners two apart (B = A +- 2): {gapfail} of 18 compositions fail the signature check')
+    print(f'  junctions 12 and 16 exchanged in Table 6: the junction map check fails for {swapfail} of 2 signs')
+    okneg = gapfail == 18 and swapfail == 2
+    print('Junctions on the parent rim (Delta): (side, offset from its start, side length)')
+    for m in range(1, top + 1):
+        C = Comp('Delta', lens_of('Delta', letter_lengths(m)), d_off(m), 1)
+        print(f'  m={m}: {C.junction_positions()}')
+    if ok1 and okm and okmv and okneg:
+        print('ALL CHECKS PASSED: 18 compositions have the signature and the junction map holds, levels 1-%d' % top)
+    else:
+        print('FAILED')
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

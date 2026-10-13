@@ -1,0 +1,18 @@
+real build to level 9: 266 s
+S_2 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_3 = F(C, v_1, d_1, beta=+1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_4 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_5 = F(C, v_1, d_1, beta=+1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_6 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_7 = F(C, v_1, d_1, beta=+1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_8 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+S_9 = F(C, v_1, d_1, beta=+1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
+level 1: B - A = -1 (own ccw); Sigma offset parity 0
+level 2: B - A = +1 (own ccw); Sigma offset parity 0
+level 3: B - A = -1 (own ccw); Sigma offset parity 0
+level 4: B - A = +1 (own ccw); Sigma offset parity 0
+level 5: B - A = -1 (own ccw); Sigma offset parity 0
+level 6: B - A = +1 (own ccw); Sigma offset parity 0
+level 7: B - A = -1 (own ccw); Sigma offset parity 0
+level 8: B - A = +1 (own ccw); Sigma offset parity 0
+ALL MATCH

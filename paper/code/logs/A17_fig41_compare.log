@@ -1,0 +1,11 @@
+spectre paper PDF sha256 1a1c2123c63f7fe25efb0107ef5a3d1a8ad9d32b1e67a7d597b4723456c01be0 (expected - ok)
+Gamma   dots 6; best fit: proper=True residual 0.006 edge (next best 2.31; best other kind Sigma 0.39); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Delta   dots 6; best fit: proper=True residual 0.007 edge (next best 1.69; best other kind Lambda 0.32); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Theta   dots 6; best fit: proper=True residual 0.005 edge (next best 0.58; best other kind Phi 0.91); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Lambda  dots 6; best fit: proper=True residual 0.006 edge (next best 1.58; best other kind Phi 0.32); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Xi      dots 6; best fit: proper=True residual 0.005 edge (next best 1.47; best other kind Lambda 0.53); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Pi      dots 6; best fit: proper=True residual 0.006 edge (next best 1.43; best other kind Psi 0.32); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Sigma   dots 6; best fit: proper=True residual 0.005 edge (next best 2.09; best other kind Gamma 0.38); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Phi     dots 6; best fit: proper=True residual 0.007 edge (next best 1.46; best other kind Lambda 0.33); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+Psi     dots 6; best fit: proper=True residual 0.007 edge (next best 1.26; best other kind Pi 0.33); rim on outline 100.0%; Mystic shading first/second 212/173; leftmost dot = our vertex 0; labels = Table 4  ok
+FIG. 4.1: ALL NINE CLUSTERS AGREE

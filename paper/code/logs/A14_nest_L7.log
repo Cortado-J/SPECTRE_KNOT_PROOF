@@ -1,0 +1,6 @@
+base 1 (level-1 Delta, 46 arcs): L2: 3 classes (carried 0h/1i); L3: 2 classes (carried 0h/0i); L4: 2 classes (carried 1h/0i); L5: 1 class (carried 0h/0i); L6: 1 class (carried 0h/0i); L7: 1 class (carried 0h/0i)
+base 2 (level-2 Delta, 182 arcs): L3: 4 classes (carried 0h/1i); L4: 2 classes (carried 1h/0i); L5: 1 class (carried 0h/0i); L6: 1 class (carried 0h/0i); L7: 1 class (carried 0h/0i)
+base 3 (level-3 Delta, 758 arcs): L4: 3 classes (carried 0h/1i); L5: 2 classes (carried 0h/0i); L6: 2 classes (carried 1h/0i); L7: 1 class (carried 0h/0i)
+
+Canonical label-input encodings compared between bases b and b+2 (same relative level):
+  base 1 vs 3: L1:DIFF L2:DIFF L3:same L4:same

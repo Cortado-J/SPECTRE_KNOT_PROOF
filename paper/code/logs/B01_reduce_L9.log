@@ -1,0 +1,31 @@
+design 01222222222222: tile rim 14 edges, defects at vertices 0,1 (A=0), loops 0
+Gamma (2 tiles): rim 20, non-hook rim vertices 2, loops 0
+level 1 (0s): Gamma:44e/21m ok/ok inh=[[6,"B"],[6,"A"]] | Delta:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Theta:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Lambda:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Xi:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Pi:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Sigma:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Phi:46e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Psi:46e/24m ok/ok inh=[[7,"B"],[7,"A"]]
+level 2 (0s): Gamma:160e/21m ok/ok inh=[[6,"A"],[6,"B"]] | Delta:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Theta:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Lambda:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Xi:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Pi:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Sigma:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Phi:182e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Psi:182e/24m ok/ok inh=[[7,"A"],[7,"B"]]
+level 3 (0s): Gamma:652e/21m ok/ok inh=[[6,"B"],[6,"A"]] | Delta:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Theta:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Lambda:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Xi:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Pi:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Sigma:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Phi:758e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Psi:758e/24m ok/ok inh=[[7,"B"],[7,"A"]]
+level 4 (0s): Gamma:2736e/21m ok/ok inh=[[6,"A"],[6,"B"]] | Delta:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Theta:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Lambda:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Xi:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Pi:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Sigma:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Phi:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Psi:3198e/24m ok/ok inh=[[7,"A"],[7,"B"]]
+level 5 (1s): Gamma:11564e/21m ok/ok inh=[[6,"B"],[6,"A"]] | Delta:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Theta:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Lambda:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Xi:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Pi:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Sigma:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Phi:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Psi:13534e/24m ok/ok inh=[[7,"B"],[7,"A"]]
+level 6 (2s): Gamma:48960e/21m ok/ok inh=[[6,"A"],[6,"B"]] | Delta:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Theta:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Lambda:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Xi:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Pi:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Sigma:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Phi:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Psi:57318e/24m ok/ok inh=[[7,"A"],[7,"B"]]
+level 7 (11s): Gamma:207372e/21m ok/ok inh=[[6,"B"],[6,"A"]] | Delta:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Theta:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Lambda:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Xi:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Pi:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Sigma:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Phi:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Psi:242790e/24m ok/ok inh=[[7,"B"],[7,"A"]]
+level 8 (52s): Gamma:878416e/21m ok/ok inh=[[6,"A"],[6,"B"]] | Delta:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Theta:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Lambda:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Xi:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Pi:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Sigma:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Phi:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]] | Psi:1028462e/24m ok/ok inh=[[7,"A"],[7,"B"]]
+level 9 (268s): Gamma:3721004e/21m ok/ok inh=[[6,"B"],[6,"A"]] | Delta:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Theta:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Lambda:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Xi:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Pi:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Sigma:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Phi:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]] | Psi:4356622e/24m ok/ok inh=[[7,"B"],[7,"A"]]
+
+Reduced data (skeleton, marks, run parities, partners, rim order, defect marks) compared across levels:
+  Gamma  2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Delta  2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Theta  2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Lambda 2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Xi     2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Pi     2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Sigma  2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Phi    2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+  Psi    2=3:DIFF 3=4:DIFF 4=5:DIFF 5=6:DIFF 6=7:DIFF 7=8:DIFF 8=9:DIFF 2=4:same 3=5:same 4=6:same 5=7:same 6=8:same 7=9:same
+
+Two-level data for Delta child 1 (its own rim marks located in the runs of the next level):
+  level 2: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1 (differs from next) (= N+2)
+  level 3: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1 (differs from next) (= N+2)
+  level 4: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1 (differs from next) (= N+2)
+  level 5: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1 (differs from next) (= N+2)
+  level 6: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1 (differs from next) (= N+2)
+  level 7: A@m0 B@m8 J@r7+1 J@r7+1 J@r5+0 J@r5+0 J@r4+0 J@r2+0 J@r2+0 J@r0+1 (differs from next) (= N+2)
+  level 8: A@m0 J@r7+1 J@r7+1 J@r4+0 J@r4+0 J@r3+1 J@r2+1 J@r2+1 J@r1+0 B@m1 (differs from next) 

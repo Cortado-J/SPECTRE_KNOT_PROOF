@@ -1,0 +1,11 @@
+tex/*.aux
+tex/*.bbl
+tex/*.blg
+tex/*.fdb_latexmk
+tex/*.fls
+tex/*.log
+tex/*.out
+tex/build.log
+figures/__pycache__/
+code/exact/__pycache__/
+tex/spectre_knot.pdf

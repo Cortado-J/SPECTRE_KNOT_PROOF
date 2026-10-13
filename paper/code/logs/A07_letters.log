@@ -1,0 +1,34 @@
+1. partner sides carry matching labels (x+ with x-, eta with eta): yes
+2. letter recurrence (parent letter = sum of child letters), the same in every kind:
+     alpha    -> beta + epsilon + eta
+     beta     -> alpha + epsilon
+     gamma    -> beta + 2*epsilon + eta + theta
+     delta    -> alpha + beta + epsilon + 2*theta
+     epsilon  -> 3*epsilon + eta
+     zeta     -> alpha + epsilon + theta
+     eta      -> 4*epsilon + eta
+     theta    -> 4*epsilon + eta + theta
+3. lengths depend only on the letter, levels 1 .. 8 , and follow the recurrence: yes
+     level 1: alpha=7, beta=5, gamma=10, delta=10, epsilon=8, zeta=6, eta=10, theta=11
+     level 2: alpha=23, beta=15, gamma=42, delta=42, epsilon=34, zeta=26, eta=42, theta=53
+     level 3: alpha=91, beta=57, gamma=178, delta=178, epsilon=144, zeta=110, eta=178, theta=231
+     level 4: alpha=379, beta=235, gamma=754, delta=754, epsilon=610, zeta=466, eta=754, theta=985
+     level 5: alpha=1599, beta=989, gamma=3194, delta=3194, epsilon=2584, zeta=1974, eta=3194, theta=4179
+     level 6: alpha=6767, beta=4183, gamma=13530, delta=13530, epsilon=10946, zeta=8362, eta=13530, theta=17709
+     level 7: alpha=28659, beta=17713, gamma=57314, delta=57314, epsilon=46368, zeta=35422, eta=57314, theta=75023
+     level 8: alpha=121395, beta=75027, gamma=242786, delta=242786, epsilon=196418, zeta=150050, eta=242786, theta=317809
+4. parities 11000001 (alpha..theta); fixed by the recurrence mod 2: True
+5. Sigma offset: d_1 = 6; d_(m+1) = theta_m + epsilon_m + alpha_m and l(Sigma,5) - d = beta_m + theta_m at levels 2..8: yes
+   letter of Sigma side 5: delta ; of Xi sides 1, 2: epsilon theta ; of Gamma side 0: alpha ; of Gamma side 5: beta ; of Lambda side 4: theta
+6. closed forms l_m = a lambda^(m-1) + b mu^(m-1) + c, lambda = 2+sqrt5, mu = 2-sqrt5 (checked at all measured levels):
+     alpha    a = 11*sqrt(5)/10 + 5/2, b = 5/2 - 11*sqrt(5)/10, c = 2
+     beta     a = 3/2 + 7*sqrt(5)/10, b = 3/2 - 7*sqrt(5)/10, c = 2
+     gamma    a = 11*sqrt(5)/5 + 5, b = 5 - 11*sqrt(5)/5, c = 0
+     delta    a = 11*sqrt(5)/5 + 5, b = 5 - 11*sqrt(5)/5, c = 0
+     epsilon  a = 4 + 9*sqrt(5)/5, b = 4 - 9*sqrt(5)/5, c = 0
+     zeta     a = 3 + 7*sqrt(5)/5, b = 3 - 7*sqrt(5)/5, c = 0
+     eta      a = 11*sqrt(5)/5 + 5, b = 5 - 11*sqrt(5)/5, c = 0
+     theta    a = 29*sqrt(5)/10 + 13/2, b = 13/2 - 29*sqrt(5)/10, c = -2
+   characteristic polynomial of the letter matrix: lambda**3*(lambda - 1)**2*(lambda + 1)*(lambda**2 - 4*lambda - 1)
+   dim span{M^i l_1} = 3
+LETTERS: ALL CHECKS PASS

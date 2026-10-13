@@ -1,0 +1,14 @@
+level 1 tiles 9 strands 46
+level 2 tiles 71 strands 182
+level 3 tiles 559 strands 758
+level 4 tiles 4401 strands 3198
+level 5 tiles 34649 strands 13534
+tile 0 strands through it at levels 1..5: 9 1 1 1 1
+tile 1 strands through it at levels 1..5: 5 2 1 1 1
+tile 2 strands through it at levels 1..5: 9 1 1 1 1
+tile 3 strands through it at levels 1..5: 7 5 1 1 1
+tile 4 strands through it at levels 1..5: 5 4 2 2 1
+tile 5 strands through it at levels 1..5: 9 4 2 2 1
+tile 6 strands through it at levels 1..5: 7 1 1 1 1
+tile 7 strands through it at levels 1..5: 8 2 2 2 1
+tile 8 strands through it at levels 1..5: 3 3 2 2 1

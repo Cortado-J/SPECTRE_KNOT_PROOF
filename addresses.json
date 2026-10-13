@@ -1,0 +1,527 @@
+{
+ "_about": "Written by proofmap/build.py in SPECTRE_KNOT_PROOF. The addresses of the proof site that the public site may link to.",
+ "base": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/",
+ "statement": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/statement.html",
+ "paper": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/downloads/The-Spectre-Knot-paper.pdf",
+ "code": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/downloads/The-Spectre-Knot-proof-code.zip",
+ "steps": {
+  "1": [],
+  "2": [
+   "thm:smkgs",
+   "prop:pattern",
+   "lem:rigid"
+  ],
+  "3": [
+   "def:decoration",
+   "def:rule",
+   "def:strandgraph",
+   "lem:degree2",
+   "rem:periodic"
+  ],
+  "4": [
+   "lem:box",
+   "lem:gluing",
+   "def:signature",
+   "lem:tilesig"
+  ],
+  "5": [
+   "lem:zigzag",
+   "prop:reduce",
+   "cor:placement"
+  ],
+  "6": [
+   "prop:letters",
+   "prop:fib",
+   "cor:parity",
+   "lem:Apos",
+   "lem:bounds"
+  ],
+  "7": [
+   "lem:lengthen",
+   "lem:reach",
+   "comp:compose",
+   "prop:compose",
+   "comp:base",
+   "thm:signature",
+   "thm:A"
+  ],
+  "8": [
+   "con:nest",
+   "prop:nestwell",
+   "lem:gap",
+   "prop:nesttiling"
+  ],
+  "9": [
+   "thm:merge",
+   "comp:junction",
+   "lem:junctionmap",
+   "lem:junctions",
+   "thm:B"
+  ],
+  "10": [
+   "rem:three"
+  ]
+ },
+ "results": {
+  "thm:A": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-thm-A",
+   "kind": "Theorem",
+   "number": "A",
+   "name": "The Daedalus Theorem",
+   "status": "argued",
+   "lean": true,
+   "lean_part": true,
+   "step": 7
+  },
+  "thm:B": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-thm-B",
+   "kind": "Theorem",
+   "number": "B",
+   "name": "The Ariadne Theorem",
+   "status": "argued",
+   "lean": true,
+   "lean_part": true,
+   "step": 9
+  },
+  "thm:smkgs": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-thm-smkgs",
+   "kind": "Theorem",
+   "number": "2.1",
+   "name": "The spectre hierarchy",
+   "status": "cited",
+   "lean": false,
+   "lean_part": false,
+   "step": 2
+  },
+  "def:own": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-own",
+   "kind": "Definition",
+   "number": "2.2",
+   "name": "Own orientation",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "def:pattern": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-pattern",
+   "kind": "Definition",
+   "number": "2.3",
+   "name": "Composition pattern",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "prop:pattern": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-pattern",
+   "kind": "Proposition",
+   "number": "2.4",
+   "name": "The pattern holds at every level",
+   "status": "argued",
+   "lean": true,
+   "lean_part": true,
+   "step": 2
+  },
+  "rem:patterncheck": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-patterncheck",
+   "kind": "Remark",
+   "number": "2.5",
+   "name": "Computer cross-checks of the pattern",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "lem:rigid": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-rigid",
+   "kind": "Lemma",
+   "number": "2.6",
+   "name": "Rigidity",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 2
+  },
+  "def:decoration": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-decoration",
+   "kind": "Definition",
+   "number": "3.1",
+   "name": "The decoration",
+   "status": null,
+   "lean": true,
+   "lean_part": false,
+   "step": 3
+  },
+  "def:rule": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-rule",
+   "kind": "Definition",
+   "number": "3.2",
+   "name": "Straight-through rule",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": 3
+  },
+  "def:strandgraph": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-strandgraph",
+   "kind": "Definition",
+   "number": "3.3",
+   "name": "Strand graph",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": 3
+  },
+  "lem:degree2": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-degree2",
+   "kind": "Lemma",
+   "number": "3.4",
+   "name": "Strands are cycles or lines",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 3
+  },
+  "rem:periodic": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-periodic",
+   "kind": "Remark",
+   "number": "3.5",
+   "name": "A single strand needs a non-periodic tiling",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": 3
+  },
+  "rem:overunder": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-overunder",
+   "kind": "Remark",
+   "number": "3.6",
+   "name": "Over and under",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "lem:box": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-box",
+   "kind": "Lemma",
+   "number": "4.1",
+   "name": "The box of a patch",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 4
+  },
+  "lem:gluing": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-gluing",
+   "kind": "Lemma",
+   "number": "4.2",
+   "name": "Gluing",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 4
+  },
+  "def:signature": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-signature",
+   "kind": "Definition",
+   "number": "4.3",
+   "name": "Signature",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": 4
+  },
+  "lem:tilesig": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-tilesig",
+   "kind": "Lemma",
+   "number": "4.4",
+   "name": "Signature of the tile and the Mystic",
+   "status": "argued",
+   "lean": true,
+   "lean_part": true,
+   "step": 4
+  },
+  "lem:zigzag": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-zigzag",
+   "kind": "Lemma",
+   "number": "5.1",
+   "name": "Zigzag Lemma",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 5
+  },
+  "def:marks": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-marks",
+   "kind": "Definition",
+   "number": "5.2",
+   "name": "Marks and runs",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "def:skeleton": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-skeleton",
+   "kind": "Definition",
+   "number": "5.3",
+   "name": "Skeleton",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "prop:reduce": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-reduce",
+   "kind": "Proposition",
+   "number": "5.4",
+   "name": "Reduced composition",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 5
+  },
+  "cor:placement": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-cor-placement",
+   "kind": "Corollary",
+   "number": "5.5",
+   "name": "Where a hook goes",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 5
+  },
+  "prop:letters": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-letters",
+   "kind": "Proposition",
+   "number": "6.1",
+   "name": "Lengths by letter",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 6
+  },
+  "prop:fib": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-fib",
+   "kind": "Proposition",
+   "number": "6.2",
+   "name": "Fibonacci side lengths",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 6
+  },
+  "cor:parity": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-cor-parity",
+   "kind": "Corollary",
+   "number": "6.3",
+   "name": "Parities are constant",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 6
+  },
+  "lem:Apos": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-Apos",
+   "kind": "Lemma",
+   "number": "6.4",
+   "name": "Position of A",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 6
+  },
+  "lem:bounds": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-bounds",
+   "kind": "Lemma",
+   "number": "6.5",
+   "name": "Lower bounds",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 6
+  },
+  "lem:lengthen": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-lengthen",
+   "kind": "Lemma",
+   "number": "7.1",
+   "name": "Lengthening",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "lem:reach": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-reach",
+   "kind": "Lemma",
+   "number": "7.2",
+   "name": "Reachability",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "comp:compose": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-comp-compose",
+   "kind": "Computation",
+   "number": "7.3",
+   "name": "The compositions at the level-1 lengths",
+   "status": "computed",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "prop:compose": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-compose",
+   "kind": "Proposition",
+   "number": "7.4",
+   "name": "Compositions at every level",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "comp:base": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-comp-base",
+   "kind": "Computation",
+   "number": "7.5",
+   "name": "Base case",
+   "status": "computed",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "thm:signature": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-thm-signature",
+   "kind": "Theorem",
+   "number": "7.6",
+   "name": "Signature Theorem",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 7
+  },
+  "rem:ccw": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-ccw",
+   "kind": "Remark",
+   "number": "7.7",
+   "name": "",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "rem:skeleton": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-skeleton",
+   "kind": "Remark",
+   "number": "7.8",
+   "name": "Other checks of the signature",
+   "status": null,
+   "lean": true,
+   "lean_part": false,
+   "step": null
+  },
+  "con:nest": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-con-nest",
+   "kind": "Construction",
+   "number": "8.1",
+   "name": "The nest",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 8
+  },
+  "prop:nestwell": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-nestwell",
+   "kind": "Proposition",
+   "number": "8.2",
+   "name": "The blocks are well defined",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 8
+  },
+  "lem:gap": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-gap",
+   "kind": "Lemma",
+   "number": "8.3",
+   "name": "Grandparent Lemma",
+   "status": "argued",
+   "lean": true,
+   "lean_part": true,
+   "step": 8
+  },
+  "prop:nesttiling": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-nesttiling",
+   "kind": "Proposition",
+   "number": "8.4",
+   "name": "The nest tiles the plane",
+   "status": "argued",
+   "lean": false,
+   "lean_part": false,
+   "step": 8
+  },
+  "thm:merge": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-thm-merge",
+   "kind": "Theorem",
+   "number": "9.1",
+   "name": "Merging",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 9
+  },
+  "comp:junction": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-comp-junction",
+   "kind": "Computation",
+   "number": "9.2",
+   "name": "The junction map at the level-1 lengths",
+   "status": "computed",
+   "lean": true,
+   "lean_part": false,
+   "step": 9
+  },
+  "lem:junctionmap": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-junctionmap",
+   "kind": "Lemma",
+   "number": "9.3",
+   "name": "The junction map",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 9
+  },
+  "lem:junctions": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-junctions",
+   "kind": "Lemma",
+   "number": "9.4",
+   "name": "Where the junctions lie",
+   "status": "argued",
+   "lean": true,
+   "lean_part": false,
+   "step": 9
+  },
+  "rem:labels": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-labels",
+   "kind": "Remark",
+   "number": "9.5",
+   "name": "Other checks of Theorem 9.1",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": null
+  },
+  "rem:three": {
+   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-three",
+   "kind": "Remark",
+   "number": "10.1",
+   "name": "Three strands: a computation, not a theorem",
+   "status": null,
+   "lean": false,
+   "lean_part": false,
+   "step": 10
+  }
+ }
+}
