@@ -758,7 +758,7 @@ def build(site_dir=None):
     OUT.mkdir(exist_ok=True)
     gparts = build_guide.prerender_parts(build_guide.assemble(guide), OUT)
     guide_html = build_guide.fill(build_guide.assemble(
-        guide, title=GUIDE_TITLE, head=FONTS, css=PM_CSS + GUIDE_CSS, top=map_header(MAP_FILE, current='statement') + PM_H_SCRIPT,
+        guide, title=GUIDE_TITLE, head=FAVICON + '\n' + FONTS, css=PM_CSS + GUIDE_CSS, top=map_header(MAP_FILE, current='statement') + PM_H_SCRIPT,
         foot=FOOTER), gparts)
     # the artifact (its main page is served as index.html): MathJax from a public CDN, the guide beside it
     art = page.replace('%MATHJAX%', MATHJAX_CDN).replace('%HEADER%', map_header('')).replace('%FOOTER%', FOOTER)
@@ -780,7 +780,9 @@ MAP_FILE = 'index.html'          # the map
 STATEMENT_FILE = 'statement.html'   # the line-by-line guide to Statement.lean, beside it
 GUIDE_TITLE = 'Statement.lean, line by line · The Spectre Knot: the proof'
 HEAD = ('<!doctype html>\n<html lang="en-GB">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n')
+        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + '%s\n')
+FAVICON = '<link rel="icon" type="image/svg+xml" href="favicon.svg">'   # proofmap/favicon.svg: the tile in the accent green (owner, 13 Oct 2026)
+HEAD = HEAD % FAVICON
 TAIL = '\n</body>\n</html>\n'
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
@@ -841,6 +843,7 @@ def write_site(page, www, guide_html):
     dl = www / 'downloads'
     dl.mkdir(exist_ok=True)
     shutil.copy(PDF, dl / 'The-Spectre-Knot-paper.pdf')
+    shutil.copy(HERE / 'favicon.svg', www / 'favicon.svg')
     # the proof's programs and logs as code/..., and the Lean formalisation as lean/..., from the files git knows
     # about; fixed dates, so the zip only changes when they do
     files = subprocess.run(['git', 'ls-files', '--cached', 'paper/code', 'lean'], cwd=ROOT, capture_output=True,
