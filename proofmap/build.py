@@ -1012,6 +1012,7 @@ def write_site(page, www, guide_html, readers, code_zip, search_js):
     dl.mkdir(exist_ok=True)
     shutil.copy(PDF, www / PDF_FILE)
     shutil.copy(HERE / 'favicon.svg', www / 'favicon.svg')
+    shutil.copy(HERE / 'hero.svg', www / 'hero.svg')   # the drawing beside the overview's title (make_hero.py)
     (www / ZIP_FILE).write_bytes(code_zip)
     (www / '.nojekyll').write_text('')
 
@@ -1245,8 +1246,9 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
             '<a href="%s">%s</a>' % (h, l % {'pages': pdf['pages'], 'date': paper_date()}) for h, l in go) if go else '')
         for href, t, d, go in WAYS)
     return '''<section class="view" id="v-map" data-view="map">
-<div class="pm-hero">
+<div class="pm-hero home-hero">
   <h1>The Spectre Knot theorems, proved</h1>
+  <figure class="home-art"><img src="hero.svg" width="400" height="321" alt="The block N2 of the nest tiling, its ribbons drawn in fine lines"><figcaption><i>N</i><sub>2</sub> of the nest, with <i>N</i><sub>1</sub> dashed and the first tile shaded: no strand closes, and the first tile&rsquo;s pieces lie on just the two tinted strands.</figcaption></figure>
   <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it.</p>
 </div>
 <div class="ways">%s</div>
@@ -1256,7 +1258,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
   %s%s
   <p class="small">In Lean 4, the two main theorems. Their claims, <a href="#%s"><code>TheoremA_strand</code></a> and <a href="#%s"><code>TheoremB_strand</code></a>, are written out in the statement file in a combinatorial form, with patches described by which edges are glued:</p>
   <pre class="lean hero-lean">%s</pre>
-  <p class="small">The build, <code>lean/build.sh</code>, runs <code>#print axioms</code> on the main theorems (<a href="lean-Axioms.html"><code>lean/Axioms.lean</code></a>) and fails unless the answer is among Lean&rsquo;s standard three, <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: no <code>sorryAx</code>, no <code>Lean.ofReduceBool</code>.</p>
+  <p class="small">The build, <code>lean/build.sh</code>, runs <code>#print axioms</code> on the main theorems (<a href="lean-Axioms.html"><code>lean/Axioms.lean</code></a>) and fails unless the answer is among Lean&rsquo;s standard three, <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: no <code>sorryAx</code>, no <code>Lean.ofReduceBool</code>. It also fails if a main theorem no longer proves exactly its claim in the statement file, if the statement file or a file it imports has changed since its SHA-256 was recorded, or if <code>leanchecker</code>, replaying every declaration through the kernel, finds a problem.</p>
   <p class="small">That actual spectre tilings are glued as the formal statements assume is argued in the paper, not formalised: <a href="#notcovered">what the Lean does not cover</a>.</p>
   %%STATUS%%
   <p class="badges"><a class="badge root" href="#%s">Theorem A&rsquo;s page &rarr;</a> <a class="badge root" href="#%s">Theorem B&rsquo;s page &rarr;</a></p>
@@ -2411,10 +2413,10 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <div class="prose gl">
 <p>Lean 4, <code>%s</code> (pinned in <code>lean/lean-toolchain</code>), with the core library only: no Mathlib. With <a href="https://github.com/leanprover/elan">elan</a> installed:</p>
 <pre class="cmd">cd lean
-./build.sh            # about 6 minutes from clean
+./build.sh            # about 9 minutes from clean
 ./build.sh --slow     # with the slower tests: 2 minutes more</pre>
-<p class="small"><code>build.sh</code> fails if any source uses <code>sorry</code>, <code>admit</code> or <code>native_decide</code>, if a theorem or a <code>have</code> has no comment, if the build or a test fails, or if a main theorem depends on an axiom other than Lean&rsquo;s standard three (<a href="lean-Axioms.html"><code>Axioms.lean</code></a>).</p>
-<p class="small">GitHub builds it in the public repository whenever <code>lean/</code> changes: <a href="%s/actions/workflows/lean.yml">the Lean builds, with their logs</a>.</p>
+<p class="small"><code>build.sh</code> fails if the statement file or a file it imports has changed since its SHA-256 was recorded (<code>lean/TRUSTED.sha256</code>), if any source uses <code>sorry</code>, <code>admit</code>, <code>native_decide</code> or another way round the kernel, if a theorem or a <code>have</code> has no comment, if the build or a test fails, if a main theorem no longer proves exactly its claim, if a main theorem depends on an axiom other than Lean&rsquo;s standard three (<a href="lean-Axioms.html"><code>Axioms.lean</code></a>), or if <code>leanchecker</code>, replaying every declaration through Lean&rsquo;s kernel, finds a problem.</p>
+<p class="small">GitHub builds it in the public repository whenever <code>lean/</code> changes: <a href="%s/actions/workflows/lean.yml">the Lean builds, with their logs</a>; and checks that the Lean&rsquo;s data files are exactly what <code>paper/code/</code> generates whenever either changes (<code>lean/tools/check_data.sh</code>).</p>
 </div>
 <h2 class="sh">The computations</h2>
 <div class="prose gl">
@@ -2456,7 +2458,7 @@ def about_view(data, decls, lean_all, rows, notes, files):
 <li>the computations: the paper&rsquo;s table &ldquo;What was computed&rdquo;, each program linked to its file, with the logs of its steps as <code>paper/code/run_all.sh</code> names them;</li>
 <li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
 <li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
-<li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX;</li>
+<li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX; the drawing beside the overview&rsquo;s title is drawn by <code>proofmap/make_hero.py</code> from the paper&rsquo;s own figure code (the same tiles and ribbons);</li>
 <li>written by hand, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries were written by the AI and are labelled where they appear.</li>
 <li>the numbers on the overview, the depths and the chains of citations up to a main theorem: counted from the above when the site is built.</li>
 </ul>
@@ -2518,6 +2520,13 @@ code { background: var(--surf2); border-radius: 5px; padding: 1px 5px; }
 main { max-width: var(--max); margin: 0 auto; padding: 0 20px 80px; }
 .view { display: grid; gap: 18px; padding-top: 34px; }
 .pm-hero { display: grid; gap: 12px; padding-bottom: 6px; }
+/* the overview: the drawing beside the title and lede (proofmap/hero.svg); left out on narrow screens */
+.home-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); grid-template-rows: auto 1fr; column-gap: 32px; align-items: start; }
+.home-hero > h1, .home-hero > .lede { grid-column: 1; }
+.home-art { grid-column: 2; grid-row: 1 / span 2; margin: 6px 0 0; }
+.home-art img { display: block; width: 100%; height: auto; }
+.home-art figcaption { font: 13px/1.45 var(--font); color: var(--mut); margin-top: 8px; }
+@media (max-width: 900px) { .home-hero { grid-template-columns: minmax(0, 1fr); } .home-art { display: none; } }
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
 .hero-l { display: grid; gap: 12px; min-width: 0; }

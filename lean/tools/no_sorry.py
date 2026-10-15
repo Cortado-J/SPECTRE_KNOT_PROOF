@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""Fail if any Lean source uses sorry, admit or native_decide outside comments."""
+"""Fail if any Lean source uses, outside comments, sorry, admit or native_decide, or another way round Lean's kernel
+or the axiom check: axiom, opaque, partial, unsafe, implemented_by, extern, debug.skipKernelTC (declarations it lets
+through are never checked by the kernel, and #print axioms does not show it), ofReduceBool or reduceBool (what
+native_decide uses); or if lakefile.toml turns the kernel off (skipKernelTC)."""
 import pathlib
 import re
 import sys
+
+BANNED = (r'\b(sorry|admit|native_decide|axiom|opaque|partial|unsafe|implemented_by|extern|skipKernelTC|'
+          r'ofReduceBool|reduceBool)\b')
 
 bad = []
 for f in sorted(pathlib.Path('.').glob('SpectreKnot/**/*.lean')) + [pathlib.Path('Axioms.lean'), pathlib.Path('Tests.lean'), pathlib.Path('TestsSlow.lean')]:
@@ -22,7 +28,9 @@ for f in sorted(pathlib.Path('.').glob('SpectreKnot/**/*.lean')) + [pathlib.Path
                 out.append('\n')
             i += 1
     for n, line in enumerate(''.join(out).split('\n'), 1):
-        if re.search(r'\b(sorry|admit|native_decide)\b', line):
+        if re.search(BANNED, line):
             bad.append(f'{f}:{n}: {line.strip()}')
-print('\n'.join(bad) if bad else 'no sorry, admit or native_decide')
+if 'skipKernelTC' in pathlib.Path('lakefile.toml').read_text():
+    bad.append('lakefile.toml: skipKernelTC')
+print('\n'.join(bad) if bad else 'no sorry, admit, native_decide or other way round the kernel')
 sys.exit(1 if bad else 0)

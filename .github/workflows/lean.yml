@@ -1,4 +1,5 @@
-# Build the Lean and check its axioms, sorry and comments, only when the Lean changes (about 3-6 minutes).
+# Build the Lean and check it (build.sh: the trusted files, sorry and the other ways round the kernel, comments,
+# axioms, leanchecker), only when the Lean changes (about 6-10 minutes).
 # Runs in SPECTRE_KNOT_PROOF_DEV (private, so it uses the account's Actions minutes) and in SPECTRE_KNOT_PROOF, where
 # it skips while that repo is private and is free once it is public.
 name: lean
@@ -25,5 +26,5 @@ jobs:
           path: lean/.lake
           key: lake-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-${{ hashFiles('lean/**/*.lean') }}
           restore-keys: lake-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-
-      - name: Build the Lean and check axioms, sorry and comments
+      - name: Build the Lean and check it
         run: cd lean && ./build.sh

@@ -1,6 +1,8 @@
 /-
 Prints the axioms each main theorem depends on. `build.sh` fails unless they are among Lean's standard three
-(`propext`, `Classical.choice`, `Quot.sound`): no `sorryAx`, no `Lean.ofReduceBool` (which `native_decide` would add).
+(`propext`, `Classical.choice`, `Quot.sound`): no `sorryAx`, no `Lean.ofReduceBool` (which `native_decide` would add);
+and unless every `#print axioms` below has printed its answer. At the end, each main theorem is pinned to its claim in
+`Statement.lean`.
 -/
 import SpectreKnot
 
@@ -91,3 +93,15 @@ open SpectreKnot
 #print axioms Statement.Chain.all_glued_at
 #print axioms Statement.Chain.not_closed
 #print axioms Statement.theoremA_strand
+
+/-! The main theorems prove exactly the claims of `Statement.lean`: each `example` states one claim, as written there,
+and gives the main theorem as its proof, so this file fails to build if a main theorem's statement is changed. -/
+example : SpectreKnot.Statement.TheoremA := SpectreKnot.Statement.theoremA
+example : SpectreKnot.Statement.TheoremB := SpectreKnot.Statement.theoremB
+example : SpectreKnot.Statement.TheoremB_sharp := SpectreKnot.Statement.theoremB_sharp
+example : SpectreKnot.Statement.TheoremB_exact := SpectreKnot.Statement.theoremB_exact
+example : SpectreKnot.Statement.Grandparent := SpectreKnot.Statement.grandparent
+example : SpectreKnot.Statement.NestModel := SpectreKnot.Statement.nestModel
+example : SpectreKnot.Statement.TheoremB_strand := SpectreKnot.Statement.theoremB_strand
+example : SpectreKnot.Statement.ChainModel := SpectreKnot.Statement.chainModel
+example : SpectreKnot.Statement.TheoremA_strand := SpectreKnot.Statement.theoremA_strand

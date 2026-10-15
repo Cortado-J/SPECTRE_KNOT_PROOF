@@ -1,5 +1,7 @@
 name = "SpectreKnot"
 defaultTargets = ["SpectreKnot", "Axioms", "Tests"]
+# A name used without being declared is an error, not a new variable (Lean's autoImplicit, on by default).
+leanOptions = { autoImplicit = false }
 
 [[lean_lib]]
 name = "SpectreKnot"

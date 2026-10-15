@@ -46,6 +46,11 @@ and `theoremB_strand` in `SpectreKnot/ProofStrand.lean`; `chainModel` and `theor
 `SpectreKnot/ProofChain.lean`; `theoremB_exact` in `SpectreKnot/ProofExact.lean`; `grandparent` in
 `SpectreKnot/ProofGrand.lean`.
 
+What is proved is fixed by `Statement.lean` and the three files it imports (`Basic.lean`, `Data/Pattern.lean`,
+`Data/Clusters.lean`). `TRUSTED.sha256` records their SHA-256, and the build fails if any of them changes without it
+(`tools/check_trusted.py`). The end of `Axioms.lean` pins each of the nine main theorems to its claim, so the build
+also fails if a main theorem's statement changes.
+
 How the statement's definitions are tested (`Tests.lean`; `TestsSlow.lean` with `./build.sh --slow`):
 
 - the level-2 supertiles it builds from the tables equal, edge for edge, those built from the tile placements in
@@ -106,17 +111,24 @@ detail:
 ## Building
 
 ```
-./build.sh          # about 6 minutes from clean (peak memory about 1.5 GB per kernel check); seconds when cached
+./build.sh          # about 9 minutes from clean (peak memory about 1.5 GB per kernel check); 3 minutes when cached
 ./build.sh --data   # first regenerate the data files from paper/code (python3, node)
 ./build.sh --slow   # also run TestsSlow.lean (level-5 checks, about 2 minutes more)
+tools/check_data.sh # the data files are exactly what paper/code generates (about a minute)
 ```
 
-`build.sh` fails if any source uses `sorry`, `admit` or `native_decide` outside comments (`tools/no_sorry.py`), if a
-`theorem` or a `have` lacks a comment (`tools/check_comments.py`), if the build or a test fails, or if any theorem
-listed in `Axioms.lean` depends on an axiom other than Lean's standard three (`propext`, `Classical.choice`,
-`Quot.sound`). From clean, most of the time goes on the kernel computations: `CompFull` (the 18 compositions of
-Computation 7.3, about 2.5 minutes), `Tests` (about 1.5 minutes), `SigCheck` and `SkeletonWalks` (about 30 s each),
-then the level-1 checks (`PatchSig`, a few seconds) and the junction map (`StepMap`, a few seconds).
+`build.sh` fails if one of the files that fix what is proved has changed since `TRUSTED.sha256` was recorded
+(`tools/check_trusted.py`); if any source uses, outside comments, `sorry`, `admit` or `native_decide`, or another way
+round the kernel or the axiom check (`axiom`, `opaque`, `partial`, `unsafe`, `implemented_by`, `extern`,
+`debug.skipKernelTC`, `ofReduceBool`; `tools/no_sorry.py`); if a `theorem` or a `have` lacks a comment
+(`tools/check_comments.py`); if the build or a test fails, or a main theorem no longer proves exactly its claim (the end
+of `Axioms.lean`); if a theorem listed in `Axioms.lean` has not reported its axioms, or depends on one other than Lean's
+standard three (`propext`, `Classical.choice`, `Quot.sound`); or if `leanchecker`, which replays every declaration of
+`SpectreKnot` through Lean's kernel, finds a problem (about 3 minutes). Names must be declared: the lakefile turns off
+Lean's automatic binding of undeclared names (`autoImplicit`). CI also runs `tools/check_data.sh` whenever `paper/code/`
+or the data change (`data.yml`). From clean, most of the time goes on the kernel computations: `CompFull` (the 18
+compositions of Computation 7.3, about 2.5 minutes), `Tests` (about 1.5 minutes), `SigCheck` and `SkeletonWalks` (about
+30 s each), then the level-1 checks (`PatchSig`, a few seconds) and the junction map (`StepMap`, a few seconds).
 
 Toolchain: Lean 4.34.1 (pinned in `lean-toolchain`), core library only. In a claude.ai cloud container, elan cannot
 resolve a toolchain because `release.lean-lang.org` is blocked, but GitHub release downloads work:
@@ -337,7 +349,7 @@ There are also 490 generated lines. By stage, in today's files:
   level), `NewWalk` 227, `Linked` 218 (symmetry).
 - Stage 6, Theorem A for chains: `ProofChain` 706.
 - Stage 7, the exact counts and the Grandparent Lemma: `ProofExact` 420, `Turn` 525, `ProofGrand` 438.
-- The statement file 379; tests 236; `Axioms.lean` 93.
+- The statement file 379; tests 236; `Axioms.lean` 107.
 
 ## Assessment
 

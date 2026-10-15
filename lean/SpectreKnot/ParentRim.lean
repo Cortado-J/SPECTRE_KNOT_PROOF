@@ -413,7 +413,7 @@ abbrev rimN : Nat := totL L (pcs T)
 variable {T L}
 
 /-- Each parent rim position is an edge of a listed side, which Table 2 puts on the parent's rim. -/
-theorem own_valid (p_lt : p < rimN T L) :
+theorem own_valid {p : Nat} (p_lt : p < rimN T L) :
     ∃ c j o, (c, j) ∈ pcs T ∧ c < nk T ∧ j < 6 ∧ adjAt T c j = none ∧ o < L c j ∧
       ownGo L (pcs T) p = (c, pos (L c) j + o) := by
   obtain ⟨c, j, o, mem, o_lt, at_p⟩ := ownGo_mem (pcs T) p p_lt
