@@ -315,8 +315,10 @@ the kind of its cluster in~\cite[Fig.~4.1]{SMKGS-spectre}, which is determined b
 children form the panel $T$ of~\cite[Fig.~5.1]{SMKGS-spectre}. For $m\ge1$, child $c$ is the child at the position in
 the last row of \cref{tab:children}; at level $1$ the children are numbered as in \cref{fig:level1}. (This is the order
 used by Kaplan's implementation of the key-point construction of~\cite[App.~A]{SMKGS-spectre},
-see~\cite{KaplanSpectrePage}.) For definiteness a single tile gets the kind of its position in its level-$1$
-supertile; only the distinction between $\Gamma$ and the other kinds is used at level~$0$.
+see~\cite{KaplanSpectrePage}. That implementation gives \cref{tab:children} and, tile for tile, the same supertiles as
+\code{exact/}\allowbreak\code{exact.py} up to level~$4$; see \code{crosscheck/}\allowbreak\code{kaplan\_compare.py}.) For
+definiteness a single tile gets the kind of its position in its level-$1$ supertile; only the distinction between
+$\Gamma$ and the other kinds is used at level~$0$.
 In particular child~$1$ of every supertile is a $\Delta$, and the last child is a $\Gamma$; at levels $m\ge1$ a $\Delta$
 occurs only as child~$1$.
 
@@ -1785,6 +1787,7 @@ statement & computation & script\\
 \Cref{def:decoration,lem:tilesig} & the tile's pairing; the Mystic & \code{core/}\allowbreak\code{tile.js}, \code{exact/}\allowbreak\code{exact.py}\\
 \Cref{prop:pattern}, \cref{rem:patterncheck} & vertices of levels $1$--$6$ (points where three supertiles meet); the pattern of compositions $m\to m+1$, $m=1,\dots,7$, all identical; exact for $m\le3$ & \code{hierarchy/}\allowbreak\code{vertices.js}, \code{combin.js}, \code{exact/}\allowbreak\code{exact.py}\\
 \Cref{prop:pattern} (base of ($\ast$)) & the level-$1$ supertiles as hat/turtle clusters, fitted to~\cite[Fig.~4.1]{SMKGS-spectre} (dots, outline, shading; labels read by hand) & \code{crosscheck/}\allowbreak\code{fig41\_compare.py}, \code{fig41\_render.py}\\
+\Cref{tab:children}, \cref{prop:pattern} (base of ($\ast$)) & \cref{tab:children} and every tile of every supertile, levels $0$--$4$, against Kaplan's implementation~\cite{KaplanSpectrePage} (downloaded when run, not included); from its tiles alone, the level-$1$ vertices, $\ell_1$ and $d_1$; two altered copies rejected & \code{crosscheck/}\allowbreak\code{kaplan\_compare.py}, \code{kaplan\_run.js}\\
 \Cref{rem:patterncheck} & agreement with an encoding of~\cite[Fig.~5.1]{SMKGS-spectre}, all nine kinds; its dots re-found from the PDF; two corrupted encodings rejected & \code{crosscheck/}\allowbreak\code{fig51\_compare.py}, \code{fig51\_raster.py}\\
 \Cref{rem:patterncheck} & tiles of every supertile, levels $1$--$7$, have disjoint interiors and fill its rim & \code{crosscheck/}\allowbreak\code{overlap.js}\\
 \Cref{prop:letters,prop:fib,cor:parity,lem:Apos} & letters, recurrence, lengths at levels $1$--$8$, closed forms & \code{hierarchy/}\allowbreak\code{recur.js}, \code{letters.py}\\

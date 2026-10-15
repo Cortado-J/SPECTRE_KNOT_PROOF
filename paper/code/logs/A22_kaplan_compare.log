@@ -1,0 +1,39 @@
+Kaplan's spectre.js: downloaded from https://cs.uwaterloo.ca/~csk/spectre/spectre.js
+  sha256 d4d7758f268e2e5f3f56deb771f6f783e519f5351b46f8e6e05c0f629d2f6df1 (the file compared on 15 Oct 2026)
+
+1. Table 1: Kaplan's table of the children (super_rules; - an empty slot)
+  Gamma   Pi Delta - Theta Sigma Xi Phi Gamma
+  Delta   Xi Delta Xi Phi Sigma Pi Phi Gamma
+  Theta   Psi Delta Pi Phi Sigma Pi Phi Gamma
+  Lambda  Psi Delta Xi Phi Sigma Pi Phi Gamma
+  Xi      Psi Delta Pi Phi Sigma Psi Phi Gamma
+  Pi      Psi Delta Xi Phi Sigma Psi Phi Gamma
+  Sigma   Xi Delta Xi Phi Sigma Pi Lambda Gamma
+  Phi     Psi Delta Psi Phi Sigma Pi Phi Gamma
+  Psi     Psi Delta Psi Phi Sigma Psi Phi Gamma
+  = exact.py's: yes; = the kinds of the children in combin_8.json, levels 1-7: yes
+
+2. Every tile of every supertile, in Kaplan's drawing order, against exact.py
+  level 0:    10 tiles; labels agree; largest vertex difference 9.2e-16; key points 8.9e-16
+  level 1:    80 tiles; labels agree; largest vertex difference 3.2e-15; key points 2.8e-15
+  level 2:   630 tiles; labels agree; largest vertex difference 1.3e-14; key points 7.9e-15
+  level 3:  4960 tiles; labels agree; largest vertex difference 5.0e-14; key points 2.9e-14
+  level 4: 39050 tiles; labels agree; largest vertex difference 1.0e-13; key points 4.3e-14
+
+3. The level-1 supertiles from Kaplan's tiles alone (rim positions counted from the crossover corner A)
+  Gamma    8 tiles, rim 44; vertices [0, 7, 14, 24, 34, 39] (from 550 level-1 supertiles); sides [7, 7, 10, 10, 5, 5]; A on side 0 at 0
+  Delta    9 tiles, rim 46; vertices [0, 10, 15, 23, 30, 40] (from 373 level-1 supertiles); sides [10, 5, 8, 7, 10, 6]; A on side 0 at 0
+  Theta    9 tiles, rim 46; vertices [0, 10, 15, 26, 31, 41] (from  71 level-1 supertiles); sides [10, 5, 11, 5, 10, 5]; A on side 0 at 0
+  Lambda   9 tiles, rim 46; vertices [0, 10, 15, 23, 30, 41] (from  71 level-1 supertiles); sides [10, 5, 8, 7, 11, 5]; A on side 0 at 0
+  Xi       9 tiles, rim 46; vertices [0, 7, 15, 26, 31, 41] (from 408 level-1 supertiles); sides [7, 8, 11, 5, 10, 5]; A on side 0 at 0
+  Pi       9 tiles, rim 46; vertices [0, 7, 15, 23, 30, 41] (from 222 level-1 supertiles); sides [7, 8, 8, 7, 11, 5]; A on side 0 at 0
+  Sigma    9 tiles, rim 46; vertices [4, 10, 15, 23, 30, 40] (from 267 level-1 supertiles); sides [6, 5, 8, 7, 10, 10]; A on side 5 at 6
+  Phi      9 tiles, rim 46; vertices [0, 10, 15, 23, 31, 41] (from 534 level-1 supertiles); sides [10, 5, 8, 8, 10, 5]; A on side 0 at 0
+  Psi      9 tiles, rim 46; vertices [0, 7, 15, 23, 31, 41] (from 258 level-1 supertiles); sides [7, 8, 8, 8, 10, 5]; A on side 0 at 0
+  = VERT, LEN, DEF of level 1 in combin_8.json, and l_1 and d_1 in letters.json: yes
+
+4. Negative controls (levels 0-2)
+  two children of Delta exchanged in its table: rejected (Table 1 differs; labels differ at levels 1, 2; largest vertex difference 0.00)
+  one rule of the key-point construction changed: rejected (Table 1 agrees; labels agree; largest vertex difference 11.64)
+
+KAPLAN'S IMPLEMENTATION AGREES: TABLE 1, EVERY TILE TO LEVEL 4, THE LEVEL-1 VERTICES, l_1 AND d_1

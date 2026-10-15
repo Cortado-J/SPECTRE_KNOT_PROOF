@@ -2392,6 +2392,8 @@ def run_steps():
             stage = 'B'
         elif 'SMKGS_PDF:-' in line and line.strip().startswith('if'):
             stage = 'A, given the spectre paper'
+        elif re.match(r'^\s*if \[ \$K = 1 \]', line):
+            stage = 'A, with --kaplan'
         elif line.strip() == 'else' and stage.startswith('A,'):
             stage = 'A'
         m = re.match(r'^\s*run\s+(\S+\.log)\s+(.*)$', line)
@@ -2444,12 +2446,12 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <pre class="cmd">cd paper/code
 ./run_all.sh
 ./run_all.sh --all</pre>
-<p class="small">Two steps, A17 and A18, compare the level-1 supertiles and the composition pattern with figures of the spectre paper, and run only when given its PDF, which is not included (see the README).</p>
+<p class="small">Two steps, A17 and A18, compare the level-1 supertiles and the composition pattern with figures of the spectre paper, and run only when given its PDF, which is not included (see the README). A22 compares Table&nbsp;1 and every supertile up to level&nbsp;4 with Kaplan&rsquo;s implementation of the substitution, the program of the spectre authors&rsquo; interactive application; it downloads that program when <code>run_all.sh</code> is given <code>--kaplan</code>, since the program is published without a licence and so is not included.</p>
 <p>The paper&rsquo;s table <i>What was computed</i>, with each program and the logs of its steps:</p>
 </div>
 <div class="tablebox"><table class="lt comptab"><thead><tr><th>for</th><th>computation</th><th>programs</th><th>logs</th></tr></thead><tbody>%s</tbody></table></div>
 <h2 class="sh">Every step of the run</h2>
-<p class="small mut gl">As <code>run_all.sh</code> runs them, from <code>paper/code/</code>: stage A always, stage B with <code>--all</code>; A17 and A18 only when <code>SMKGS_PDF</code> names the spectre paper&rsquo;s PDF. Each command can be run on its own.</p>
+<p class="small mut gl">As <code>run_all.sh</code> runs them, from <code>paper/code/</code>: stage A always, stage B with <code>--all</code>; A17 and A18 only when <code>SMKGS_PDF</code> names the spectre paper&rsquo;s PDF; A22 only with <code>--kaplan</code>. Each command can be run on its own.</p>
 <div class="tablebox"><table class="lt steps"><thead><tr><th>step</th><th>command</th><th>log</th></tr></thead><tbody>%s</tbody></table></div>
 <h2 class="sh">The paper, and this site</h2>
 <div class="prose gl">

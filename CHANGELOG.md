@@ -5,6 +5,12 @@ themselves. Dates are UK dates.
 
 ## 15 October 2026
 
+- **Code:** a new check runs Kaplan’s implementation of the spectre’s substitution, the program of the spectre
+  authors’ interactive application, and finds the paper’s Table 1 and, tile for tile, the same supertiles up to
+  level 4; and, from its tiles alone, the same vertices and side lengths of the level-1 supertiles. Two altered copies
+  of that program are rejected. It downloads the program when run (`./run_all.sh --kaplan`): the program is
+  published without a licence, so it is not included.
+- **Paper:** §2 and the table *What was computed* mention this comparison.
 - **Lean:** comparator, the Lean developers’ tool for judging whether proofs prove exactly the statements of a
   trusted file, confirms that the ten main theorems prove exactly the claims of the statement file, using only Lean’s
   standard axioms; the public repository’s checks now run it (`lean/tools/comparator.sh`). A new theorem says that the

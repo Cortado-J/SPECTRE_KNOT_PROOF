@@ -3,7 +3,11 @@
 This folder holds every program used in the paper *The Spectre Knot: one endless strand on an aperiodic monotile*
 (`../spectre_knot.pdf`), with the logs of a full run (`logs/run_all.out`, from `./run_all.sh --all`). A17 and A18
 need the spectre paper's PDF, which is not included; they were run separately with it on 12 Oct 2026 (its SHA-256 is
-checked and printed in the logs) and gave the same logs as before. It is self-contained: it reads nothing outside this folder.
+checked and printed in the logs) and gave the same logs as before. A22 downloads Kaplan's implementation of the
+spectre's substitution (`spectre.js`, the program of the interactive application on the spectre authors' page,
+https://cs.uwaterloo.ca/~csk/spectre/), which is published without a licence and so is not included; it was run
+separately on 15 Oct 2026 (the file's SHA-256 is checked and printed in the log). Apart from these two inputs it is
+self-contained: it reads nothing outside this folder.
 
 ## Running
 
@@ -11,6 +15,7 @@ checked and printed in the logs) and gave the same logs as before. It is self-co
 ./run_all.sh          # stage A: the computations the proof depends on, and quick corroboration (about 12 minutes on 4 cores)
 ./run_all.sh --all    # stage A and stage B: corroboration up to level 9 (about 1 hour; node heap capped at 6.5 GB)
 ./run_all.sh --b      # stage B only (needs the data files written by stage A)
+./run_all.sh --kaplan # also A22: comparison with Kaplan's implementation of the substitution (downloads it)
 SMKGS_PDF=/path/to/spectre-paper.pdf ./run_all.sh   # also A17-A18: comparison with Figs. 4.1 and 5.1 of the spectre paper
 ```
 
@@ -20,7 +25,8 @@ exit status. Requirements:
 - node 18 or later (tested with v22);
 - python 3 with `numpy` and `scipy` (used only by `hierarchy/certify.py`), `sympy` (`hierarchy/letters.py`),
   `matplotlib` (A16) and `pillow` (A17, A18); `pdftoppm` (poppler) for A17 and A18;
-- `exact/exact.py` needs only the Python standard library.
+- `exact/exact.py` needs only the Python standard library; A22 needs node, the Python standard library and the
+  internet.
 
 ## Two separate implementations (both written by the AI system)
 
@@ -35,6 +41,12 @@ exit status. Requirements:
   element of Z[zeta], zeta = e^(i pi/6), stored as four integers, so all identifications are exact. It recomputes
   the base data (levels 1 to 4) and the nest merging for bases 1 to 3, and compares its results with the
   JavaScript output.
+
+A third implementation of the key-point construction, by Craig S. Kaplan, one of the spectre's authors, is the
+program of their interactive application (`spectre.js`, JavaScript, floating point). It is the only program in these
+checks that the AI system did not write. A22 (`crosscheck/kaplan_compare.py`, written by the AI system) runs it and
+finds the same Table 1 and, tile for tile, the same supertiles as `exact/exact.py` up to level 4; and, from its tiles
+alone, the level-1 vertices, side lengths and Sigma offset of `hierarchy/combin_8.json` and `letters.json`.
 
 The two computations on compositions that the proof uses (Computations 7.3 and 8.6) need no geometry: they use only
 the tables and the level-1 side lengths, with integers. `hierarchy/compositions.py` (Python, standard library only)
@@ -61,6 +73,7 @@ Numbering as in the paper.
 | Prop. 2.4, Rem. 2.5 | the composition pattern C of m -> m+1, m = 1..7, all identical (exact for m <= 3); vertices propagated for m >= 5 and checked against observation at 5-6 | `hierarchy/combin.js`, `exact/exact.py` | A04, A13 |
 | Prop. 2.4 (base of (*)) | the level-1 supertiles as hat/turtle clusters (odd edges lengthened to sqrt 3), fitted to a 300-dpi render of the spectre paper's Fig. 4.1: six dots found per cluster, proper similarity with residual < 1% of an edge (other matchings and other kinds >= 40 times worse), rim on the printed outline, first Mystic tile on the lighter shading, labels (read by hand, `crosscheck/fig41_labels.json`) = Table 4. Needs the spectre paper's PDF | `crosscheck/fig41_compare.py` | A17 |
 | Prop. 2.4 (base of (*)) | the same clusters drawn for comparison by eye | `crosscheck/fig41_render.py` | `logs/A16_fig41_render.pdf` |
+| Table 1, Prop. 2.4 (base of (*)) | Table 1 and every tile of every supertile, levels 0-4 (in order, with the kinds of the tiles), against Kaplan's implementation of the substitution (`spectre.js` from the spectre authors' page, SHA-256 checked, run in a context of its own with no access to node); from its tiles alone, the six vertices of every kind at level 1 (points where three level-1 supertiles meet), the side lengths l_1 and the Sigma offset d_1, against `hierarchy/combin_8.json` and `letters.json`; two altered copies (two children of Delta exchanged; one placement rule changed) rejected. Downloads `spectre.js` | `crosscheck/kaplan_compare.py`, `crosscheck/kaplan_run.js` | A22 |
 | Prop. 2.4, Rem. 2.5 | C agrees with a hand encoding of the spectre paper's Fig. 5.1, all nine kinds, including the parent side labels (dictionary (*) in the proof of Prop. 2.4) | `crosscheck/fig51_compare.py` (encoding `crosscheck/fig51_encoding.json`) | A06 |
 | Rem. 2.5 | two deliberately corrupted encodings (`crosscheck/neg_swap/`, `crosscheck/neg_label/`) are rejected | `crosscheck/fig51_compare.py` | A06b |
 | Rem. 2.5 | the vertex dots and Gamma centres used by `fig51_compare.py` re-found on a 400-dpi render of Fig. 5.1 (within 2 px). Needs the spectre paper's PDF | `crosscheck/fig51_raster.py` | A18 |
@@ -122,7 +135,9 @@ Numbering as in the paper.
 - `crosscheck/` (called `referee/` before 12 Oct 2026; second checks, all written by the AI): comparison with Fig. 5.1 (`fig51_compare.py` with the hand encoding `fig51_encoding.json` and
   `gamma_centres.json`; `blobs.py` and `anchor.py` first located the vertex dots on a 400-dpi render of the figure and are
   kept for the record; `fig51_raster.py` redoes this from the PDF), comparison with Fig. 4.1 (`fig41_compare.py` with
-  the hand reading `fig41_labels.json`; `fig41_render.py` draws the clusters), overlap check (`overlap.js`).
+  the hand reading `fig41_labels.json`; `fig41_render.py` draws the clusters), overlap check (`overlap.js`), comparison
+  with Kaplan's implementation of the substitution (`kaplan_compare.py`, which downloads it, and `kaplan_run.js`, which
+  runs it).
 - `drawing/`: the drawing engine with the hand-drawn design (`engine.js`) and checks that relate the drawing to the
   combinatorial model.
 - Generated data (rewritten by stage A): `hierarchy/vertices_*.json`, `combin_8.json`, `M.json`, `letters.json`,

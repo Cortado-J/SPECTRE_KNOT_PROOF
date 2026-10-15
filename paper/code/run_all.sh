@@ -5,15 +5,17 @@
 #                         on 4 cores)
 #   ./run_all.sh --all    stage A and stage B (corroboration up to level 9; about 1 hour; node heap capped at 6.5 GB)
 #   ./run_all.sh --b      stage B only (needs the data files written by stage A)
+#   ./run_all.sh --kaplan also A22 (with stage A): downloads Kaplan's implementation of the substitution and compares
 #
-# A17-A18 compare with the figures of the spectre paper and run only if SMKGS_PDF points to its PDF.
+# A17-A18 compare with the figures of the spectre paper and run only if SMKGS_PDF points to its PDF. A22 needs the
+# internet: its input, from the spectre authors' page, has no licence and is not included.
 # Requirements: node >= 18; python3 with numpy and scipy (certify.py; scipy only proposes certificates, which are then
 # checked in exact rational arithmetic), sympy, matplotlib (A16) and pillow; pdftoppm for A17-A18.
 # See README.md for what each step establishes.
 set -euo pipefail
 cd "$(dirname "$0")"; ROOT=$PWD
-A=1; B=0
-for x in "$@"; do case $x in --all) B=1;; --b) A=0; B=1;; *) echo "unknown option $x"; exit 2;; esac; done
+A=1; B=0; K=0
+for x in "$@"; do case $x in --all) B=1;; --b) A=0; B=1;; --kaplan) K=1;; *) echo "unknown option $x"; exit 2;; esac; done
 BIG="--max-old-space-size=6500"
 DIG=01222222222222
 mkdir -p logs
@@ -52,6 +54,12 @@ if [ $A = 1 ]; then
     run A18_fig51_raster.log   python3 crosscheck/fig51_raster.py "$SMKGS_PDF"
   else
     echo; echo "== A17, A18 skipped (set SMKGS_PDF to the spectre paper's PDF to compare with its Figs. 4.1 and 5.1)"
+  fi
+  # A22 downloads Kaplan's implementation of the substitution from the spectre authors' page: ./run_all.sh --kaplan
+  if [ $K = 1 ]; then
+    run A22_kaplan_compare.log python3 crosscheck/kaplan_compare.py
+  else
+    echo; echo "== A22 skipped (run with --kaplan to download Kaplan's implementation of the substitution and compare)"
   fi
 fi
 
