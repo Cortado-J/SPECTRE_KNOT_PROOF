@@ -6,7 +6,7 @@
 name: site
 on:
   push:
-    paths: ['paper/**', 'proofmap/**', 'lean/**', 'vendor/**', 'addresses.json', '.github/workflows/site.yml']
+    paths: ['paper/**', 'proofmap/**', 'lean/**', 'vendor/**', 'addresses.json', 'CHANGELOG.md', '.github/workflows/site.yml']
   workflow_dispatch:
 permissions:
   contents: read
