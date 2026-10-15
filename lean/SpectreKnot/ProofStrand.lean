@@ -1,7 +1,7 @@
 /-
 **Theorem B, final form** (`theoremB_strand`): the ribbons of the nest tiling form one two-way infinite strand.
 
-The nest tiling is built as one patch (`Statement.lean` §6): its tiles are numbered so that every block `N_b` keeps
+The nest tiling is built as one tiling (`Statement.lean` §6): its tiles are numbered so that every block `N_b` keeps
 its own numbering, and its gluing is read off the blocks (`nestModel`). Its ports, with the two pairings "other end of
 the piece" and "straight across the edge", form a `StrandSystem` (`nestSys`). In it no strand is closed, because a
 closed strand would stay inside one block, which has no closed strand (Theorem A); and any two ports lie on one strand,
@@ -491,7 +491,7 @@ theorem across_gP {b : Nat} {p q : Port} (p_port : (N b).IsPort p) (across_p : (
   rw [renumbered]
   cases s with
   | true =>
-    simp only [Patch.across] at across_p
+    simp only [Patch.across, straightThrough] at across_p
     cases glued : (N b).glue t i with
     | none => rw [glued] at across_p; contradiction
     | some e =>
@@ -502,7 +502,7 @@ theorem across_gP {b : Nat} {p q : Port} (p_port : (N b).IsPort p) (across_p : (
       show (nestGlue (gid b t) i).map _ = _
       rw [nestGlue_ext ht hi glued]; rfl
   | false =>
-    simp only [Patch.across] at across_p
+    simp only [Patch.across, straightThrough] at across_p
     cases glued : (N b).glue t ((i + 13) % 14) with
     | none => rw [glued] at across_p; contradiction
     | some e =>
@@ -523,14 +523,14 @@ theorem across_isSome {P : Patch} {t : Nat} (all_glued : ∀ i, i < 14 → (P.gl
   | true =>
     -- port `R(v_i)` lies on edge `e_i`, which is glued
     have edge := all_glued i hi
-    simp only [Patch.across]
+    simp only [Patch.across, straightThrough]
     cases glued : P.glue t' i with
     | none => rw [glued] at edge; contradiction
     | some _ => rfl
   | false =>
     -- port `L(v_i)` lies on edge `e_{i-1}`, which is glued
     have edge := all_glued ((i + 13) % 14) (by omega)
-    simp only [Patch.across]
+    simp only [Patch.across, straightThrough]
     cases glued : P.glue t' ((i + 13) % 14) with
     | none => rw [glued] at edge; contradiction
     | some _ => rfl
@@ -713,13 +713,13 @@ theorem theoremB_strand : TheoremB_strand := by
   -- the start: port `R(v_0)` of the original tile
   let start : NPort := ⟨(0, 0, true), by decide⟩
   -- following the strand forwards, as ports
-  have forwards : ∀ k, iter stepF k (0, 0, true) = (nestSys.walk start k).1 := by
+  have forwards : ∀ k, iter nestTiling.forward k (0, 0, true) = (nestSys.walk start k).1 := by
     intro k
     induction k with
     | zero => rfl
     | succ k ih => rw [iter_succ, ih]; rfl
   -- and backwards
-  have backwards : ∀ k, iter stepB k (0, 0, true) = (iter nestSys.prev k start).1 := by
+  have backwards : ∀ k, iter nestTiling.backward k (0, 0, true) = (iter nestSys.prev k start).1 := by
     intro k
     induction k with
     | zero => rfl

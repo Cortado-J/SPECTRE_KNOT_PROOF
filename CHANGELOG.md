@@ -5,6 +5,17 @@ themselves. Dates are UK dates.
 
 ## 15 October 2026
 
+- **Lean:** the statement changed: the link with actual tilings, assumption (M), is written out in its three parts,
+  each with where the paper argues it; whole tilings have a type of their own, so that notions meant for finite
+  patches cannot be applied to them; and a new claim, proved, says that the nest is a chain of supertiles in which
+  every edge is eventually glued, so the final form of Theorem A applies to at least one tiling. The theorems say what
+  they said before. The public repository’s checks now also run the slower tests.
+- **Paper:** the account of the formal verification (§1) brought up to date: Lean also proves that the bound of
+  Theorem 9.1 is exact, and Lemma 8.3(a) at the vertices of tiles; the assumption linking the formal statements to
+  tilings has three parts.
+- **Site:** each result’s Lean section, and the table on the Lean page, say how the Lean statement differs from the
+  paper’s: the same, stronger, weaker, part of it, another form, or not in the paper. The pages of results that are not
+  formalised say which part of assumption (M) they belong to.
 - **Site:** a drawing beside the overview’s title: the block $N_2$ of the nest with its ribbons in fine lines, and the
   two strands through the first tile picked out.
 - **Lean:** the build checks more. Each main theorem is pinned to its claim in the statement file; the statement file

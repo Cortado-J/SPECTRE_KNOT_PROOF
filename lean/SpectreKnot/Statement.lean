@@ -11,11 +11,17 @@ Besides `Kind` and `iter` (from `Basic.lean`), the file uses two generated data 
 Tables 1–3, and `Data/Clusters.lean`, the nine level-1 supertiles, computed in exact arithmetic.
 
 There is no geometry here: a patch of tiles is described only by which edge of which tile is glued to which edge of
-which other tile. The link with real tilings is an assumption, not proved in Lean:
+which other tile. The link with real tilings is an assumption, (M), in three parts, each argued in the paper and
+none proved in Lean:
 
-  (M) In every homochiral tiling by Tile(1,1), every level-m supertile of kind K is glued exactly like `super m K`
-      (with its tiles suitably numbered). So a tiling whose hierarchy covers the plane is the union of a chain of
-      supertiles as in §7, and the nest tiling of the paper is the union of the blocks `N b`.
+  (M1) In every homochiral tiling by Tile(1,1), every level-m supertile of kind K is glued exactly like `super m K`
+       (with its tiles suitably numbered). Argued in the paper's §2: Thm 2.1 (the hierarchy, from the spectre paper),
+       Prop 2.4 (the composition pattern holds at every level; cross-checked in Remark 2.5) and Lemma 2.6 (rigidity).
+  (M2) So a tiling whose hierarchy covers the plane is the union of a chain of supertiles as in §7, and the chain
+       covers (`Chain.Covers`). Argued in the first half of the proof of Theorem A (§7.4), about points of the plane.
+  (M3) The nest tiling of the paper is the union of the blocks `N b`, as `nestTiling` (§6), and covers the plane.
+       Argued in Props 8.2 and 8.4. Lemma 8.3(a), which Prop 8.4 uses, is proved here at the vertices of tiles
+       (`Grandparent`); the step from those to the points of the plane is part of (M3).
 -/
 import SpectreKnot.Basic
 import SpectreKnot.Data.Pattern
@@ -50,6 +56,14 @@ structure Patch where
   rim : List (Nat × Nat)
   vtx : List Nat
 
+/-- **Def 3.2, the straight-through rule**, for a gluing `glue` like a patch's (or a tiling's, §6): the port where the
+ribbon at `p` continues across its edge, or `none` if nothing is glued there. -/
+def straightThrough (glue : Nat → Nat → Option (Nat × Nat)) : Port → Option Port
+  -- R(v_i) is on e_i. If e_i is e_j of t', the ribbon continues as R(v_j) of t'.
+  | (t, i, true) => (glue t i).map fun (t', j) => (t', j, true)
+  -- L(v_i) is on e_{i-1} (`(i + 13) % 14` is i - 1, round 14). If that is e_j of t', it continues as L(v_{j+1}).
+  | (t, i, false) => (glue t ((i + 13) % 14)).map fun (t', j) => (t', (j + 1) % 14, false)
+
 namespace Patch
 
 variable (P : Patch)
@@ -57,13 +71,8 @@ variable (P : Patch)
 /-- `p` is a port of a tile of the patch. -/
 def IsPort (p : Port) : Prop := p.1 < P.tiles ∧ p.2.1 < 14
 
-/-- **Def 3.2, the straight-through rule.** The port where the ribbon at `p` continues across its edge, or `none` if
-the edge is on the rim. -/
-def across : Port → Option Port
-  -- R(v_i) is on e_i. If e_i is e_j of t', the ribbon continues as R(v_j) of t'.
-  | (t, i, true) => (P.glue t i).map fun (t', j) => (t', j, true)
-  -- L(v_i) is on e_{i-1} (`(i + 13) % 14` is i - 1, round 14). If that is e_j of t', it continues as L(v_{j+1}).
-  | (t, i, false) => (P.glue t ((i + 13) % 14)).map fun (t', j) => (t', (j + 1) % 14, false)
+/-- The straight-through rule in the patch: `none` if the edge is on the rim. -/
+def across (p : Port) : Option Port := straightThrough P.glue p
 
 /-- **Following a ribbon.** `P.Follow p r`: from `p`, going along a piece, across an edge, along a piece, and so on,
 you leave the patch at the rim port `r`. It holds exactly when it follows from the two rules in finitely many steps. -/
@@ -216,7 +225,28 @@ tile of `N_b` is surrounded by tiles of `N_{b+2}`. So `N_b` does not meet the ri
 def Grandparent : Prop :=
   ∀ b, 1 ≤ b → ∀ t i, t < (N b).tiles → i < 14 → (N (b + 2)).Surrounded (up b 2 t) i
 
-/-! ## 6. The nest tiling as one patch, and its single strand -/
+/-! ## 6. Tilings, and the nest tiling's single strand -/
+
+/-- **A tiling**: infinitely many tiles, numbered 0, 1, 2, …, and what lies across each edge, `glue`, as in a patch.
+It is not a patch: it has no number of tiles and no rim, and the notions of §2 (`IsPort`, `NoClosedStrand`, …) are
+not defined for it. Its strands are followed one step at a time. -/
+structure Tiling where
+  glue : Nat → Nat → Option (Nat × Nat)
+
+namespace Tiling
+
+variable (T : Tiling)
+
+/-- The straight-through rule in the tiling. -/
+def across (p : Port) : Option Port := straightThrough T.glue p
+
+/-- One step forwards along a strand: along the piece at `p`, then across the edge. -/
+def forward (p : Port) : Port := (T.across (pieceEnd p)).getD (pieceEnd p)
+
+/-- One step backwards: across the edge at `p`, then along the piece. -/
+def backward (p : Port) : Port := pieceEnd ((T.across p).getD p)
+
+end Tiling
 
 /-- **`gid b t`: the number, in the whole nest tiling, of tile `t` of `N_b`.** The numbers are chosen so that the
 tiles of every block `N_b` get 0 … |N_b| - 1. In `N_{b+1}`: a tile of child 1 (`N_b`) keeps its number in `N_b`; a
@@ -241,15 +271,8 @@ which contains the tile with two levels to spare. (By `NestModel` (d), every blo
 def nestGlue (g i : Nat) : Option (Nat × Nat) :=
   ((N (g + 3)).glue (up (g + 1) 2 (loc (g + 1) g)) i).map fun (t', j) => (gid (g + 3) t', j)
 
-/-- **The nest tiling as one patch.** It has infinitely many tiles, so only `glue` means anything here; the other
-fields are placeholders. -/
-def nestTiling : Patch := ⟨0, nestGlue, [], []⟩
-
-/-- One step forwards along a strand: along the piece at `p`, then across the edge. -/
-def stepF (p : Port) : Port := (nestTiling.across (pieceEnd p)).getD (pieceEnd p)
-
-/-- One step backwards: across the edge at `p`, then along the piece. -/
-def stepB (p : Port) : Port := pieceEnd ((nestTiling.across p).getD p)
+/-- **The nest tiling**: the tiles of all the blocks, numbered by `gid`, glued by `nestGlue`. -/
+def nestTiling : Tiling := ⟨nestGlue⟩
 
 /-- **The nest tiling is a tiling, and the union of the blocks:**
 (a) every number `g` is a tile of `N_{g+1}`;
@@ -267,7 +290,7 @@ def NestModel : Prop :=
   (∀ g i, i < 14 → ∃ g' j, nestGlue g i = some (g', j) ∧ g' ≠ g ∧ j < 14 ∧ nestGlue g' j = some (g, i))
 
 /-- **Theorem B, final form: one two-way infinite strand.** Start at `R(v_0)` of the original tile, `(0, 0, true)`,
-and step forwards (`stepF`) and backwards (`stepB`):
+and step forwards and backwards along its strand:
 (1) forwards, no port is met twice;
 (2) backwards, no port is met twice;
 (3) no port is met both backwards and forwards, except the start;
@@ -275,13 +298,13 @@ and step forwards (`stepF`) and backwards (`stepB`):
 (5) every port of every tile is met, or is the other end of the piece of one that is.
 (Proved in `ProofStrand.lean`.) -/
 def TheoremB_strand : Prop :=
-  (∀ i j, iter stepF i (0, 0, true) = iter stepF j (0, 0, true) → i = j) ∧
-  (∀ a a', iter stepB a (0, 0, true) = iter stepB a' (0, 0, true) → a = a') ∧
-  (∀ a b, iter stepB a (0, 0, true) = iter stepF b (0, 0, true) → a = 0 ∧ b = 0) ∧
-  (∀ i j, iter stepF j (0, 0, true) ≠ pieceEnd (iter stepF i (0, 0, true))) ∧
+  (∀ i j, iter nestTiling.forward i (0, 0, true) = iter nestTiling.forward j (0, 0, true) → i = j) ∧
+  (∀ a a', iter nestTiling.backward a (0, 0, true) = iter nestTiling.backward a' (0, 0, true) → a = a') ∧
+  (∀ a b, iter nestTiling.backward a (0, 0, true) = iter nestTiling.forward b (0, 0, true) → a = 0 ∧ b = 0) ∧
+  (∀ i j, iter nestTiling.forward j (0, 0, true) ≠ pieceEnd (iter nestTiling.forward i (0, 0, true))) ∧
   (∀ q : Port, q.2.1 < 14 → ∃ k,
-    q = iter stepF k (0, 0, true) ∨ q = iter stepB k (0, 0, true) ∨
-    q = pieceEnd (iter stepF k (0, 0, true)) ∨ q = pieceEnd (iter stepB k (0, 0, true)))
+    q = iter nestTiling.forward k (0, 0, true) ∨ q = iter nestTiling.backward k (0, 0, true) ∨
+    q = pieceEnd (iter nestTiling.forward k (0, 0, true)) ∨ q = pieceEnd (iter nestTiling.backward k (0, 0, true)))
 
 /-! ## 7. Any chain of supertiles (the paper's Theorem A, for tilings) -/
 
@@ -326,54 +349,50 @@ def loc (X : Chain) : Nat → Nat → Nat
     else if g < (X.block (m + 1)).tiles + X.shift (m + 1) then g - (X.block (m + 1)).tiles
     else g
 
-/-- **The chain covers the plane**: every edge of every block is glued in some larger block. -/
+/-- **The chain covers**: every edge of every block is glued in some larger block, so the union of the chain has no
+rim. This is the combinatorial form of a hierarchy that covers the plane (see (M2)). -/
 def Covers (X : Chain) : Prop :=
   ∀ m t i, 1 ≤ m → t < (X.block m).tiles → i < 14 → ∃ k, ((X.block (m + k)).glue (X.up m k t) i).isSome
 
-/-- **`G` contains every block**: whatever X_m glues, the gluing `G` of the whole union glues the same way. -/
-def Contains (X : Chain) (G : Nat → Nat → Option (Nat × Nat)) : Prop :=
+/-- **`T` contains every block**: whatever X_m glues, the tiling `T` glues the same way. -/
+def Contains (X : Chain) (T : Tiling) : Prop :=
   ∀ m t i t' j, 1 ≤ m → t < (X.block m).tiles → i < 14 → (X.block m).glue t i = some (t', j) →
-    G (X.gid m t) i = some (X.gid m t', j)
+    T.glue (X.gid m t) i = some (X.gid m t', j)
 
 end Chain
-
-/-- **The tiling with gluing `G`, as one patch** (as `nestTiling`: only `glue` means anything). -/
-def tilingOf (G : Nat → Nat → Option (Nat × Nat)) : Patch := ⟨0, G, [], []⟩
-
-/-- One step forwards along a strand of a patch (`stepF` of §6, for any patch). -/
-def Patch.forward (P : Patch) (p : Port) : Port := (P.across (pieceEnd p)).getD (pieceEnd p)
-
-/-- One step backwards (`stepB` of §6, for any patch). -/
-def Patch.backward (P : Patch) (p : Port) : Port := pieceEnd ((P.across p).getD p)
 
 /-- **The union of a chain is a tiling.** For every chain X:
 (a) every number `g` is a tile of X_{g+1};
 (b) `X.gid m` numbers the tiles of X_m one to one, and `X.loc m` is its inverse;
 (c) a tile keeps its number one level up;
-(d) there is a gluing `G` of the union that contains every block;
-(e) if the chain covers the plane, every such `G` glues every edge of every tile, to a different tile, and back. -/
+(d) there is a tiling `T` of the union that contains every block;
+(e) if the chain covers, every such `T` glues every edge of every tile, to a different tile, and back. -/
 def ChainModel : Prop :=
   ∀ X : Chain,
     (∀ g, g < (X.block (g + 1)).tiles) ∧
     (∀ m t, 1 ≤ m → t < (X.block m).tiles → X.gid m t < (X.block m).tiles ∧ X.loc m (X.gid m t) = t) ∧
     (∀ m g, 1 ≤ m → g < (X.block m).tiles → X.loc m g < (X.block m).tiles ∧ X.gid m (X.loc m g) = g) ∧
     (∀ m t, 1 ≤ m → t < (X.block m).tiles → X.gid (m + 1) (X.up m 1 t) = X.gid m t) ∧
-    (∃ G, X.Contains G) ∧
-    (X.Covers → ∀ G, X.Contains G →
-      ∀ g i, i < 14 → ∃ g' j, G g i = some (g', j) ∧ g' ≠ g ∧ j < 14 ∧ G g' j = some (g, i))
+    (∃ T : Tiling, X.Contains T) ∧
+    (X.Covers → ∀ T : Tiling, X.Contains T →
+      ∀ g i, i < 14 → ∃ g' j, T.glue g i = some (g', j) ∧ g' ≠ g ∧ j < 14 ∧ T.glue g' j = some (g, i))
 
 /-- **Theorem A in strand form: in a tiling whose hierarchy covers the plane, every strand is two-way infinite.** For
-any chain that covers the plane, any gluing `G` of its union that contains every block, and any port `p`:
+any chain that covers, any tiling `T` of its union that contains every block, and any port `p`:
 (1) forwards, no port is met twice;
 (2) backwards, no port is met twice;
 (3) no port is met both backwards and forwards, except the start;
 (4) no piece is run through twice.
 (Proved in `ProofChain.lean`.) -/
 def TheoremA_strand : Prop :=
-  ∀ (X : Chain) (G : Nat → Nat → Option (Nat × Nat)), X.Covers → X.Contains G → ∀ p : Port, p.2.1 < 14 →
-    (∀ i j, iter (tilingOf G).forward i p = iter (tilingOf G).forward j p → i = j) ∧
-    (∀ a a', iter (tilingOf G).backward a p = iter (tilingOf G).backward a' p → a = a') ∧
-    (∀ a b, iter (tilingOf G).backward a p = iter (tilingOf G).forward b p → a = 0 ∧ b = 0) ∧
-    (∀ i j, iter (tilingOf G).forward j p ≠ pieceEnd (iter (tilingOf G).forward i p))
+  ∀ (X : Chain) (T : Tiling), X.Covers → X.Contains T → ∀ p : Port, p.2.1 < 14 →
+    (∀ i j, iter T.forward i p = iter T.forward j p → i = j) ∧
+    (∀ a a', iter T.backward a p = iter T.backward a' p → a = a') ∧
+    (∀ a b, iter T.backward a p = iter T.forward b p → a = 0 ∧ b = 0) ∧
+    (∀ i j, iter T.forward j p ≠ pieceEnd (iter T.forward i p))
+
+/-- **Chains that cover exist**: the nest, as a chain (every block a Δ, child 1 of the next), covers. So
+`TheoremA_strand` is not vacuous. (Proved in `ProofChain.lean`.) -/
+def NestCovers : Prop := ∃ X : Chain, (∀ m, X.K m = .Delta ∧ X.c m = 1) ∧ X.Covers
 
 end SpectreKnot.Statement

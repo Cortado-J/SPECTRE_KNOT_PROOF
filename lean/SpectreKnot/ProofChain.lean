@@ -3,7 +3,7 @@
 two-way infinite path.
 
 The tiling is the union of a chain X_1 ⊂ X_2 ⊂ ⋯ of supertiles (`Statement.lean` §7). Its tiles are numbered so that
-every block keeps its own numbering, and any gluing `G` that contains every block glues every edge (`chainModel`).
+every block keeps its own numbering, and any tiling `T` that contains every block glues every edge (`chainModel`).
 Its ports, with the two pairings "other end of the piece" and "straight across the edge", form a `StrandSystem`
 (`tilingSys`). A closed strand would visit finitely many tiles. Every edge of each of them is glued in some block, so
 all of them are glued in one block X_L; following the strand inside X_L would then never reach the rim of X_L, but by
@@ -348,13 +348,13 @@ end Chain
 
 /-! ### Any tiling as a strand system -/
 
-/-- `G` glues every edge of every tile to an edge of a different tile, and that edge back to it. -/
-def IsTiling (G : Nat → Nat → Option (Nat × Nat)) : Prop :=
-  ∀ g i, i < 14 → ∃ g' j, G g i = some (g', j) ∧ g' ≠ g ∧ j < 14 ∧ G g' j = some (g, i)
+/-- `T` glues every edge of every tile to an edge of a different tile, and that edge back to it. -/
+def IsTiling (T : Tiling) : Prop :=
+  ∀ g i, i < 14 → ∃ g' j, T.glue g i = some (g', j) ∧ g' ≠ g ∧ j < 14 ∧ T.glue g' j = some (g, i)
 
 /-- Across every port of a tiling there is a port of another tile, and across that one lies the first. -/
-theorem tilingAcross_some {G : Nat → Nat → Option (Nat × Nat)} (tiling : IsTiling G) {p : Port} (hp : p.2.1 < 14) :
-    ∃ q, (tilingOf G).across p = some q ∧ q.2.1 < 14 ∧ q.1 ≠ p.1 ∧ (tilingOf G).across q = some p := by
+theorem tilingAcross_some {T : Tiling} (tiling : IsTiling T) {p : Port} (hp : p.2.1 < 14) :
+    ∃ q, T.across p = some q ∧ q.2.1 < 14 ∧ q.1 ≠ p.1 ∧ T.across q = some p := by
   obtain ⟨g, i, s⟩ := p
   simp only at hp
   cases s with
@@ -362,17 +362,17 @@ theorem tilingAcross_some {G : Nat → Nat → Option (Nat × Nat)} (tiling : Is
     -- port `R(v_i)` lies on edge `e_i`
     obtain ⟨g', j, glued, other, hj, back⟩ := tiling g i hp
     refine ⟨(g', j, true), ?_, hj, other, ?_⟩
-    · show (G g i).map _ = _
+    · show (T.glue g i).map _ = _
       rw [glued]; rfl
-    · show (G g' j).map _ = _
+    · show (T.glue g' j).map _ = _
       rw [back]; rfl
   | false =>
     -- port `L(v_i)` lies on edge `e_{i-1}`
     obtain ⟨g', j, glued, other, hj, back⟩ := tiling g ((i + 13) % 14) (by omega)
     refine ⟨(g', (j + 1) % 14, false), ?_, Nat.mod_lt _ (by omega), other, ?_⟩
-    · show (G g ((i + 13) % 14)).map _ = _
+    · show (T.glue g ((i + 13) % 14)).map _ = _
       rw [glued]; rfl
-    · show (G g' (((j + 1) % 14 + 13) % 14)).map _ = _
+    · show (T.glue g' (((j + 1) % 14 + 13) % 14)).map _ = _
       -- vertex `i - 1`, then one on, is vertex `i` again
       have round : ((i + 13) % 14 + 1) % 14 = i := by omega
       rw [mod14 hj, back]
@@ -380,16 +380,16 @@ theorem tilingAcross_some {G : Nat → Nat → Option (Nat × Nat)} (tiling : Is
 
 /-- **A tiling's ports, with its two pairings**: the two ends of a piece (`pieceEnd`), and straight across an edge.
 Both pair every port with a different port, and undo themselves. -/
-def tilingSys {G : Nat → Nat → Option (Nat × Nat)} (tiling : IsTiling G) : StrandSystem NPort where
+def tilingSys {T : Tiling} (tiling : IsTiling T) : StrandSystem NPort where
   inside x := ⟨pieceEnd x.1, (pieceEnd_valid x.2).2⟩
-  across x := ⟨((tilingOf G).across x.1).getD x.1, by
+  across x := ⟨(T.across x.1).getD x.1, by
     obtain ⟨q, across_x, q_valid, _, _⟩ := tilingAcross_some tiling x.2
     rw [across_x]; exact q_valid⟩
   inside_inside x := Subtype.ext (Patch.pieceEnd_pieceEnd x.1)
   across_across x := by
     obtain ⟨q, across_x, _, _, back⟩ := tilingAcross_some tiling x.2
     apply Subtype.ext
-    show ((tilingOf G).across (((tilingOf G).across x.1).getD x.1)).getD (((tilingOf G).across x.1).getD x.1) = x.1
+    show (T.across ((T.across x.1).getD x.1)).getD ((T.across x.1).getD x.1) = x.1
     rw [across_x]
     simp only [Option.getD_some, back]
   inside_ne x same := pieceEnd_ne x.1 (congrArg Subtype.val same)
@@ -424,9 +424,13 @@ theorem loc_gid_up (X : Chain) {m t : Nat} (m_pos : 1 ≤ m) (ht : t < (X.block 
   rw [gid_of_up] at found
   exact found
 
-/-- **`chainGlue` contains every block.** -/
-theorem chainGlue_contains (X : Chain) : X.Contains X.chainGlue := by
+/-- **The tiling glued by `chainGlue`.** -/
+noncomputable def chainTiling (X : Chain) : Tiling := ⟨X.chainGlue⟩
+
+/-- **`chainTiling` contains every block.** -/
+theorem chainTiling_contains (X : Chain) : X.Contains X.chainTiling := by
   intro m t i t' j m_pos ht hi glued
+  show X.chainGlue (X.gid m t) i = some (X.gid m t', j)
   -- the far tile is an actual tile
   have far := (X.glue_ok m_pos ht hi glued).1
   -- the number of the tile
@@ -454,8 +458,7 @@ theorem chainGlue_contains (X : Chain) : X.Contains X.chainGlue := by
 
 /-- **Where the chain covers the plane, a gluing that contains every block is a tiling**: every edge of every tile is
 glued, to an edge of another tile, which is glued back. -/
-theorem isTiling (X : Chain) (covers : X.Covers) {G : Nat → Nat → Option (Nat × Nat)} (contains : X.Contains G) :
-    IsTiling G := by
+theorem isTiling (X : Chain) (covers : X.Covers) {T : Tiling} (contains : X.Contains T) : IsTiling T := by
   intro g i hi
   -- some block X_L glues the edge
   obtain ⟨L, L_pos, hg, is_glued⟩ := X.gluedAt_exists covers (g := g) hi
@@ -465,7 +468,7 @@ theorem isTiling (X : Chain) (covers : X.Covers) {G : Nat → Nat → Option (Na
   -- the far tile and edge are actual ones
   obtain ⟨far, hj⟩ := X.glue_ok L_pos loc_bound hi glued
   refine ⟨X.gid L t', j, ?_, ?_, hj, ?_⟩
-  · -- `G` glues as X_L does
+  · -- `T` glues as X_L does
     have read := contains L _ i t' j L_pos loc_bound hi glued
     rwa [gid_of_loc] at read
   · -- X_L glues no tile to itself, and different tiles have different numbers
@@ -473,9 +476,9 @@ theorem isTiling (X : Chain) (covers : X.Covers) {G : Nat → Nat → Option (Na
     -- the far tile differs from the tile
     have differ := super_noSelf L (X.K L) _ i t' j loc_bound hi glued
     exact differ (X.gid_inj L_pos far loc_bound (same.trans gid_of_loc.symm))
-  · -- X_L glues the edge back, and `G` reads that too
+  · -- X_L glues the edge back, and `T` reads that too
     have back := super_glueSymm L (X.K L) _ i t' j loc_bound hi glued
-    -- read by `G`
+    -- read by `T`
     have read := contains L t' j _ i L_pos far hj back
     rwa [gid_of_loc] at read
 
@@ -490,9 +493,9 @@ theorem pieceEnd_gP (X : Chain) (m : Nat) (p : Port) : pieceEnd (X.gP m p) = X.g
   rcases i with _ | _ | i <;> rfl
 
 /-- Across a port of X_m, the tiling continues as X_m does. -/
-theorem across_gP (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (contains : X.Contains G) {m : Nat}
+theorem across_gP (X : Chain) {T : Tiling} (contains : X.Contains T) {m : Nat}
     (m_pos : 1 ≤ m) {p q : Port} (p_port : (X.block m).IsPort p) (across_p : (X.block m).across p = some q) :
-    (tilingOf G).across (X.gP m p) = some (X.gP m q) := by
+    T.across (X.gP m p) = some (X.gP m q) := by
   obtain ⟨t, i, s⟩ := p
   obtain ⟨ht, hi⟩ := p_port
   simp only at ht hi
@@ -501,7 +504,7 @@ theorem across_gP (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (contain
   rw [renumbered]
   cases s with
   | true =>
-    simp only [Patch.across] at across_p
+    simp only [Patch.across, straightThrough] at across_p
     cases glued : (X.block m).glue t i with
     | none => rw [glued] at across_p; contradiction
     | some e =>
@@ -509,10 +512,10 @@ theorem across_gP (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (contain
       rw [glued] at across_p
       simp only [Option.map_some, Option.some.injEq] at across_p
       subst across_p
-      show (G (X.gid m t) i).map _ = _
+      show (T.glue (X.gid m t) i).map _ = _
       rw [contains m t i t' j m_pos ht hi glued]; rfl
   | false =>
-    simp only [Patch.across] at across_p
+    simp only [Patch.across, straightThrough] at across_p
     cases glued : (X.block m).glue t ((i + 13) % 14) with
     | none => rw [glued] at across_p; contradiction
     | some e =>
@@ -520,15 +523,15 @@ theorem across_gP (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (contain
       rw [glued] at across_p
       simp only [Option.map_some, Option.some.injEq] at across_p
       subst across_p
-      show (G (X.gid m t) ((i + 13) % 14)).map _ = _
+      show (T.glue (X.gid m t) ((i + 13) % 14)).map _ = _
       rw [contains m t _ t' j m_pos ht (by omega) glued]; rfl
 
 /-! ### No closed strand -/
 
 /-- A strand of the tiling cannot stay among the first `M` tiles if all their edges are glued in one block X_L:
 following it from a port of X_L would never reach the rim of X_L. -/
-theorem follow_stays (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (contains : X.Contains G)
-    (tiling : IsTiling G) {L M : Nat} (L_pos : 1 ≤ L) (all_glued : ∀ g i, g < M → i < 14 → X.GluedAt L g i) :
+theorem follow_stays (X : Chain) {T : Tiling} (contains : X.Contains T)
+    (tiling : IsTiling T) {L M : Nat} (L_pos : 1 ≤ L) (all_glued : ∀ g i, g < M → i < 14 → X.GluedAt L g i) :
     ∀ p r, (X.block L).Follow p r → (X.block L).IsPort p →
       ∀ x : NPort, X.gP L p = x.1 → (∀ k, ((tilingSys tiling).walk x k).1.1 < M) → False := by
   -- X_L has the signature
@@ -566,7 +569,7 @@ theorem follow_stays (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (cont
     have q_port : (X.block L).IsPort q := Patch.across_valid sig end_port.1 end_port.2 across_end
     -- `q` is the next port of the strand in the tiling
     have next_is : ((tilingSys tiling).next x).1 = X.gP L q := by
-      show ((tilingOf G).across (pieceEnd x.1)).getD (pieceEnd x.1) = _
+      show (T.across (pieceEnd x.1)).getD (pieceEnd x.1) = _
       rw [← x_eq, X.pieceEnd_gP, X.across_gP contains L_pos end_port across_end]
       rfl
     -- the strand from there is the rest of the strand from `x`
@@ -578,8 +581,8 @@ theorem follow_stays (X : Chain) {G : Nat → Nat → Option (Nat × Nat)} (cont
 
 /-- **No strand of the tiling is closed.** A closed strand visits finitely many tiles; all their edges are glued in
 one block, and following the strand there never reaches the rim, against Theorem A. -/
-theorem not_closed (X : Chain) (covers : X.Covers) {G : Nat → Nat → Option (Nat × Nat)} (contains : X.Contains G)
-    (tiling : IsTiling G) (x : NPort) : ¬ (tilingSys tiling).Closed x := by
+theorem not_closed (X : Chain) (covers : X.Covers) {T : Tiling} (contains : X.Contains T)
+    (tiling : IsTiling T) (x : NPort) : ¬ (tilingSys tiling).Closed x := by
   rintro ⟨n, n_pos, back⟩
   -- the strand only ever visits the ports reached in its first `n` steps
   have periodic : ∀ k, ∃ j, j < n ∧ (tilingSys tiling).walk x k = (tilingSys tiling).walk x j := by
@@ -637,26 +640,26 @@ theorem chainModel : ChainModel := fun X =>
    fun m t m_pos ht => X.loc_gid m t m_pos ht,
    fun m g m_pos hg => X.gid_loc m g m_pos hg,
    fun _ _ m_pos ht => (X.gid_up1 m_pos ht).2,
-   ⟨X.chainGlue, X.chainGlue_contains⟩,
+   ⟨X.chainTiling, X.chainTiling_contains⟩,
    fun covers _ contains => X.isTiling covers contains⟩
 
 /-- **Theorem A in strand form** (as stated in `Statement.lean`): in a tiling whose hierarchy covers the plane, every
 strand is a two-way infinite path. -/
 theorem theoremA_strand : TheoremA_strand := by
-  intro X G covers contains p hp
+  intro X T covers contains p hp
   -- the union of the chain is a tiling
   have tiling := X.isTiling covers contains
   -- its strand system, and the start
   let S := tilingSys tiling
   let start : NPort := ⟨p, hp⟩
   -- following the strand forwards, as ports
-  have forwards : ∀ k, iter (tilingOf G).forward k p = (S.walk start k).1 := by
+  have forwards : ∀ k, iter T.forward k p = (S.walk start k).1 := by
     intro k
     induction k with
     | zero => rfl
     | succ k ih => rw [iter_succ, ih]; rfl
   -- and backwards
-  have backwards : ∀ k, iter (tilingOf G).backward k p = (iter S.prev k start).1 := by
+  have backwards : ∀ k, iter T.backward k p = (iter S.prev k start).1 := by
     intro k
     induction k with
     | zero => rfl
@@ -702,5 +705,34 @@ theorem theoremA_strand : TheoremA_strand := by
     intro i j same
     rw [forwards, forwards] at same
     exact no_piece_twice i j (Subtype.ext same)
+
+/-! ### The nest is a chain that covers -/
+
+/-- **The nest as a chain**: every block a Δ, child 1 of the next (Table 1: child 1 of a Δ is a Δ). -/
+def nestChain : Chain where
+  K _ := .Delta
+  c _ := 1
+  child_lt _ _ := show 1 < (Pattern.kids .Delta).length by decide
+  child_kind _ _ := rfl
+
+/-- In the nest chain, a block starts where it does in the nest: after child 0, a Ξ. -/
+theorem nestChain_shift (b : Nat) : nestChain.shift b = nestShift b := rfl
+
+/-- In the nest chain, a tile goes up as in the nest. -/
+theorem nestChain_up : ∀ k b t, nestChain.up b k t = up b k t
+  | 0, _, _ => rfl
+  | k + 1, b, t => by
+    show nestChain.up (b + 1) k (t + nestChain.shift b) = up (b + 1) k (t + nestShift b)
+    rw [nestChain_shift]
+    exact nestChain_up k (b + 1) _
+
+/-- **`NestCovers`** (as stated in `Statement.lean`): the nest chain covers, since every edge of `N_b` is glued in
+`N_{b+2}` (`no_boundary`, the paper's Lemma 8.3(b)). -/
+theorem nestCovers : NestCovers := by
+  refine ⟨nestChain, fun _ => ⟨rfl, rfl⟩, fun b t i b_pos ht hi => ⟨2, ?_⟩⟩
+  -- two levels up, as in the nest
+  rw [nestChain_up]
+  -- where the edge is glued
+  exact no_boundary b_pos ht hi
 
 end SpectreKnot.Statement

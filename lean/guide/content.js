@@ -4,12 +4,12 @@
   further; only the long definitions and the claims have clauses. In each item, `what` is the plain reading (always
   shown), `how` says how the Lean syntax says it (folded away until opened), `examples` are Lean's own output and
   `checks` are the reading's findings. `primer` is the short introduction to Lean at the top of the page.
-  Markup inside the strings: [[id]] or [[id|text]] links to an item; [[L137]] links to a line.
+  Markup inside the strings: [[id]] or [[id|text]] links to an item; [[L146]] links to a line.
   `writtenFor` is the SHA-256 of Statement.lean that these explanations were written for; the page warns if the file
   has changed since.
 */
 window.GUIDE = {
-writtenFor: '37e737d43ea0a4d73c16be376a4cd21e5b29f88c2bcbba7697b7d12abcb06419',
+writtenFor: 'f2ab6a4e569acd06e854dce2001a5782b7f7332ffefb2dd8cfe1775e061e0cea',
 written: '15 Oct 2026',
 
 sections: [
@@ -92,22 +92,25 @@ primer: [
 /* ---------------------------------------------------------------------------------------------------------------- */
 items: [
 
-{ id: 'header', section: 's0', kind: 'comment', title: 'The opening comment', lines: [1, 19],
-  summary: 'What the file is for, the data it uses, and assumption (M).',
-  what: `What the file is for, the two data files it uses, and the one assumption that links it to real tilings:
-    (M), that real supertiles are glued like <code>super m K</code>. Lean ignores comments, so none of this is
-    checked; it is the author's description of the code below.`,
-  how: `<code>/-</code> opens a block comment and <code>-/</code> closes it ([[L19]]). <code>#</code> is decoration.`,
+{ id: 'header', section: 's0', kind: 'comment', title: 'The opening comment', lines: [1, 25],
+  summary: 'What the file is for, the data it uses, and assumption (M) in its three parts.',
+  what: `What the file is for, the two data files it uses, and the one assumption that links it to real tilings,
+    (M), in three parts: (M1) real supertiles are glued like <code>super m K</code>; (M2) a tiling whose hierarchy
+    covers the plane is the union of a chain of supertiles that covers; (M3) the nest tiling of the paper is the union
+    of the blocks and covers the plane. Each part names where the paper argues it. Lean ignores comments, so none of
+    this is checked; it is the author's description of the code below.`,
+  how: `<code>/-</code> opens a block comment and <code>-/</code> closes it ([[L25]]). <code>#</code> is decoration.`,
   checks: [
     { tone: 'data', title: 'Where Lean stops',
-      text: `Every claim in this file is about the patches the file builds. That they are glued like the real
-        supertiles is assumption (M), which rests on the spectre paper (Thms 2.2, 3.1, 4.1, 5.1) and on the paper's
+      text: `Every claim in this file is about the patches and tilings the file builds. That they are glued like the
+        real supertiles is (M1), which rests on the spectre paper (Thms 2.2, 3.1, 4.1, 5.1) and on the paper's
         Prop 2.4 and Lemma 2.6. <code>Tests.lean</code> supports it: the level-2 supertiles built here equal, edge for
         edge, those built from the tile placements in exact arithmetic, and the strand counts of the paper's Table 5
-        come out of these definitions.` },
+        come out of these definitions. (M2) and (M3) are the paper's arguments about points of the plane: the first
+        half of the proof of Theorem A, and Props 8.2 and 8.4.` },
   ] },
 
-{ id: 'imports', section: 's0', kind: 'import', title: 'Imports', lines: [20, 23],
+{ id: 'imports', section: 's0', kind: 'import', title: 'Imports', lines: [26, 29],
   summary: 'Loads Basic (Kind, iter) and the two generated data files.',
   what: `Loads three other files of the project. Every name used below that this file does not define comes from one of
     them, or from Lean's core library: <code>Kind</code> and <code>iter</code> from <code>Basic</code>;
@@ -133,12 +136,12 @@ items: [
         full. <code>Data/Pattern.lean</code> and <code>Data/Clusters.lean</code> are generated (by
         <code>tools/gen_pattern.py</code> from <code>paper/code/hierarchy/combin_8.json</code>, and by
         <code>tools/gen_clusters.py</code> with <code>paper/code/exact/exact.py</code>). Lean takes their contents as
-        given; whether they match the spectre paper is tested, not proved: it is part of assumption (M).` },
+        given; whether they match the spectre paper is tested, not proved: it is part of assumption (M1).` },
   ] },
 
-{ id: 'ns', section: 's0', kind: 'namespace', title: 'namespace SpectreKnot.Statement', lines: [24, 25],
+{ id: 'ns', section: 's0', kind: 'namespace', title: 'namespace SpectreKnot.Statement', lines: [30, 31],
   summary: 'Prefixes every name in the file with SpectreKnot.Statement.',
-  what: `Everything from here to the last line ([[L379]]) gets the prefix <code>SpectreKnot.Statement.</code>: the full
+  what: `Everything from here to the last line ([[L398]]) gets the prefix <code>SpectreKnot.Statement.</code>: the full
     name of <code>TheoremA</code> is <code>SpectreKnot.Statement.TheoremA</code>.`,
   how: `<code>namespace X</code> … <code>end X</code>. Inside it, names from the enclosing namespace
     <code>SpectreKnot</code> can be used without their prefix, which is why the file can write <code>Kind</code> and
@@ -147,18 +150,18 @@ items: [
     { tone: 'ok', title: 'The proofs prove these exact claims',
       text: `The proof files state, inside this same namespace, <code>theorem theoremA : TheoremA</code>
         (<code>ProofA.lean</code>), <code>theoremB_sharp</code> and <code>theoremB</code> (<code>ProofB.lean</code>),
-        <code>nestModel</code> and <code>theoremB_strand</code> (<code>ProofStrand.lean</code>), <code>chainModel</code>
-        and <code>theoremA_strand</code> (<code>ProofChain.lean</code>), <code>theoremB_exact</code>
-        (<code>ProofExact.lean</code>) and <code>grandparent</code> (<code>ProofGrand.lean</code>). To rule out any
-        confusion of names, the full names were checked directly: Lean accepts
-        <code>example : SpectreKnot.Statement.TheoremA := SpectreKnot.Statement.theoremA</code>, and the same for the
-        other eight.` },
+        <code>nestModel</code> and <code>theoremB_strand</code> (<code>ProofStrand.lean</code>), <code>chainModel</code>,
+        <code>theoremA_strand</code> and <code>nestCovers</code> (<code>ProofChain.lean</code>),
+        <code>theoremB_exact</code> (<code>ProofExact.lean</code>) and <code>grandparent</code>
+        (<code>ProofGrand.lean</code>). To rule out any confusion of names, the full names are checked directly: Lean
+        accepts <code>example : SpectreKnot.Statement.TheoremA := SpectreKnot.Statement.theoremA</code>, and the same
+        for the other nine (the end of <code>Axioms.lean</code>).` },
   ] },
 
-{ id: 'sec1', section: 's1', kind: 'section', title: 'Section heading', lines: [26, 27],
+{ id: 'sec1', section: 's1', kind: 'section', title: 'Section heading', lines: [32, 33],
   what: `§1.`, how: `<code>/-! … -/</code> is a heading comment.` },
 
-{ id: 'Port', section: 's1', kind: 'abbrev', title: 'Port', lines: [28, 32],
+{ id: 'Port', section: 's1', kind: 'abbrev', title: 'Port', lines: [34, 38],
   summary: 'A ribbon end at an edge: (tile t, vertex i, s). s = true is R(vᵢ), s = false is L(vᵢ).',
   what: `A port is a ribbon end where a ribbon meets an edge of a tile. It is named by three things: the tile's number
     <code>t</code>; a vertex number <code>i</code> from 0 to 13; and a flag <code>s</code> saying which of the two ports
@@ -179,7 +182,7 @@ items: [
         numbers.` },
   ] },
 
-{ id: 'pieceEnd', section: 's1', kind: 'def', title: 'pieceEnd', lines: [33, 40],
+{ id: 'pieceEnd', section: 's1', kind: 'def', title: 'pieceEnd', lines: [39, 46],
   summary: 'The decoration: the other end of the piece that ends at a port.',
   what: `The decoration of the paper's Def 3.1. Inside every tile, 14 ribbon pieces pair up its 28 ports;
     <code>pieceEnd p</code> is the port at the other end of <code>p</code>'s piece. At v<sub>0</sub> and v<sub>1</sub>
@@ -202,10 +205,10 @@ items: [
         <code>pieceEnd_pieceEnd</code> in <code>Linked.lean</code>.)` },
   ] },
 
-{ id: 'sec2', section: 's2', kind: 'section', title: 'Section heading', lines: [41, 42],
+{ id: 'sec2', section: 's2', kind: 'section', title: 'Section heading', lines: [47, 48],
   what: `§2.`, how: `A heading comment.` },
 
-{ id: 'Patch', section: 's2', kind: 'structure', title: 'Patch', lines: [43, 52],
+{ id: 'Patch', section: 's2', kind: 'structure', title: 'Patch', lines: [49, 58],
   summary: 'A finite set of tiles and which of their edges are glued (plus rim and corners, for supertiles).',
   what: `A patch is a finite set of tiles with a record of which of their edges are glued together. Four fields:
     <code>tiles</code>, how many tiles (numbered 0 … tiles − 1); <code>glue t i</code>, what lies across edge
@@ -216,12 +219,12 @@ items: [
   how: `<code>structure Patch where</code>, one field per line, each <code>name : Type</code>. <code>glue : Nat → Nat →
     Option (Nat × Nat)</code> takes a tile number and an edge number. It has a value for every pair of numbers,
     including tiles that do not exist; only real tiles and edges 0–13 matter. Patches are built with
-    <code>⟨…⟩</code> ([[L151]], [[L155]], [[L246]]) or by field names ([[L122]]).`,
+    <code>⟨…⟩</code> ([[L160]], [[L164]]) or by field names ([[L131]]).`,
   checks: [
     { tone: 'ok', title: 'The orientation convention',
       text: `The two tiles on either side of a shared edge run along it in opposite directions, so v<sub>i</sub> of
         <code>t</code> is v<sub>j+1</sub> of <code>t'</code> and v<sub>i+1</sub> of <code>t</code> is v<sub>j</sub> of
-        <code>t'</code>, as the doc comment says. [[across]] relies on this.` },
+        <code>t'</code>, as the doc comment says. [[straightThrough]] relies on this.` },
     { tone: 'note', title: 'A Patch can be any record',
       text: `Nothing in the type forces <code>glue</code> to be consistent (if <code>t</code> is glued to <code>t'</code>,
         then <code>t'</code> back to <code>t</code>) or <code>rim</code> to list exactly the unglued edges. For the
@@ -229,44 +232,26 @@ items: [
         <code>good</code> in <code>ProofA.lean</code>). The theorems need no more than they say.` },
   ] },
 
-{ id: 'nsPatch', section: 's2', kind: 'namespace', title: 'namespace Patch and variable P', lines: [53, 56],
-  summary: 'The next definitions are Patch.IsPort, Patch.across, …, each taking a patch P first.',
-  what: `Up to <code>end Patch</code> ([[L105]]) the definitions are <code>Patch.IsPort</code>,
-    <code>Patch.across</code>, <code>Patch.Follow</code>, <code>Patch.turn</code> and so on, and each takes a patch
-    <code>P</code> as its first argument.`,
-  how: `<code>variable (P : Patch)</code> adds <code>(P : Patch)</code> to every following definition that mentions
-    <code>P</code>. With the namespace this allows dot notation: <code>P.across p</code> means <code>Patch.across P
-    p</code>, and <code>(N b).NoClosedStrand</code> means <code>Patch.NoClosedStrand (N b)</code>.` },
-
-{ id: 'IsPort', section: 's2', kind: 'def', title: 'IsPort', lines: [57, 59],
-  summary: 'p is a port of a real tile of the patch: tile < P.tiles and vertex < 14.',
-  what: `<code>P.IsPort p</code>: the port <code>p</code> belongs to a real tile of the patch (tile number below
-    <code>P.tiles</code>) and its vertex number is one of 0–13. Either flag is allowed.`,
-  how: `The result type is <code>Prop</code>: <code>IsPort p</code> is a claim, not a computed <code>Bool</code>.
-    <code>∧</code> is "and"; <code>p.1</code> is the tile and <code>p.2.1</code> the vertex (see [[Port]]).`,
-  checks: [{ tone: 'ok', title: 'As intended', text: `Exactly the 28 ports of each of the patch's tiles.` }] },
-
-{ id: 'across', section: 's2', kind: 'def', title: 'across', lines: [60, 67],
-  summary: 'The straight-through rule: the port a ribbon continues as across an edge, or none on the rim.',
-  what: `The straight-through rule of the paper's Def 3.2. Where a ribbon reaches an edge, it goes straight through the
-    crossing point into the tile on the other side. <code>P.across p</code> is the port of that tile where it
-    continues: across edge e<sub>i</sub> = e<sub>j</sub> of <code>t'</code>, R(v<sub>i</sub>) continues as
-    R(v<sub>j</sub>) of <code>t'</code>; across e<sub>i−1</sub> = e<sub>j</sub>, L(v<sub>i</sub>) continues as
-    L(v<sub>j+1</sub>). On the rim the answer is <code>none</code>. The figure below shows the four ports at one
-    crossing point; click them.`,
-  how: `<code>Port → Option Port</code>: the answer is an <code>Option</code>, because there may be no tile on the other
-    side. Two cases, by the flag. Each looks up the edge with <code>P.glue</code> and converts the answer with
+{ id: 'straightThrough', section: 's2', kind: 'def', title: 'straightThrough', lines: [59, 66],
+  summary: 'The straight-through rule, for any gluing: the port a ribbon continues as across an edge, or none.',
+  what: `The straight-through rule of the paper's Def 3.2, written once for any gluing, so that a patch
+    ([[across]]) and a whole tiling ([[Tiling_across]]) follow exactly the same rule. Where a ribbon reaches an edge, it
+    goes straight through the crossing point into the tile on the other side. <code>straightThrough glue p</code> is
+    the port of that tile where it continues: across edge e<sub>i</sub> = e<sub>j</sub> of <code>t'</code>,
+    R(v<sub>i</sub>) continues as R(v<sub>j</sub>) of <code>t'</code>; across e<sub>i−1</sub> = e<sub>j</sub>,
+    L(v<sub>i</sub>) continues as L(v<sub>j+1</sub>). Where nothing is glued, the answer is <code>none</code>. The
+    figure below shows the four ports at one crossing point; click them.`,
+  how: `Its first argument is a gluing, a function of the same type as a patch's <code>glue</code>; then
+    <code>Port → Option Port</code>: the answer is an <code>Option</code>, because there may be no tile on the other
+    side. Two cases, by the flag. Each looks up the edge with <code>glue</code> and converts the answer with
     <code>.map</code>, which leaves <code>none</code> as <code>none</code> and turns <code>some x</code> into
     <code>some (f x)</code>; so a rim edge gives <code>none</code> automatically. <code>(i + 13) % 14</code> is i − 1
     counted round the 14 vertices (<code>%</code> is the remainder), so that i = 0 gives 13; likewise
     <code>(j + 1) % 14</code> turns 13 into 0.`,
   fig: 'across',
   examples: [
-    { expr: '(level1 .Delta).across (0,0,true)', out: 'some (7, 5, true)',
+    { expr: 'straightThrough (level1 .Delta).glue (0,0,true)', out: 'some (7, 5, true)',
       note: 'In the level-1 Δ, edge e₀ of tile 0 is edge e₅ of tile 7.' },
-    { expr: '(level1 .Delta).across (0,0,false)', out: 'some (1, 3, false)',
-      note: 'L(v₀) lies on e₁₃; edge e₁₃ of tile 0 is edge e₂ of tile 1, so the ribbon continues as L(v₃) of tile 1.' },
-    { expr: '(level1 .Delta).across (0,5,true)', out: 'none', note: 'Edge e₅ of tile 0 is on the rim.' },
   ],
   checks: [
     { tone: 'ok', title: 'Re-derived from the paper: both cases are right',
@@ -274,14 +259,46 @@ items: [
         near x joins the port of <code>t'</code> near y. Edge e<sub>i</sub> of <code>t</code> runs from v<sub>i</sub>
         to v<sub>i+1</sub>; <code>t'</code> runs it the other way, so v<sub>i+1</sub> of <code>t</code> is
         v<sub>j</sub> of <code>t'</code>. The port of <code>t</code> near v<sub>i</sub> is R(v<sub>i</sub>); it joins
-        the port of <code>t'</code> near v<sub>j</sub> on e<sub>j</sub>, which is R(v<sub>j</sub>): [[L64]]. For
+        the port of <code>t'</code> near v<sub>j</sub> on e<sub>j</sub>, which is R(v<sub>j</sub>): [[L63]]. For
         L(v<sub>i</sub>), on e<sub>i−1</sub> = e<sub>j</sub> of <code>t'</code>, v<sub>i</sub> of <code>t</code> is
         v<sub>j</sub> of <code>t'</code>, so it joins the port of <code>t'</code> near v<sub>j+1</sub>, which is
-        L(v<sub>j+1</sub>): [[L66]]. When the gluing is symmetric, applying <code>across</code> twice gives back the
-        port.` },
+        L(v<sub>j+1</sub>): [[L65]]. When the gluing is symmetric, applying the rule twice gives back the port.` },
+    { tone: 'ok', title: 'One rule for patches and tilings',
+      text: `[[across]] and [[Tiling_across]] are each one line, this rule applied to their own gluing, so a supertile
+        and the tilings of §6 and §7 cannot follow different rules.` },
   ] },
 
-{ id: 'Follow', section: 's2', kind: 'inductive', title: 'Follow', lines: [68, 75],
+{ id: 'nsPatch', section: 's2', kind: 'namespace', title: 'namespace Patch and variable P', lines: [67, 70],
+  summary: 'The next definitions are Patch.IsPort, Patch.across, …, each taking a patch P first.',
+  what: `Up to <code>end Patch</code> ([[L114]]) the definitions are <code>Patch.IsPort</code>,
+    <code>Patch.across</code>, <code>Patch.Follow</code>, <code>Patch.turn</code> and so on, and each takes a patch
+    <code>P</code> as its first argument.`,
+  how: `<code>variable (P : Patch)</code> adds <code>(P : Patch)</code> to every following definition that mentions
+    <code>P</code>. With the namespace this allows dot notation: <code>P.across p</code> means <code>Patch.across P
+    p</code>, and <code>(N b).NoClosedStrand</code> means <code>Patch.NoClosedStrand (N b)</code>.` },
+
+{ id: 'IsPort', section: 's2', kind: 'def', title: 'IsPort', lines: [71, 73],
+  summary: 'p is a port of a real tile of the patch: tile < P.tiles and vertex < 14.',
+  what: `<code>P.IsPort p</code>: the port <code>p</code> belongs to a real tile of the patch (tile number below
+    <code>P.tiles</code>) and its vertex number is one of 0–13. Either flag is allowed.`,
+  how: `The result type is <code>Prop</code>: <code>IsPort p</code> is a claim, not a computed <code>Bool</code>.
+    <code>∧</code> is "and"; <code>p.1</code> is the tile and <code>p.2.1</code> the vertex (see [[Port]]).`,
+  checks: [{ tone: 'ok', title: 'As intended', text: `Exactly the 28 ports of each of the patch's tiles.` }] },
+
+{ id: 'across', section: 's2', kind: 'def', title: 'across', lines: [74, 76],
+  summary: 'P.across p: the straight-through rule with the patch\'s own gluing; none on the rim.',
+  what: `The straight-through rule ([[straightThrough]]) in the patch: <code>P.across p</code> is the port where the
+    ribbon at <code>p</code> continues across its edge, or <code>none</code> if that edge is on the rim.`,
+  how: `One line: [[straightThrough]] applied to the patch's own <code>glue</code>.`,
+  examples: [
+    { expr: '(level1 .Delta).across (0,0,true)', out: 'some (7, 5, true)',
+      note: 'In the level-1 Δ, edge e₀ of tile 0 is edge e₅ of tile 7.' },
+    { expr: '(level1 .Delta).across (0,0,false)', out: 'some (1, 3, false)',
+      note: 'L(v₀) lies on e₁₃; edge e₁₃ of tile 0 is edge e₂ of tile 1, so the ribbon continues as L(v₃) of tile 1.' },
+    { expr: '(level1 .Delta).across (0,5,true)', out: 'none', note: 'Edge e₅ of tile 0 is on the rim.' },
+  ] },
+
+{ id: 'Follow', section: 's2', kind: 'inductive', title: 'Follow', lines: [77, 84],
   summary: 'P.Follow p r: following the ribbon from p, you leave the patch at the rim port r.',
   what: `Following a ribbon: from port <code>p</code>, go along its piece; if the far end is on the rim, stop there;
     otherwise cross the edge and carry on. <code>P.Follow p r</code> says that this ends, at the rim port
@@ -302,7 +319,7 @@ items: [
         end <code>r</code> is a rim port.` },
   ] },
 
-{ id: 'NoClosedStrand', section: 's2', kind: 'def', title: 'NoClosedStrand', lines: [76, 79],
+{ id: 'NoClosedStrand', section: 's2', kind: 'def', title: 'NoClosedStrand', lines: [85, 88],
   summary: 'From every port of the patch, following the ribbon leaves the patch.',
   what: `From every port of every tile of the patch, following the ribbon leads out of the patch in finitely many
     steps. So no strand closes up into a loop inside the patch.`,
@@ -316,7 +333,7 @@ items: [
         <code>p</code> itself: a loop.` },
   ] },
 
-{ id: 'Linked', section: 's2', kind: 'inductive', title: 'Linked', lines: [80, 86],
+{ id: 'Linked', section: 's2', kind: 'inductive', title: 'Linked', lines: [89, 95],
   summary: 'P.Linked p q: q is reached from p by moves along pieces and across glued edges, inside P.',
   what: `Same strand. <code>P.Linked p q</code> says: starting at <code>p</code>, you can reach <code>q</code> by moving
     along pieces and straight across glued edges, any number of times, without leaving the patch.`,
@@ -331,7 +348,7 @@ items: [
         written, so its meaning does not depend on that.` },
   ] },
 
-{ id: 'turn', section: 's2', kind: 'def', title: 'turn', lines: [87, 91],
+{ id: 'turn', section: 's2', kind: 'def', title: 'turn', lines: [96, 100],
   summary: 'Turning about a point: the next corner round it, across the edge that ends there.',
   what: `A corner <code>(t, i)</code> is vertex v<sub>i</sub> of tile <code>t</code>. The edge e<sub>i−1</sub> ends
     there. If it is glued to edge e<sub>j</sub> of tile <code>t'</code>, the same point is vertex v<sub>j</sub> of
@@ -350,7 +367,7 @@ items: [
         symmetric gluing it can be undone (across e<sub>i</sub>), so no corner is reached from two others.` },
   ] },
 
-{ id: 'turns', section: 's2', kind: 'def', title: 'turns', lines: [92, 96],
+{ id: 'turns', section: 's2', kind: 'def', title: 'turns', lines: [101, 105],
   summary: 'Turning n times about a point, across glued edges only.',
   what: `Turning <code>n</code> times from a corner: <code>some</code> of the corner reached, or <code>none</code> if
     the rim is reached on the way.`,
@@ -363,7 +380,7 @@ items: [
       note: 'Vertex 0 of N₁, which is vertex v₀ of tile 7: the first turn reaches the rim.' },
   ] },
 
-{ id: 'Surrounded', section: 's2', kind: 'def', title: 'Surrounded', lines: [97, 100],
+{ id: 'Surrounded', section: 's2', kind: 'def', title: 'Surrounded', lines: [106, 109],
   summary: 'Vertex v_i of tile t is surrounded: turning about it comes back to it.',
   what: `Turning about vertex v<sub>i</sub> of tile <code>t</code>, across glued edges only, comes back to where it
     started after some positive number of turns. So the tiles of the patch close up all round the point: it is not on
@@ -379,7 +396,7 @@ items: [
         they are surrounded or not together.` },
   ] },
 
-{ id: 'side', section: 's2', kind: 'def', title: 'side', lines: [101, 104],
+{ id: 'side', section: 's2', kind: 'def', title: 'side', lines: [110, 113],
   summary: 'Side j of a supertile: its rim edges from vertex j to vertex j+1.',
   what: `Side <code>j</code> of a supertile: the stretch of its rim from vertex <code>j</code> to vertex
     <code>j + 1</code>.`,
@@ -397,13 +414,13 @@ items: [
         defaults are never used. A single tile has an empty <code>vtx</code>, but its sides are never asked for.` },
   ] },
 
-{ id: 'endPatch', section: 's2', kind: 'end', title: 'end Patch', lines: [105, 106],
-  what: `Closes the namespace <code>Patch</code> opened on [[L53]].`, how: `<code>end Patch</code>.` },
+{ id: 'endPatch', section: 's2', kind: 'end', title: 'end Patch', lines: [114, 115],
+  what: `Closes the namespace <code>Patch</code> opened on [[L67]].`, how: `<code>end Patch</code>.` },
 
-{ id: 'sec3', section: 's3', kind: 'section', title: 'Section heading', lines: [107, 108],
+{ id: 'sec3', section: 's3', kind: 'section', title: 'Section heading', lines: [116, 117],
   what: `§3.`, how: `A heading comment.` },
 
-{ id: 'compose', section: 's3', kind: 'def', title: 'compose', lines: [109, 149],
+{ id: 'compose', section: 's3', kind: 'def', title: 'compose', lines: [118, 158],
   summary: 'Builds a supertile of kind T from its children, by Tables 1–3 (Prop 2.4 as a recipe).',
   what: `Builds a supertile from its children, following the paper's Prop 2.4 read as a recipe. The parent's tiles are
     the children's, numbered child by child. Gluing inside each child is kept. Where Table 2 says that side
@@ -415,9 +432,9 @@ items: [
     <code>{ tiles := …, glue := …, rim := …, vtx := … }</code> builds the parent field by field.`,
   fig: 'compose',
   clauses: [
-    { lines: [109, 113], title: 'Doc comment and signature',
+    { lines: [118, 122], title: 'Doc comment and signature',
       what: `The recipe in words. The caller must pass children of the right kinds and level; [[super]] does.` },
-    { lines: [114, 121], title: 'Helpers: n, off, owner, shift',
+    { lines: [123, 130], title: 'Helpers: n, off, owner, shift',
       what: `<code>n</code>, the number of children (8, or 7 for Γ). <code>off c</code>, the number of the first tile of
         child <code>c</code>: the total of the tiles of children 0 … c−1. <code>owner t</code>, the child containing
         parent tile <code>t</code>. <code>shift c e</code>, edge <code>e</code> of child <code>c</code> renumbered into
@@ -427,22 +444,22 @@ items: [
         because <code>off</code> starts at 0 and strictly increases (every child has at least one tile).`,
       examples: [{ expr: '-- off c for N₂ (a Δ of level 2), c = 0 … 8', out: '[0, 9, 18, 27, 36, 45, 54, 63, 71]',
         note: 'Seven children of 9 tiles, and the Γ child (last) with 8.' }] },
-    { lines: [122, 123], title: 'tiles',
+    { lines: [131, 132], title: 'tiles',
       what: `The parent has as many tiles as its children together.` },
-    { lines: [124, 130], title: 'glue, inside a child',
+    { lines: [133, 139], title: 'glue, inside a child',
       what: `For parent tile <code>t</code> and edge <code>i</code>: find its child <code>c</code> and its number
         <code>t₀</code> inside that child. If the child glues that edge, the parent glues it to the same edge,
         renumbered.`,
       how: `<code>glue := fun t i => …</code> defines the field as a function. <code>match … with</code> looks at the
         child's answer: <code>| some e => some (shift c e)</code>.` },
-    { lines: [131, 135], title: 'glue, on a child\'s rim: which side, how far along',
+    { lines: [140, 144], title: 'glue, on a child\'s rim: which side, how far along',
       what: `Otherwise the edge is on the child's rim. Find its position <code>pos</code> in the child's rim list, the
         side <code>j</code> of the child that contains it, and how many edges of that side come before it
         (<code>o</code>).`,
       how: `<code>rim.findIdx? (· == (t₀, i))</code> is <code>some k</code> for the first position <code>k</code> holding
         <code>(t₀, i)</code>, and <code>.getD 0</code> takes the <code>k</code>. <code>j</code> counts the vertices at or
         before <code>pos</code>, minus 1, as <code>owner</code> does.` },
-    { lines: [136, 143], title: 'glue, on a child\'s rim: Table 2',
+    { lines: [145, 152], title: 'glue, on a child\'s rim: Table 2',
       what: `Look up side <code>j</code> of child <code>c</code> in Table 2. If it lies on the parent's rim, the edge
         stays unglued. If it is side <code>j'</code> of child <code>c'</code>, glue the edge to the edge of that side
         that comes <code>o</code>-th from its <em>end</em>: the two children run along their shared boundary in
@@ -453,14 +470,14 @@ items: [
       examples: [
         { expr: '(N 2).glue 10 5', out: 'some (33, 8)',
           note: 'Tile 10 of N₂ is the original tile (tile 1 of child 1). Its edge e₅ is on N₁\'s rim at position 34. N₁\'s vertices are at [0, 10, 15, 23, 30, 40, 46], so j = 4 and o = 34 − 30 = 4. Table 2 (Δ, child 1, side 4) says: side 0 of child 3. That side has 10 edges; entry 10 − 1 − 4 = 5 is (6, 8), and child 3 starts at tile 27, giving (33, 8). And (N 2).glue 33 8 = some (10, 5): glued back.' }] },
-    { lines: [144, 145], title: 'rim',
+    { lines: [153, 154], title: 'rim',
       what: `The parent's rim: for each piece <code>(c, j)</code> listed in Table 3, in order, side <code>j</code> of
         child <code>c</code>, backwards, renumbered.`,
       how: `<code>flatMap id</code> flattens Table 3's row (one list per parent side) into one list of pieces; the
         second <code>flatMap</code> replaces each piece by that side, reversed and renumbered, and joins the results.`,
       examples: [{ expr: '(N 2).rim.take 6', out: '[(69, 0), (69, 1), (69, 2), (63, 3), (63, 4), (54, 5)]',
         note: 'N₂ starts at side 5 of child 7 (the Γ, tiles 63–70), read backwards.' }] },
-    { lines: [146, 149], title: 'vtx',
+    { lines: [155, 158], title: 'vtx',
       what: `Vertex <code>J</code> of the parent sits where side <code>J</code> begins: after the pieces Table 3 lists
         for sides 0 … J−1. For J = 6 this is the length of the whole rim.`,
       examples: [{ expr: '(N 2).vtx', out: '[0, 42, 57, 91, 114, 156, 182]',
@@ -469,20 +486,20 @@ items: [
   checks: [
     { tone: 'ok', title: 'Directions are right',
       text: `Two patches with the same orientation that share a boundary run along it in opposite directions, so the
-        o-th edge from one end is the o-th from the other end: [[L143]]. The parent's rim reverses each child's side
+        o-th edge from one end is the o-th from the other end: [[L152]]. The parent's rim reverses each child's side
         because a parent's own orientation is opposite to its children's (the paper's Def 2.2). The data agree: the
         rim of N₁ begins (7, 13), (7, 12), (7, 11), tile edges in decreasing order.` },
     { tone: 'note', title: 'Silent fallbacks',
-      text: `Several lookups have a fallback for "not found": <code>findIdx? … getD 0</code> ([[L133]]),
-        <code>getD c []</code> and <code>getD j none</code> ([[L137]]), <code>s[…]?</code> and the subtraction
-        <code>s.length - 1 - o</code>, which stops at 0 ([[L143]]). If the tables or the children were inconsistent,
+      text: `Several lookups have a fallback for "not found": <code>findIdx? … getD 0</code> ([[L142]]),
+        <code>getD c []</code> and <code>getD j none</code> ([[L146]]), <code>s[…]?</code> and the subtraction
+        <code>s.length - 1 - o</code>, which stops at 0 ([[L152]]). If the tables or the children were inconsistent,
         these would quietly give a wrong gluing instead of an error. They do not fire for the real supertiles: the
         proofs show, for every supertile of level 1 or more, that the rim list is exactly the unglued edges, each once,
         and that the gluing is symmetric; and <code>Tests.lean</code> checks level 2 against exact geometry, edge for
         edge. The definition alone does not guarantee it.` },
   ] },
 
-{ id: 'tile', section: 's3', kind: 'def', title: 'tile', lines: [150, 152],
+{ id: 'tile', section: 's3', kind: 'def', title: 'tile', lines: [159, 161],
   summary: 'A patch of one tile: tile 0, nothing glued, rim = its 14 edges.',
   what: `A patch of a single tile: tile number 0, nothing glued, its 14 edges round the rim, and no hexagon corners.`,
   how: `<code>⟨1, fun _ _ => none, …, []⟩</code> gives the fields in order: one tile; a <code>glue</code> that ignores
@@ -491,7 +508,7 @@ items: [
     text: `The <code>rim</code> and <code>vtx</code> of a single tile are never used: <code>compose</code> never takes
       level-0 children, because level 1 comes from the data.` }] },
 
-{ id: 'level1', section: 's3', kind: 'def', title: 'level1', lines: [153, 156],
+{ id: 'level1', section: 's3', kind: 'def', title: 'level1', lines: [162, 165],
   summary: 'The nine level-1 supertiles, read from Data/Clusters.lean.',
   what: `The level-1 supertile of kind <code>K</code>: the spectre paper's Fig. 4.1 clusters (our Fig. 3), read from the
     data file.`,
@@ -510,7 +527,7 @@ items: [
       side lengths match Prop 6.1. The proofs check by computation that each of the nine clusters has the signature
       the induction starts from (<code>good_one</code>).` }] },
 
-{ id: 'super', section: 's3', kind: 'def', title: 'super', lines: [157, 163],
+{ id: 'super', section: 's3', kind: 'def', title: 'super', lines: [166, 172],
   summary: 'super m K: the supertile of level m and kind K.',
   what: `<code>super m K</code> is the supertile of level <code>m</code> and kind <code>K</code>. Level 0 is a single
     tile; level 1 is the data; every higher level is composed from children one level down, of the kinds Table 1
@@ -530,10 +547,10 @@ items: [
         reason about it rather than run it at high levels.` },
   ] },
 
-{ id: 'sec4', section: 's4', kind: 'section', title: 'Section heading', lines: [164, 165],
+{ id: 'sec4', section: 's4', kind: 'section', title: 'Section heading', lines: [173, 174],
   what: `§4.`, how: `A heading comment.` },
 
-{ id: 'N', section: 's4', kind: 'def', title: 'N', lines: [166, 168],
+{ id: 'N', section: 's4', kind: 'def', title: 'N', lines: [175, 177],
   summary: 'N b: the block of the nest, the Δ-supertile of level b.',
   what: `The block N<sub>b</sub> of the nest: the Δ-supertile of level <code>b</code>. N₀ is the original tile. The
     explorer below follows a tile through the numbering of §4 and §6.`,
@@ -541,7 +558,7 @@ items: [
   examples: [{ expr: '((N 0).tiles, (N 1).tiles, (N 2).tiles, (N 3).tiles)', out: '(1, 9, 71, 559)' }],
   fig: 'nest' },
 
-{ id: 'nestShift', section: 's4', kind: 'def', title: 'nestShift', lines: [169, 171],
+{ id: 'nestShift', section: 's4', kind: 'def', title: 'nestShift', lines: [178, 180],
   summary: 'Where N_b starts inside N_{b+1}: the number of tiles of child 0, a Ξ.',
   what: `Where N<sub>b</sub> starts inside N<sub>b+1</sub>. N<sub>b</sub> is child 1 of N<sub>b+1</sub>, and child 0 is a
     Ξ, so N<sub>b</sub>'s tiles come straight after those of a level-<code>b</code> Ξ.`,
@@ -549,7 +566,7 @@ items: [
   examples: [{ expr: '(nestShift 0, nestShift 1, nestShift 2, nestShift 3)', out: '(1, 9, 71, 559)' }],
   checks: [{ tone: 'ok', title: 'Matches Table 1', text: `Δ's row of Table 1 begins Ξ, Δ: child 0 is a Ξ, child 1 a Δ.` }] },
 
-{ id: 'up', section: 's4', kind: 'def', title: 'up', lines: [172, 176],
+{ id: 'up', section: 's4', kind: 'def', title: 'up', lines: [181, 185],
   summary: 'up b k t: tile t of N_b, renumbered as a tile of N_{b+k}.',
   what: `Tile <code>t</code> of N<sub>b</sub>, renumbered as a tile of N<sub>b+k</sub>: shift it into N<sub>b+1</sub>,
     then into N<sub>b+2</sub>, and so on, <code>k</code> times.`,
@@ -558,16 +575,16 @@ items: [
   examples: [{ expr: '(List.range 5).map fun k => up 0 k 0', out: '[0, 1, 10, 81, 640]',
     note: 'The original tile is tile 0 of N₀, tile 1 of N₁, 10 of N₂, 81 of N₃ and 640 of N₄.' }] },
 
-{ id: 'upPort', section: 's4', kind: 'def', title: 'upPort', lines: [177, 179],
+{ id: 'upPort', section: 's4', kind: 'def', title: 'upPort', lines: [186, 188],
   summary: 'A port of N_b as a port of N_{b+k}: same vertex and flag, renumbered tile.',
   what: `Port <code>p</code> of N<sub>b</sub> as a port of N<sub>b+k</sub>: the same vertex and flag, on the renumbered
     tile.`,
   how: `<code>(up b k p.1, p.2.1, p.2.2)</code>.` },
 
-{ id: 'sec5', section: 's5', kind: 'section', title: 'Section heading', lines: [180, 181],
+{ id: 'sec5', section: 's5', kind: 'section', title: 'Section heading', lines: [189, 190],
   what: `§5: the claims start here.`, how: `A heading comment.` },
 
-{ id: 'TheoremA', section: 's5', kind: 'claim', title: 'TheoremA', lines: [182, 184],
+{ id: 'TheoremA', section: 's5', kind: 'claim', title: 'TheoremA', lines: [191, 193],
   summary: 'No supertile of any level or kind contains a closed strand.',
   what: `For every level <code>m</code> and every kind <code>K</code>, the supertile <code>super m K</code> contains no
     closed strand.`,
@@ -579,17 +596,18 @@ items: [
       text: `All levels, including 0 (trivial) and 1 (the data), and all nine kinds.` },
     { tone: 'data', title: 'About supertiles; the plane is §7',
       text: `This is about single supertiles. The step to a whole tiling whose hierarchy covers the plane is
-        [[TheoremA_strand]] in §7, which uses this theorem. What stays outside Lean is assumption (M).` },
+        [[TheoremA_strand]] in §7, which uses this theorem. What stays outside Lean is assumption (M), parts (M1) and
+        (M2).` },
   ] },
 
-{ id: 'TheoremB', section: 's5', kind: 'claim', title: 'TheoremB', lines: [185, 193],
+{ id: 'TheoremB', section: 's5', kind: 'claim', title: 'TheoremB', lines: [194, 202],
   summary: 'The nest has no boundary, no closed strand, and any two ports lie on one strand of a larger block.',
   what: `Three claims about the nest, joined by "and" (<code>∧</code>).`,
   how: `<code>A ∧ B ∧ C</code>, each part in brackets. Proved in <code>ProofB.lean</code> as <code>theorem theoremB :
     TheoremB</code>.`,
   clauses: [
-    { lines: [185, 189], title: 'Doc comment and header', what: `The three claims in words.` },
-    { lines: [190, 190], title: '(1) No boundary',
+    { lines: [194, 198], title: 'Doc comment and header', what: `The three claims in words.` },
+    { lines: [199, 199], title: '(1) No boundary',
       what: `For every block N<sub>b</sub> with b ≥ 1, every tile <code>t</code> of it and every edge e<sub>i</sub>: two
         levels up, in N<sub>b+2</sub>, that edge is glued to something.`,
       how: `<code>up b 2 t</code> is the tile's number in N<sub>b+2</sub>. <code>isSome</code> is true for <code>some
@@ -597,9 +615,9 @@ items: [
       checks: [{ tone: 'ok', title: 'Enough, with NestModel',
         text: `It says only that the edge is glued, not to what; [[NestModel]] (e) adds that it is glued to a different
           tile, which is glued back. Starting at b = 1 loses nothing: N₀'s tile is a tile of N₁.` }] },
-    { lines: [191, 191], title: '(2) No closed strand',
+    { lines: [200, 200], title: '(2) No closed strand',
       what: `No block contains a closed strand: the case K = Δ of [[TheoremA]].` },
-    { lines: [192, 193], title: '(3) One strand eventually',
+    { lines: [201, 202], title: '(3) One strand eventually',
       what: `For any two ports <code>p</code>, <code>q</code> of a block N<sub>b</sub>, there is a <code>k</code> such that
         in N<sub>b+k</sub> they lie on the same strand.`,
       checks: [{ tone: 'ok', title: 'Not built into the definitions',
@@ -607,7 +625,7 @@ items: [
           Remark 10.1) and finds three strands, not one. So (3) is a real property of the nest.` }] },
   ] },
 
-{ id: 'TheoremB_sharp', section: 's5', kind: 'claim', title: 'TheoremB_sharp', lines: [194, 200],
+{ id: 'TheoremB_sharp', section: 's5', kind: 'claim', title: 'TheoremB_sharp', lines: [203, 209],
   summary: 'For b ≥ 1: any two ports of N_b are on one strand of N_{b+4}, and of N_{b+3} if b is even.',
   what: `The paper's bound. For b ≥ 1, any two ports of N<sub>b</sub> lie on one strand of N<sub>b+4</sub>; and if
     <code>b</code> is even, already of N<sub>b+3</sub>.`,
@@ -616,7 +634,7 @@ items: [
     text: `N₁ (b = 1, odd): 10, 2, 2, then 1 strand four levels up. N₂ (b = 2, even): 37, 2, then 1 three levels up.
       b = 0 (the original tile) is left out here; Theorem B (3) covers it.` }] },
 
-{ id: 'TwoStrands', section: 's5', kind: 'def', title: 'TwoStrands', lines: [201, 207],
+{ id: 'TwoStrands', section: 's5', kind: 'def', title: 'TwoStrands', lines: [210, 216],
   summary: 'k levels up, the ports of N_b lie on exactly two strands of N_{b+k}.',
   what: `Exactly two strands of N<sub>b+k</sub> pass through N<sub>b</sub>: there are two ports <code>p</code>,
     <code>q</code> of N<sub>b</sub> that are not on one strand of N<sub>b+k</sub>, and every port of N<sub>b</sub> is on
@@ -630,7 +648,7 @@ items: [
         there is no third.` },
   ] },
 
-{ id: 'TheoremB_exact', section: 's5', kind: 'claim', title: 'TheoremB_exact', lines: [208, 212],
+{ id: 'TheoremB_exact', section: 's5', kind: 'claim', title: 'TheoremB_exact', lines: [217, 221],
   summary: 'For b ≥ 1: the ports of N_b lie on two strands of N_{b+2}, and, for odd b, of N_{b+3}.',
   what: `The paper's bound cannot be improved. For b ≥ 1 the ports of N<sub>b</sub> lie on exactly two strands of
     N<sub>b+2</sub>, and, if <code>b</code> is odd, on exactly two strands of N<sub>b+3</sub>. With [[TheoremB_sharp]]
@@ -643,7 +661,7 @@ items: [
         N₂ (even), as in Table 5.` },
   ] },
 
-{ id: 'Grandparent', section: 's5', kind: 'claim', title: 'Grandparent', lines: [213, 218],
+{ id: 'Grandparent', section: 's5', kind: 'claim', title: 'Grandparent', lines: [222, 227],
   summary: 'For b ≥ 1: every vertex of every tile of N_b is surrounded by tiles of N_{b+2}.',
   what: `The paper's Lemma 8.3(a), the Grandparent Lemma, at the vertices of tiles. For b ≥ 1, every vertex of every
     tile of N<sub>b</sub> is surrounded in N<sub>b+2</sub>, so N<sub>b</sub> does not reach the rim of
@@ -659,13 +677,68 @@ items: [
         e<sub>i</sub> is glued: every edge of N<sub>b</sub> is glued in N<sub>b+2</sub>, as [[TheoremB]] (1) says.` },
     { tone: 'data', title: 'Vertices of tiles, not points of the plane',
       text: `The paper's (a) is about points of the plane. Here a point is a vertex of tiles, and "not on the rim" means
-        that the tiles close up round it. That real supertiles are glued like these patches is assumption (M).` },
+        that the tiles close up round it. That real supertiles are glued like these patches is (M1), and the step
+        from vertices of tiles to points of the plane is part of (M3).` },
   ] },
 
-{ id: 'sec6', section: 's6', kind: 'section', title: 'Section heading', lines: [219, 220],
+{ id: 'sec6', section: 's6', kind: 'section', title: 'Section heading', lines: [228, 229],
   what: `§6.`, how: `A heading comment.` },
 
-{ id: 'gid', section: 's6', kind: 'def', title: 'gid', lines: [221, 230],
+{ id: 'Tiling', section: 's6', kind: 'structure', title: 'Tiling', lines: [230, 235],
+  summary: 'A tiling: infinitely many tiles, numbered 0, 1, 2, …, and what lies across each edge; no rim, no count.',
+  what: `A whole tiling: infinitely many tiles, numbered 0, 1, 2, …, and what lies across each edge, as for a patch.
+    It has one field, <code>glue</code>, with the meaning it has in [[Patch]]. It has no number of tiles and no rim,
+    because a tiling of the plane has neither.`,
+  how: `<code>structure Tiling where</code> with the single field <code>glue</code>. A tiling is built as
+    <code>⟨g⟩</code> from a gluing <code>g</code> ([[L275]]).`,
+  examples: [{ expr: 'nestTiling.glue 0 0', out: 'some (8, 3)',
+    note: 'In the nest tiling, edge e₀ of the original tile is edge e₃ of tile 8.' }],
+  checks: [
+    { tone: 'ok', title: 'Finite notions cannot be applied to it',
+      text: `The notions of §2 are defined for a <code>Patch</code> (<code>IsPort</code>, <code>Follow</code>,
+        <code>NoClosedStrand</code>, <code>Linked</code>, …), and some need the number of tiles: a port of a patch is a
+        port of one of its <code>tiles</code>. A <code>Tiling</code> is a different type, so Lean rejects
+        <code>nestTiling.NoClosedStrand</code> outright, instead of reading it as a claim about no ports at all. The
+        claims about tilings ([[TheoremB_strand]], [[TheoremA_strand]]) follow the strand step by step instead.` },
+  ] },
+
+{ id: 'nsTiling', section: 's6', kind: 'namespace', title: 'namespace Tiling and variable T', lines: [236, 239],
+  summary: 'The next definitions are Tiling.across, Tiling.forward and Tiling.backward, each taking a tiling T first.',
+  what: `Up to <code>end Tiling</code> ([[L249]]) the definitions are <code>Tiling.across</code>,
+    <code>Tiling.forward</code> and <code>Tiling.backward</code>, and each takes a tiling <code>T</code> as its first
+    argument.`,
+  how: `As [[nsPatch]]: <code>nestTiling.forward p</code> means <code>Tiling.forward nestTiling p</code>.` },
+
+{ id: 'Tiling_across', section: 's6', kind: 'def', title: 'Tiling.across', lines: [240, 242],
+  summary: 'T.across p: the straight-through rule with the tiling\'s gluing.',
+  what: `The straight-through rule ([[straightThrough]]) in the tiling: the port where the ribbon at <code>p</code>
+    continues across its edge.`,
+  how: `One line, as [[across]] for a patch.`,
+  examples: [{ expr: 'nestTiling.across (0,0,true)', out: 'some (8, 3, true)' }] },
+
+{ id: 'Tiling_forward', section: 's6', kind: 'def', title: 'Tiling.forward', alias: 'forward', lines: [243, 245],
+  summary: 'One step forwards along a strand: along the piece, then across the edge.',
+  what: `One step forwards along a strand of the tiling: from port <code>p</code> along its piece, then straight
+    across that edge into the next tile.`,
+  how: `<code>.getD x</code> takes the value out of <code>some</code>, or gives <code>x</code> for <code>none</code>.`,
+  examples: [{ expr: 'nestTiling.forward (0,0,true)', out: '(8, 2, true)',
+    note: 'R(v₀) → R(v₁) along the crossover, then across edge e₁ of tile 0, which is edge e₂ of tile 8.' }],
+  checks: [{ tone: 'ok', title: 'The fallback is never used',
+    text: `If nothing were across, <code>forward</code> would stay at <code>pieceEnd p</code>. In the tilings the
+      theorems are about, every edge is glued ([[NestModel]] (e), [[ChainModel]] (e)), so this never happens.` }] },
+
+{ id: 'Tiling_backward', section: 's6', kind: 'def', title: 'Tiling.backward', alias: 'backward', lines: [246, 248],
+  summary: 'One step backwards: across the edge, then along the piece.',
+  what: `One step backwards: straight across the edge at <code>p</code>, then along the piece to its other end. It
+    undoes <code>forward</code>.`,
+  how: `<code>pieceEnd ((T.across p).getD p)</code>.`,
+  examples: [{ expr: 'nestTiling.backward (0,0,true)', out: '(8, 3, false)',
+    note: 'Across edge e₀ of tile 0 to R(v₃) of tile 8, then along the hook at v₃ to L(v₃).' }] },
+
+{ id: 'endTiling', section: 's6', kind: 'end', title: 'end Tiling', lines: [249, 250],
+  what: `Closes the namespace <code>Tiling</code> opened on [[L236]].`, how: `<code>end Tiling</code>.` },
+
+{ id: 'gid', section: 's6', kind: 'def', title: 'gid', lines: [251, 260],
   summary: 'gid b t: the number, in the whole nest tiling, of tile t of N_b.',
   what: `Numbers all the tiles of the nest tiling 0, 1, 2, … so that every block N<sub>b</sub> gets the numbers
     0 … |N<sub>b</sub>| − 1. Inside N<sub>b+1</sub>, child 0 has the tiles 0 … nestShift b − 1, child 1 (= N<sub>b</sub>)
@@ -682,14 +755,14 @@ items: [
       numbers, and the later children keep numbers that are at least nestShift b + |N<sub>b</sub>|. No two tiles share
       a number. This is [[NestModel]] (b).` }] },
 
-{ id: 'loc', section: 's6', kind: 'def', title: 'loc', lines: [231, 238],
+{ id: 'loc', section: 's6', kind: 'def', title: 'loc', lines: [261, 268],
   summary: 'loc b g: the tile of N_b with nest number g; the inverse of gid b.',
   what: `The other way round: the tile of N<sub>b</sub> whose number in the nest tiling is <code>g</code>. It undoes the
     three cases of [[gid]], in the same order.`,
   how: `As for [[gid]].`,
   examples: [{ expr: '(List.range 9).map fun g => loc 1 g', out: '[1, 0, 2, 3, 4, 5, 6, 7, 8]' }] },
 
-{ id: 'nestGlue', section: 's6', kind: 'def', title: 'nestGlue', lines: [239, 243],
+{ id: 'nestGlue', section: 's6', kind: 'def', title: 'nestGlue', lines: [269, 273],
   summary: 'The gluing of the whole nest tiling, read off a block two levels above the tile.',
   what: `The gluing of the whole nest tiling: what lies across edge e<sub>i</sub> of the tile numbered
     <code>g</code>. It is read off a block that contains the tile with two levels to spare.`,
@@ -704,58 +777,37 @@ items: [
       simple. Two more levels make every edge glued (Theorem B (1)). [[NestModel]] (d) says that any block containing
       the tile gives the same answer, and (e) that the answer is never <code>none</code>.` }] },
 
-{ id: 'nestTiling', section: 's6', kind: 'def', title: 'nestTiling', lines: [244, 247],
-  summary: 'The nest tiling as one Patch, with glue = nestGlue; only glue is meaningful.',
-  what: `The nest tiling as one patch whose gluing is <code>nestGlue</code>. Its tiles are all the numbers 0, 1, 2, …`,
-  how: `<code>⟨0, nestGlue, [], []⟩</code>: <code>tiles = 0</code>, <code>glue = nestGlue</code>, empty
-    <code>rim</code> and <code>vtx</code>.`,
-  checks: [{ tone: 'note', title: 'tiles = 0 is a placeholder',
-    text: `A <code>Patch</code> has a finite number of tiles, and this one has infinitely many, so the field is set to 0
-      and means nothing. So <code>nestTiling.IsPort p</code> is false for every <code>p</code>, and
-      <code>nestTiling.NoClosedStrand</code> would be true for a trivial reason. The file never uses either for
-      <code>nestTiling</code>: [[TheoremB_strand]] quantifies directly over all ports with vertex below 14, on every tile
-      number. Only <code>nestTiling.across</code> is used.` }] },
+{ id: 'nestTiling', section: 's6', kind: 'def', title: 'nestTiling', lines: [274, 276],
+  summary: 'The nest tiling: a Tiling whose gluing is nestGlue.',
+  what: `The nest tiling, as a [[Tiling]] whose gluing is <code>nestGlue</code>. Its tiles are all the numbers 0, 1,
+    2, …, numbered by [[gid]].`,
+  how: `<code>⟨nestGlue⟩</code>: a tiling's one field.`,
+  checks: [{ tone: 'ok', title: 'A tiling, not a patch',
+    text: `Before 15 Oct 2026 the nest tiling was a <code>Patch</code> with 0 as its number of tiles, a placeholder,
+      so that <code>nestTiling.NoClosedStrand</code> would have been true for a trivial reason. As a [[Tiling]] it
+      cannot be given to the notions of §2 at all.` }] },
 
-{ id: 'stepF', section: 's6', kind: 'def', title: 'stepF', lines: [248, 250],
-  summary: 'One step forwards along a strand: along the piece, then across the edge.',
-  what: `One step forwards along a strand of the nest tiling: from port <code>p</code> along its piece, then straight
-    across that edge into the next tile.`,
-  how: `<code>.getD x</code> takes the value out of <code>some</code>, or gives <code>x</code> for <code>none</code>.`,
-  examples: [{ expr: 'stepF (0,0,true)', out: '(8, 2, true)',
-    note: 'R(v₀) → R(v₁) along the crossover, then across edge e₁ of tile 0, which is edge e₂ of tile 8.' }],
-  checks: [{ tone: 'ok', title: 'The fallback is never used',
-    text: `If nothing were across, <code>stepF</code> would stay at <code>pieceEnd p</code>. [[NestModel]] (e) says every
-      edge is glued, so this never happens.` }] },
-
-{ id: 'stepB', section: 's6', kind: 'def', title: 'stepB', lines: [251, 253],
-  summary: 'One step backwards: across the edge, then along the piece.',
-  what: `One step backwards: straight across the edge at <code>p</code>, then along the piece to its other end. It
-    undoes <code>stepF</code>.`,
-  how: `<code>pieceEnd ((nestTiling.across p).getD p)</code>.`,
-  examples: [{ expr: 'stepB (0,0,true)', out: '(8, 3, false)',
-    note: 'Across edge e₀ of tile 0 to R(v₃) of tile 8, then along the hook at v₃ to L(v₃).' }] },
-
-{ id: 'NestModel', section: 's6', kind: 'claim', title: 'NestModel', lines: [254, 268],
+{ id: 'NestModel', section: 's6', kind: 'claim', title: 'NestModel', lines: [277, 291],
   summary: 'The nest tiling is a tiling and contains every block.',
   what: `The nest tiling is a tiling, and it is the union of the blocks. Six claims joined by "and" (the comment
     labels them (a)–(e), with two for (b)). Proved in <code>ProofStrand.lean</code>.`,
   clauses: [
-    { lines: [254, 260], title: 'Doc comment and header', what: `The claims in words.` },
-    { lines: [261, 261], title: '(a) Every number is a tile of some block',
+    { lines: [277, 283], title: 'Doc comment and header', what: `The claims in words.` },
+    { lines: [284, 284], title: '(a) Every number is a tile of some block',
       what: `Tile number <code>g</code> belongs to N<sub>g+1</sub>.` },
-    { lines: [262, 262], title: '(b) gid then loc',
+    { lines: [285, 285], title: '(b) gid then loc',
       what: `<code>gid b</code> sends the tiles of N<sub>b</sub> into 0 … |N<sub>b</sub>| − 1, and <code>loc b</code>
         undoes it.` },
-    { lines: [263, 263], title: '(b) loc then gid',
+    { lines: [286, 286], title: '(b) loc then gid',
       what: `And the other way round: <code>gid b</code> is a one-to-one numbering of N<sub>b</sub>'s tiles.` },
-    { lines: [264, 264], title: '(c) A tile keeps its number one level up',
+    { lines: [287, 287], title: '(c) A tile keeps its number one level up',
       what: `Seen as a tile of N<sub>b+1</sub>, a tile of N<sub>b</sub> has the same nest number.` },
-    { lines: [265, 266], title: '(d) The nest tiling contains every block',
+    { lines: [288, 289], title: '(d) The nest tiling contains every block',
       what: `Whatever N<sub>b</sub> glues across an edge, the nest tiling glues the same way, with nest numbers.`,
       checks: [{ tone: 'ok', title: 'One way only, as it should be',
         text: `It says nothing about edges on a block's rim: in the nest tiling those are glued to tiles outside the
           block.` }] },
-    { lines: [267, 268], title: '(e) Every edge glued, to another tile, and back',
+    { lines: [290, 291], title: '(e) Every edge glued, to another tile, and back',
       what: `Every edge of every tile is glued, to an edge of a different tile, and that edge is glued back.`,
       how: `<code>≠</code> is "not equal".`,
       checks: [{ tone: 'ok', title: 'What makes the strands well defined',
@@ -763,26 +815,26 @@ items: [
           <code>pieceEnd</code>, this is the "strand system" that the paper's Lemma 3.4 needs.` }] },
   ] },
 
-{ id: 'TheoremB_strand', section: 's6', kind: 'claim', title: 'TheoremB_strand', lines: [269, 285],
+{ id: 'TheoremB_strand', section: 's6', kind: 'claim', title: 'TheoremB_strand', lines: [292, 308],
   summary: 'The ribbons of the nest tiling form one two-way infinite strand through every port.',
   what: `Theorem B in its final form. Start at R(v<sub>0</sub>) of the original tile, <code>(0, 0, true)</code>, and
     follow the ribbon forwards and backwards: no port is met twice, no piece is run twice, and every port of every
     tile is met. So the ribbons of the nest tiling form one two-way infinite strand. Proved in
     <code>ProofStrand.lean</code>.`,
-  how: `Five claims joined by <code>∧</code>. <code>iter stepF k x</code> applies <code>stepF</code> to <code>x</code>,
-    <code>k</code> times (<code>iter</code> is from <code>Basic.lean</code>; see [[imports]]). Below, x stands for
-    <code>(0, 0, true)</code>, F<sup>k</sup>x for <code>iter stepF k x</code> and B<sup>k</sup>x for
-    <code>iter stepB k x</code>.`,
+  how: `Five claims joined by <code>∧</code>. <code>iter nestTiling.forward k x</code> applies
+    <code>nestTiling.forward</code> to <code>x</code>, <code>k</code> times (<code>iter</code> is from
+    <code>Basic.lean</code>; see [[imports]]). Below, x stands for <code>(0, 0, true)</code>, F<sup>k</sup>x for
+    <code>iter nestTiling.forward k x</code> and B<sup>k</sup>x for <code>iter nestTiling.backward k x</code>.`,
   clauses: [
-    { lines: [269, 277], title: 'Doc comment and header', what: `The five claims in words.` },
-    { lines: [278, 278], title: '(1) Forwards, never the same port twice',
+    { lines: [292, 300], title: 'Doc comment and header', what: `The five claims in words.` },
+    { lines: [301, 301], title: '(1) Forwards, never the same port twice',
       what: `Different numbers of forward steps give different ports: F<sup>i</sup>x = F<sup>j</sup>x only if i = j.` },
-    { lines: [279, 279], title: '(2) Backwards, never the same port twice', what: `The same for backward steps.` },
-    { lines: [280, 280], title: '(3) Backwards never meets forwards',
+    { lines: [302, 302], title: '(2) Backwards, never the same port twice', what: `The same for backward steps.` },
+    { lines: [303, 303], title: '(3) Backwards never meets forwards',
       what: `A port reached backwards is never one reached forwards, except the start.` },
-    { lines: [281, 281], title: '(4) No piece run twice',
+    { lines: [304, 304], title: '(4) No piece run twice',
       what: `A port reached forwards is never the other end of the piece of a port reached forwards.` },
-    { lines: [282, 285], title: '(5) Every port is met',
+    { lines: [305, 308], title: '(5) Every port is met',
       what: `Every port of every tile (any tile number, any vertex below 14) is reached forwards or backwards, or is the
         other end of the piece of one that is.`,
       how: `<code>∨</code> is "or". <code>q : Port</code> gives the type of <code>q</code>.` },
@@ -795,14 +847,14 @@ items: [
         itself), (1) already rules out a closed strand, and then the paper's Lemma 3.4 (<code>closed_or_path</code>)
         makes all the ports in the list different.` },
     { tone: 'data', title: 'About nestTiling, not yet the plane',
-      text: `That the real nest tiling is glued like <code>nestTiling</code> is assumption (M). Nothing here concerns
-        other spectre tilings.` },
+      text: `That the real nest tiling is glued like <code>nestTiling</code>, and covers the plane, is (M3)
+        ([[L22]]–24). Nothing here concerns other spectre tilings.` },
   ] },
 
-{ id: 'sec7', section: 's7', kind: 'section', title: 'Section heading', lines: [286, 287],
+{ id: 'sec7', section: 's7', kind: 'section', title: 'Section heading', lines: [309, 310],
   what: `§7.`, how: `A heading comment.` },
 
-{ id: 'Chain', section: 's7', kind: 'structure', title: 'Chain', lines: [288, 296],
+{ id: 'Chain', section: 's7', kind: 'structure', title: 'Chain', lines: [311, 319],
   summary: 'A chain X₁ ⊂ X₂ ⊂ ⋯ of supertiles, each a child of the next: a kind K m and a child position c m for every level m ≥ 1.',
   what: `A chain of supertiles X₁ ⊂ X₂ ⊂ X₃ ⊂ ⋯, each a child of the next. It is given by two sequences: the kind
     <code>K m</code> of X<sub>m</sub>, and the position <code>c m</code> of X<sub>m</sub> among the children of
@@ -813,7 +865,7 @@ items: [
     are conditions: a field whose type is a <code>Prop</code> holds a <em>proof</em> of that claim, so a
     <code>Chain</code> can only be built when the conditions hold.`,
   examples: [
-    { expr: '-- the nest as a Chain (checked by Lean: both conditions hold)\ndef nestChain : Chain := ⟨fun _ => .Delta, fun _ => 1, fun _ _ => by decide, fun _ _ => rfl⟩',
+    { expr: '-- the nest as a Chain (checked by Lean: both conditions hold; as `nestChain` in ProofChain.lean)\ndef nestChain : Chain := ⟨fun _ => .Delta, fun _ => 1, fun _ _ => by decide, fun _ _ => rfl⟩',
       out: '(accepted)' },
   ],
   checks: [
@@ -823,25 +875,26 @@ items: [
         <code>K m</code> by <code>child_kind</code>, so it is <code>super m (K m)</code> = X<sub>m</sub>.` },
     { tone: 'note', title: 'Any chain, covering or not',
       text: `Any two sequences that meet the two conditions make a <code>Chain</code>, whether or not its union covers
-        the plane. [[Chain_Covers]] picks out the chains that do; [[TheoremA_strand]] assumes it.` },
+        the plane. [[Chain_Covers]] picks out the chains that do; [[TheoremA_strand]] assumes it; [[NestCovers]] says
+        that one does.` },
   ] },
 
-{ id: 'nsChain', section: 's7', kind: 'namespace', title: 'namespace Chain', lines: [297, 298],
+{ id: 'nsChain', section: 's7', kind: 'namespace', title: 'namespace Chain', lines: [320, 321],
   summary: 'The next definitions are Chain.block, Chain.shift, …, each taking a chain X.',
-  what: `The definitions up to <code>end Chain</code> ([[L338]]) are <code>Chain.block</code>, <code>Chain.shift</code>,
+  what: `The definitions up to <code>end Chain</code> ([[L362]]) are <code>Chain.block</code>, <code>Chain.shift</code>,
     <code>Chain.up</code>, <code>Chain.gid</code>, <code>Chain.loc</code>, <code>Chain.Covers</code> and
     <code>Chain.Contains</code>.`,
   how: `Each takes <code>(X : Chain)</code> as its first argument explicitly; <code>X.block m</code> means
     <code>Chain.block X m</code>. Inside the namespace, plain <code>up</code>, <code>gid</code> and <code>loc</code> mean
     the chain's own versions, not those of §4 and §6; the links in the code follow that.` },
 
-{ id: 'Chain_block', section: 's7', kind: 'def', title: 'Chain.block', alias: 'block', lines: [299, 301],
+{ id: 'Chain_block', section: 's7', kind: 'def', title: 'Chain.block', alias: 'block', lines: [322, 324],
   summary: 'X.block m: the block X_m, the supertile super m (K m).',
   what: `The block X<sub>m</sub>: the supertile of level <code>m</code> and kind <code>K m</code>. For the nest chain it
     is <code>N m</code>.`,
   how: `<code>X.K</code> reads the field <code>K</code> of <code>X</code>.` },
 
-{ id: 'Chain_shift', section: 's7', kind: 'def', title: 'Chain.shift', alias: 'shift', lines: [302, 305],
+{ id: 'Chain_shift', section: 's7', kind: 'def', title: 'Chain.shift', alias: 'shift', lines: [325, 328],
   summary: 'Where X_m starts inside X_{m+1}: the tiles of the children before it.',
   what: `Where X<sub>m</sub> starts inside X<sub>m+1</sub>: the number of tiles in the children that come before it.
     For the nest chain it is [[nestShift]].`,
@@ -852,13 +905,13 @@ items: [
       tiles of the children before <code>c m</code>, which are exactly these supertiles ([[super]]). So this is that
       offset.` }] },
 
-{ id: 'Chain_up', section: 's7', kind: 'def', title: 'Chain.up', lines: [306, 310],
+{ id: 'Chain_up', section: 's7', kind: 'def', title: 'Chain.up', lines: [329, 333],
   summary: 'X.up m k t: tile t of X_m, renumbered as a tile of X_{m+k}.',
   what: `Tile <code>t</code> of X<sub>m</sub>, renumbered as a tile of X<sub>m+k</sub>: [[up]] of §4, with
     <code>X.shift</code> in place of <code>nestShift</code>.`,
   how: `Here <code>up</code> is <code>Chain.up</code> itself.` },
 
-{ id: 'Chain_gid', section: 's7', kind: 'def', title: 'Chain.gid', lines: [311, 319],
+{ id: 'Chain_gid', section: 's7', kind: 'def', title: 'Chain.gid', lines: [334, 342],
   summary: 'X.gid m t: the number, in the union of the chain, of tile t of X_m.',
   what: `Numbers all the tiles of the union so that every block X<sub>m</sub> gets 0 … |X<sub>m</sub>| − 1: [[gid]] of
     §6, started at level 1 instead of level 0, and allowing several children before X<sub>m</sub>.`,
@@ -870,115 +923,106 @@ items: [
       children (now possibly several) to the next <code>X.shift (m + 1)</code> numbers, and later children keep
       numbers that are already larger. This is [[ChainModel]] (b).` }] },
 
-{ id: 'Chain_loc', section: 's7', kind: 'def', title: 'Chain.loc', lines: [320, 328],
+{ id: 'Chain_loc', section: 's7', kind: 'def', title: 'Chain.loc', lines: [343, 351],
   summary: 'X.loc m g: the tile of X_m with number g; the inverse of X.gid m.',
   what: `The other way round: the tile of X<sub>m</sub> whose number in the union is <code>g</code>. It undoes the cases
     of [[Chain_gid]], in the same order.`,
   how: `As for [[Chain_gid]].` },
 
-{ id: 'Chain_Covers', section: 's7', kind: 'claim', title: 'Chain.Covers', alias: 'Covers', lines: [329, 332],
-  summary: 'The chain covers the plane: every edge of every block is glued in some larger block.',
-  what: `The chain covers the plane: every edge of every tile of every block is glued to something in some larger
-    block. Then the union has no boundary.`,
+{ id: 'Chain_Covers', section: 's7', kind: 'claim', title: 'Chain.Covers', alias: 'Covers', lines: [352, 356],
+  summary: 'The chain covers: every edge of every block is glued in some larger block.',
+  what: `The chain covers: every edge of every tile of every block is glued to something in some larger block. Then the
+    union has no rim. This is what a hierarchy that covers the plane gives, in the terms of this file.`,
   how: `<code>X.up m k t</code> is the tile's number in X<sub>m+k</sub>.`,
   checks: [
     { tone: 'ok', title: 'The nest chain covers',
       text: `For <code>K m = Δ</code> and <code>c m = 1</code>, <code>X.block m</code> is <code>N m</code> and
-        <code>X.up</code> is [[up]], so [[TheoremB]] (1) gives <code>Covers</code> with <code>k = 2</code>. This follows
-        from reading the definitions; the file does not state it as a separate claim.` },
+        <code>X.up</code> is [[up]], so [[TheoremB]] (1) gives <code>Covers</code> with <code>k = 2</code>. The file
+        states this as [[NestCovers]], proved in <code>ProofChain.lean</code>.` },
     { tone: 'data', title: 'From tilings to Covers',
-      text: `That the supertiles round a tile of a tiling whose hierarchy covers the plane form a chain with
-        <code>Covers</code> is part of assumption (M) ([[L16]]–18).` },
+      text: `That the supertiles round a tile of a tiling whose hierarchy covers the plane form a chain that covers is
+        (M2) ([[L20]]–21).` },
   ] },
 
-{ id: 'Chain_Contains', section: 's7', kind: 'claim', title: 'Chain.Contains', alias: 'Contains', lines: [333, 337],
-  summary: 'G contains every block: whatever X_m glues, G glues the same, under the numbering X.gid.',
-  what: `<code>G</code> is a gluing of the whole union that contains every block: whatever X<sub>m</sub> glues across an
-    edge, <code>G</code> glues the same way, with the tiles' numbers in the union. The same condition as
-    [[NestModel]] (d), with the gluing given instead of built.`,
-  how: `<code>G</code> has the type of a patch's <code>glue</code>, <code>Nat → Nat → Option (Nat × Nat)</code>.` },
+{ id: 'Chain_Contains', section: 's7', kind: 'claim', title: 'Chain.Contains', alias: 'Contains', lines: [357, 361],
+  summary: 'T contains every block: whatever X_m glues, the tiling T glues the same, under the numbering X.gid.',
+  what: `<code>T</code> is a tiling of the whole union that contains every block: whatever X<sub>m</sub> glues across
+    an edge, <code>T</code> glues the same way, with the tiles' numbers in the union. The same condition as
+    [[NestModel]] (d), with the tiling given instead of built.`,
+  how: `<code>T : Tiling</code> ([[Tiling]]); <code>T.glue</code> is its gluing.` },
 
-{ id: 'endChain', section: 's7', kind: 'end', title: 'end Chain', lines: [338, 339],
-  what: `Closes the namespace <code>Chain</code> opened on [[L297]].`, how: `<code>end Chain</code>.` },
+{ id: 'endChain', section: 's7', kind: 'end', title: 'end Chain', lines: [362, 363],
+  what: `Closes the namespace <code>Chain</code> opened on [[L320]].`, how: `<code>end Chain</code>.` },
 
-{ id: 'tilingOf', section: 's7', kind: 'def', title: 'tilingOf', lines: [340, 342],
-  summary: 'The tiling with gluing G, as one Patch; only glue is meaningful.',
-  what: `The tiling with gluing <code>G</code>, as one patch: its tiles are all the numbers 0, 1, 2, … As
-    [[nestTiling]], with <code>G</code> for <code>nestGlue</code>.`,
-  how: `<code>⟨0, G, [], []⟩</code>.`,
-  checks: [{ tone: 'note', title: 'tiles = 0 is a placeholder',
-    text: `As for [[nestTiling]]: <code>IsPort</code> and <code>NoClosedStrand</code> would mean nothing here, and are
-      not used. [[TheoremA_strand]] quantifies over all ports with vertex below 14 directly.` }] },
-
-{ id: 'Patch_forward', section: 's7', kind: 'def', title: 'Patch.forward', alias: 'forward', lines: [343, 345],
-  summary: 'One step forwards along a strand of any patch: along the piece, then across.',
-  what: `One step forwards along a strand of any patch: [[stepF]], with <code>nestTiling</code> replaced by
-    <code>P</code>.`,
-  how: `Written outside <code>namespace Patch</code> but with the full name <code>Patch.forward</code>, so dot notation
-    works: <code>(tilingOf G).forward</code>.` },
-
-{ id: 'Patch_backward', section: 's7', kind: 'def', title: 'Patch.backward', alias: 'backward', lines: [346, 348],
-  summary: 'One step backwards: across the edge, then along the piece.',
-  what: `One step backwards: [[stepB]] for any patch. It undoes <code>forward</code>.`,
-  how: `<code>pieceEnd ((P.across p).getD p)</code>.` },
-
-{ id: 'ChainModel', section: 's7', kind: 'claim', title: 'ChainModel', lines: [349, 364],
+{ id: 'ChainModel', section: 's7', kind: 'claim', title: 'ChainModel', lines: [364, 379],
   summary: 'For every chain: its union is a tiling containing every block, and if the chain covers, it has no boundary.',
-  what: `For every chain: its union, numbered by <code>X.gid</code>, is a tiling; a gluing containing every block
-    exists; and if the chain covers the plane, any such gluing glues every edge, to a different tile, which is glued
-    back. Proved in <code>ProofChain.lean</code>.`,
+  what: `For every chain: its union, numbered by <code>X.gid</code>, is a tiling; a tiling containing every block
+    exists; and if the chain covers, any such tiling glues every edge, to a different tile, which is glued back.
+    Proved in <code>ProofChain.lean</code>.`,
   clauses: [
-    { lines: [349, 356], title: 'Doc comment and header', what: `The claims in words, for every chain.` },
-    { lines: [357, 357], title: '(a) Every number is a tile of some block', what: `Number <code>g</code> belongs to X<sub>g+1</sub>.` },
-    { lines: [358, 358], title: '(b) gid then loc', what: `<code>X.gid m</code> stays below |X<sub>m</sub>|, and <code>X.loc m</code> undoes it.` },
-    { lines: [359, 359], title: '(b) loc then gid', what: `And the other way round: a one-to-one numbering.` },
-    { lines: [360, 360], title: '(c) A tile keeps its number one level up', what: `Seen in X<sub>m+1</sub>, a tile of X<sub>m</sub> has the same number.` },
-    { lines: [361, 361], title: '(d) A gluing exists',
-      what: `There is a gluing of the whole union that contains every block.`,
+    { lines: [364, 371], title: 'Doc comment and header', what: `The claims in words, for every chain.` },
+    { lines: [372, 372], title: '(a) Every number is a tile of some block', what: `Number <code>g</code> belongs to X<sub>g+1</sub>.` },
+    { lines: [373, 373], title: '(b) gid then loc', what: `<code>X.gid m</code> stays below |X<sub>m</sub>|, and <code>X.loc m</code> undoes it.` },
+    { lines: [374, 374], title: '(b) loc then gid', what: `And the other way round: a one-to-one numbering.` },
+    { lines: [375, 375], title: '(c) A tile keeps its number one level up', what: `Seen in X<sub>m+1</sub>, a tile of X<sub>m</sub> has the same number.` },
+    { lines: [376, 376], title: '(d) A tiling exists',
+      what: `There is a tiling of the whole union that contains every block.`,
       checks: [{ tone: 'ok', title: 'Why (d) matters',
-        text: `[[TheoremA_strand]] assumes a gluing <code>G</code> with <code>X.Contains G</code>. Without (d) that
+        text: `[[TheoremA_strand]] assumes a tiling <code>T</code> with <code>X.Contains T</code>. Without (d) that
           assumption might be impossible to meet, and the theorem would say nothing.` }] },
-    { lines: [362, 364], title: '(e) If the chain covers: every edge glued, to another tile, and back',
-      what: `If the chain covers the plane, every gluing that contains every block glues every edge of every tile, to an
-        edge of a different tile, which is glued back.`,
-      checks: [{ tone: 'ok', title: 'Only one such gluing',
+    { lines: [377, 379], title: '(e) If the chain covers: every edge glued, to another tile, and back',
+      what: `If the chain covers, every tiling that contains every block glues every edge of every tile, to an edge of
+        a different tile, which is glued back.`,
+      checks: [{ tone: 'ok', title: 'Only one such tiling',
         text: `With <code>Covers</code>, every edge of every tile is glued in some block, so <code>Contains</code> fixes
-          <code>G g i</code> for every <code>g</code> and every <code>i</code> &lt; 14. All gluings that contain every
-          block agree there, so "for every <code>G</code>" in [[TheoremA_strand]] loses nothing.` }] },
+          <code>T.glue g i</code> for every <code>g</code> and every <code>i</code> &lt; 14. All tilings that contain
+          every block agree there, so "for every <code>T</code>" in [[TheoremA_strand]] loses nothing.` }] },
   ] },
 
-{ id: 'TheoremA_strand', section: 's7', kind: 'claim', title: 'TheoremA_strand', lines: [365, 378],
-  summary: 'In the union of any chain that covers the plane, every strand is a two-way infinite path.',
-  what: `Theorem A in strand form. In the union of any chain of supertiles that covers the plane, under any gluing that
-    contains every block, follow the ribbon from any port forwards and backwards: no port is met twice, and no piece is
-    run twice. So no strand is closed. It says nothing about how many strands there are. Proved in
+{ id: 'TheoremA_strand', section: 's7', kind: 'claim', title: 'TheoremA_strand', lines: [380, 393],
+  summary: 'In the union of any chain that covers, every strand is a two-way infinite path.',
+  what: `Theorem A in strand form. In the union of any chain of supertiles that covers, in any tiling that contains
+    every block, follow the ribbon from any port forwards and backwards: no port is met twice, and no piece is run
+    twice. So no strand is closed. It says nothing about how many strands there are. Proved in
     <code>ProofChain.lean</code>.`,
-  how: `<code>∀ (X : Chain) (G : …),</code> names two variables with their types; the hypotheses follow, joined by
-    <code>→</code>. <code>iter (tilingOf G).forward k p</code> is <code>k</code> forward steps from <code>p</code>.`,
+  how: `<code>∀ (X : Chain) (T : Tiling),</code> names two variables with their types; the hypotheses follow, joined by
+    <code>→</code>. <code>iter T.forward k p</code> is <code>k</code> forward steps from <code>p</code>.`,
   clauses: [
-    { lines: [365, 373], title: 'Doc comment, header and hypotheses',
-      what: `For every chain that covers, every gluing that contains it, and every port.` },
-    { lines: [374, 374], title: '(1) Forwards, never the same port twice', what: `Different numbers of forward steps give different ports.` },
-    { lines: [375, 375], title: '(2) Backwards, never the same port twice', what: `The same for backward steps.` },
-    { lines: [376, 376], title: '(3) Backwards never meets forwards', what: `A port reached backwards is never one reached forwards, except the start.` },
-    { lines: [377, 378], title: '(4) No piece run twice', what: `A port reached forwards is never the other end of the piece of a port reached forwards.` },
+    { lines: [380, 388], title: 'Doc comment, header and hypotheses',
+      what: `For every chain that covers, every tiling that contains it, and every port.` },
+    { lines: [389, 389], title: '(1) Forwards, never the same port twice', what: `Different numbers of forward steps give different ports.` },
+    { lines: [390, 390], title: '(2) Backwards, never the same port twice', what: `The same for backward steps.` },
+    { lines: [391, 391], title: '(3) Backwards never meets forwards', what: `A port reached backwards is never one reached forwards, except the start.` },
+    { lines: [392, 393], title: '(4) No piece run twice', what: `A port reached forwards is never the other end of the piece of a port reached forwards.` },
   ],
   checks: [
     { tone: 'ok', title: 'Strong enough for "no closed strand"',
       text: `A closed strand through <code>p</code> would bring it back to <code>p</code> after finitely many forward
         steps, against (1). As for [[TheoremB_strand]], (1) is enough with [[ChainModel]] (e), by the paper's Lemma
         3.4.` },
-    { tone: 'note', title: 'Not empty',
-      text: `The theorem assumes a chain that covers and a gluing that contains it. [[ChainModel]] (d) gives the gluing
-        for every chain, and the nest chain covers (see [[Chain_Covers]]). So the theorem applies at least to the nest
-        tiling.` },
+    { tone: 'ok', title: 'Not empty',
+      text: `The theorem assumes a chain that covers and a tiling that contains it. [[ChainModel]] (d) gives the tiling
+        for every chain, and [[NestCovers]] gives a chain that covers: the nest. So the theorem applies at least to
+        the nest tiling.` },
     { tone: 'data', title: 'From here to tilings of the plane',
       text: `That a spectre tiling whose hierarchy covers the plane is, up to numbering, the union of such a chain is
-        assumption (M). This matches the paper's Theorem A. Nothing here concerns fault tilings.` },
+        (M2). This matches the paper's Theorem A. Nothing here concerns fault tilings.` },
   ] },
 
-{ id: 'end', section: 's7', kind: 'end', title: 'end SpectreKnot.Statement', lines: [379, 379],
-  what: `Closes the namespace opened on [[L24]]. The file ends here.`, how: `<code>end SpectreKnot.Statement</code>.` },
+{ id: 'NestCovers', section: 's7', kind: 'claim', title: 'NestCovers', lines: [394, 397],
+  summary: 'Chains that cover exist: the nest, as a chain, covers. So TheoremA_strand is not vacuous.',
+  what: `There is a chain that covers: the nest, as a chain (every block a Δ, child 1 of the next). So the hypotheses
+    of [[TheoremA_strand]] can be met, and it is not true merely because no chain satisfies them. Proved in
+    <code>ProofChain.lean</code>, from [[TheoremB]] (1).`,
+  how: `<code>∃ X : Chain, A ∧ B</code>: there is a chain <code>X</code> with both properties. The first pins down which
+    chain: every kind <code>K m</code> is Δ and every position <code>c m</code> is 1, so its blocks are the
+    <code>N m</code>.`,
+  checks: [{ tone: 'ok', title: 'The nest, and only the nest',
+    text: `A chain is fixed by its two sequences <code>K</code> and <code>c</code>, so the first condition says that
+      <code>X</code> is the nest chain. The claim therefore says more than "some chain covers".` }] },
+
+{ id: 'end', section: 's7', kind: 'end', title: 'end SpectreKnot.Statement', lines: [398, 398],
+  what: `Closes the namespace opened on [[L30]]. The file ends here.`, how: `<code>end SpectreKnot.Statement</code>.` },
 ],
 
 /* The fields of Patch, for the pop-ups on tiles, glue, rim and vtx. */
@@ -998,13 +1042,13 @@ trust: [
     text: `Lean 4.34.1, core library only. Every proof in the project is checked by the kernel when
       <code>./build.sh</code> runs, and the build fails on any error; the repository's checks run it on every push.` },
   { status: 'build', title: 'No extra axioms, no gaps',
-    text: `<code>#print axioms</code> (in <code>Axioms.lean</code>) lists, for each of the nine main theorems, only
+    text: `<code>#print axioms</code> (in <code>Axioms.lean</code>) lists, for each of the ten main theorems, only
       <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: Lean's three standard axioms. No
       <code>sorryAx</code>, so no unfinished proof; no <code>Lean.ofReduceBool</code>, so no trust in compiled code.
       <code>build.sh</code> fails otherwise.` },
   { status: 'build', title: 'Each theorem proves exactly the claim written here',
-    text: `<code>theorem theoremA : TheoremA</code> and the other eight are stated in this file's namespace, so Lean has
-      checked each proof against the claim as written here.` },
+    text: `<code>theorem theoremA : TheoremA</code> and the other nine are stated in this file's namespace, so Lean has
+      checked each proof against the claim as written here; the end of <code>Axioms.lean</code> checks it again.` },
   { status: 'read', title: 'The definitions say what the paper means',
     text: `This file, plus <code>Kind</code> and <code>iter</code> from <code>Basic.lean</code>. Lean cannot check
       this: it is a matter of reading. That is what this page is for.` },
@@ -1012,11 +1056,12 @@ trust: [
     text: `Tables 1–3 and the nine level-1 clusters, generated from the paper's code. Tested, not proved: level 2
       built from them equals the exact-arithmetic construction edge for edge; the paper's strand counts come out; a
       different chain gives three strands, not one.` },
-  { status: 'assumed', title: 'Assumption (M)',
-    text: `Real supertiles are glued like <code>super m K</code>; a tiling whose hierarchy covers the plane is the
-      union of a chain of supertiles that covers (<code>Chain</code>, <code>Covers</code>); and the real nest tiling is
-      glued like <code>nestTiling</code>. Not formalised; it rests on the spectre paper (Thms 2.2, 3.1, 4.1, 5.1) and
-      on the paper's Prop 2.4 and Lemma 2.6.` },
+  { status: 'assumed', title: 'Assumption (M), in three parts',
+    text: `(M1) real supertiles are glued like <code>super m K</code>, which rests on the spectre paper (Thms 2.2,
+      3.1, 4.1, 5.1) and on the paper's Prop 2.4 and Lemma 2.6; (M2) a tiling whose hierarchy covers the plane is the
+      union of a chain of supertiles that covers (<code>Chain</code>, <code>Covers</code>), the first half of the
+      paper's proof of Theorem A; (M3) the real nest tiling is glued like <code>nestTiling</code> and covers the plane,
+      the paper's Props 8.2 and 8.4. Not formalised: [[header]].` },
 ],
 
 /* ---------------------------------------------------------------------------------------------------------------- */
@@ -1100,38 +1145,41 @@ glossary: {
   '_': ['Notation', 'A placeholder: matches anything, or an argument that is ignored.'],
   '⟨': ['Notation', '<code>⟨a, b, c, d⟩</code> builds a structure from its fields in order.'],
   '⟩': ['Notation', 'Closes <code>⟨…⟩</code>.'],
-  '{': ['Notation', 'In a rule, <code>{p : Port}</code> makes an argument implicit (Lean infers it). At [[L122]], <code>{ field := …, … }</code> builds a structure by field names.'],
+  '{': ['Notation', 'In a rule, <code>{p : Port}</code> makes an argument implicit (Lean infers it). At [[L131]], <code>{ field := …, … }</code> builds a structure by field names.'],
 },
 
-/* Members of a chain X: X.block, X.up and so on (§7). */
+/* Members of a chain X (X.block, X.up and so on, §7) and of a tiling T (T.glue, T.across, …, §6). A scoped name
+   with `recv` (below) has these members. */
 members: {
   Chain: { K: 'Chain', c: 'Chain', block: 'Chain_block', shift: 'Chain_shift', up: 'Chain_up', gid: 'Chain_gid',
     loc: 'Chain_loc', Covers: 'Chain_Covers', Contains: 'Chain_Contains' },
+  Tiling: { glue: 'Tiling', across: 'Tiling_across', forward: 'Tiling_forward', backward: 'Tiling_backward' },
 },
 
 /* Names that mean something only in part of the file. Entries with an id link to that item. */
 scoped: [
-  { name: 'P', lines: [55, 105], kind: 'Variable', text: 'The patch: declared by <code>variable (P : Patch)</code> on line 55, an automatic first argument of every definition up to <code>end Patch</code>.' },
-  { name: 'child', lines: [113, 148], kind: 'Argument', text: '<code>child c</code>: the c-th child patch, passed to <code>compose</code>.' },
-  { name: 'T', lines: [113, 162], kind: 'Argument', text: 'The kind of the parent supertile.' },
-  { name: 'n', lines: [115, 148], kind: 'let', text: 'The number of children (line 115).' },
-  { name: 'off', lines: [117, 148], kind: 'let', text: '<code>off c</code>: the number of the first tile of child c (line 117).' },
-  { name: 'owner', lines: [119, 148], kind: 'let', text: '<code>owner t</code>: the child containing parent tile t (line 119).' },
-  { name: 'shift', lines: [121, 148], kind: 'let', text: '<code>shift c e</code>: edge e of child c renumbered as an edge of the parent (line 121).' },
-  { name: 't₀', lines: [127, 143], kind: 'let', text: 'The number of tile t within its child (line 127).' },
-  { name: 'pos', lines: [133, 143], kind: 'let', text: 'Where the edge comes in its child\'s rim list (line 133).' },
-  { name: 'o', lines: [135, 143], kind: 'let', text: 'How many edges of side j come before this one (line 135).' },
-  { name: 'X', lines: [291, 378], kind: 'Variable', text: 'A chain of supertiles (see <code>Chain</code>, line 291).' },
-  { name: 'G', lines: [333, 378], kind: 'Variable', text: 'A gluing of the whole tiling: what lies across edge i of the tile numbered g, as <code>G g i</code>.' },
-  { name: 'K', lines: [292, 295], id: 'Chain' },
-  { name: 'c', lines: [293, 295], id: 'Chain' },
-  { name: 'up', lines: [297, 338], id: 'Chain_up' },
-  { name: 'gid', lines: [297, 338], id: 'Chain_gid' },
-  { name: 'loc', lines: [297, 338], id: 'Chain_loc' },
-  { name: 'leave', lines: [68, 75], kind: 'Rule', text: 'Rule of <code>Follow</code>: leaving the patch at the far end of a piece.' },
-  { name: 'next', lines: [68, 75], kind: 'Rule', text: 'Rule of <code>Follow</code>: crossing an edge and carrying on.' },
-  { name: 'refl', lines: [80, 86], kind: 'Rule', text: 'Rule of <code>Linked</code>: zero moves.' },
-  { name: 'piece', lines: [80, 86], kind: 'Rule', text: 'Rule of <code>Linked</code>: a move along a piece.' },
-  { name: 'edge', lines: [80, 86], kind: 'Rule', text: 'Rule of <code>Linked</code>: a move across an edge.' },
+  { name: 'P', lines: [69, 114], kind: 'Variable', text: 'The patch: declared by <code>variable (P : Patch)</code> on line 69, an automatic first argument of every definition up to <code>end Patch</code>.' },
+  { name: 'child', lines: [122, 157], kind: 'Argument', text: '<code>child c</code>: the c-th child patch, passed to <code>compose</code>.' },
+  { name: 'T', lines: [122, 171], kind: 'Argument', text: 'The kind of the parent supertile.' },
+  { name: 'T', lines: [238, 249], kind: 'Variable', recv: 'Tiling', text: 'The tiling: declared by <code>variable (T : Tiling)</code> on line 238, an automatic first argument of every definition up to <code>end Tiling</code>.' },
+  { name: 'T', lines: [357, 392], kind: 'Variable', recv: 'Tiling', text: 'A tiling of the whole union of the chain: what lies across edge i of the tile numbered g is <code>T.glue g i</code> (see <code>Tiling</code>, line 233).' },
+  { name: 'n', lines: [124, 157], kind: 'let', text: 'The number of children (line 124).' },
+  { name: 'off', lines: [126, 157], kind: 'let', text: '<code>off c</code>: the number of the first tile of child c (line 126).' },
+  { name: 'owner', lines: [128, 157], kind: 'let', text: '<code>owner t</code>: the child containing parent tile t (line 128).' },
+  { name: 'shift', lines: [130, 157], kind: 'let', text: '<code>shift c e</code>: edge e of child c renumbered as an edge of the parent (line 130).' },
+  { name: 't₀', lines: [136, 152], kind: 'let', text: 'The number of tile t within its child (line 136).' },
+  { name: 'pos', lines: [142, 152], kind: 'let', text: 'Where the edge comes in its child\'s rim list (line 142).' },
+  { name: 'o', lines: [144, 152], kind: 'let', text: 'How many edges of side j come before this one (line 144).' },
+  { name: 'X', lines: [314, 396], kind: 'Variable', recv: 'Chain', text: 'A chain of supertiles (see <code>Chain</code>, line 314).' },
+  { name: 'K', lines: [315, 318], id: 'Chain' },
+  { name: 'c', lines: [316, 318], id: 'Chain' },
+  { name: 'up', lines: [320, 362], id: 'Chain_up' },
+  { name: 'gid', lines: [320, 362], id: 'Chain_gid' },
+  { name: 'loc', lines: [320, 362], id: 'Chain_loc' },
+  { name: 'leave', lines: [77, 84], kind: 'Rule', text: 'Rule of <code>Follow</code>: leaving the patch at the far end of a piece.' },
+  { name: 'next', lines: [77, 84], kind: 'Rule', text: 'Rule of <code>Follow</code>: crossing an edge and carrying on.' },
+  { name: 'refl', lines: [89, 95], kind: 'Rule', text: 'Rule of <code>Linked</code>: zero moves.' },
+  { name: 'piece', lines: [89, 95], kind: 'Rule', text: 'Rule of <code>Linked</code>: a move along a piece.' },
+  { name: 'edge', lines: [89, 95], kind: 'Rule', text: 'Rule of <code>Linked</code>: a move across an edge.' },
 ],
 };

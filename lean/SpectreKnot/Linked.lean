@@ -60,7 +60,7 @@ theorem across_symm {o : Bool} {A B : Nat} (sig : P.HasSig o A B) (symm : P.Glue
   simp only at ht hi
   cases s with
   | true =>
-    simp only [across] at across_eq
+    simp only [across, straightThrough] at across_eq
     cases glued : P.glue t i with
     | none => rw [glued] at across_eq; contradiction
     | some e =>
@@ -68,9 +68,9 @@ theorem across_symm {o : Bool} {A B : Nat} (sig : P.HasSig o A B) (symm : P.Glue
       rw [glued] at across_eq
       simp only [Option.map_some, Option.some.injEq] at across_eq
       subst across_eq
-      simp only [across, symm t i t' j ht hi glued, Option.map_some]
+      simp only [across, straightThrough, symm t i t' j ht hi glued, Option.map_some]
   | false =>
-    simp only [across] at across_eq
+    simp only [across, straightThrough] at across_eq
     cases glued : P.glue t ((i + 13) % 14) with
     | none => rw [glued] at across_eq; contradiction
     | some e =>
@@ -80,8 +80,8 @@ theorem across_symm {o : Bool} {A B : Nat} (sig : P.HasSig o A B) (symm : P.Glue
       subst across_eq
       -- the far edge is an actual edge
       have hj := (sig.glue_ok t _ t' j ht (by omega) glued).2
-      simp only [across, mod14 hj, symm t _ t' j ht (by omega) glued, Option.map_some, Option.some.injEq,
-        Prod.mk.injEq]
+      simp only [across, straightThrough, mod14 hj, symm t _ t' j ht (by omega) glued, Option.map_some,
+        Option.some.injEq, Prod.mk.injEq]
       refine ⟨trivial, ?_, trivial⟩
       -- vertex `i - 1`, counted round the 14 vertices, without `%`
       have wrap : (i + 13) % 14 = (i + 13) - 14 ∨ (i + 13) % 14 = i + 13 := by omega

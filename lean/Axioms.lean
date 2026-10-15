@@ -88,11 +88,12 @@ open SpectreKnot
 #print axioms Statement.all_same
 #print axioms Statement.theoremB_strand
 -- Theorem A in strand form (the statement file's `ChainModel`, `TheoremA_strand`): the union of any chain of
--- supertiles that covers the plane, and Lemma 3.4 applied to it
+-- supertiles that covers, and Lemma 3.4 applied to it; and a chain that covers exists (`NestCovers`)
 #print axioms Statement.chainModel
 #print axioms Statement.Chain.all_glued_at
 #print axioms Statement.Chain.not_closed
 #print axioms Statement.theoremA_strand
+#print axioms Statement.nestCovers
 
 /-! The main theorems prove exactly the claims of `Statement.lean`: each `example` states one claim, as written there,
 and gives the main theorem as its proof, so this file fails to build if a main theorem's statement is changed. -/
@@ -105,3 +106,4 @@ example : SpectreKnot.Statement.NestModel := SpectreKnot.Statement.nestModel
 example : SpectreKnot.Statement.TheoremB_strand := SpectreKnot.Statement.theoremB_strand
 example : SpectreKnot.Statement.ChainModel := SpectreKnot.Statement.chainModel
 example : SpectreKnot.Statement.TheoremA_strand := SpectreKnot.Statement.theoremA_strand
+example : SpectreKnot.Statement.NestCovers := SpectreKnot.Statement.nestCovers

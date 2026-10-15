@@ -41,7 +41,7 @@ const MODULES = {
   'SpectreKnot.Statement': 'The namespace of this file: every name defined here has this prefix.',
 };
 const KW = new Set(['import', 'namespace', 'end', 'abbrev', 'def', 'theorem', 'structure', 'where', 'inductive', 'variable', 'match', 'with', 'fun', 'let', 'if', 'then', 'else']);
-const TY = new Set(['Prop', 'Nat', 'Bool', 'Option', 'List', 'Port', 'Patch', 'Kind']);
+const TY = new Set(['Prop', 'Nat', 'Bool', 'Option', 'List', 'Port', 'Patch', 'Tiling', 'Kind']);
 const VAL = new Set(['true', 'false', 'some', 'none']);
 
 const REG = [], USES = {};
@@ -119,7 +119,7 @@ function renderChain(s, line, file) {
     const head = parts.slice(0, matched).join('.');
     const cls = KW.has(head) ? 'kw' : TY.has(head) ? 'ty' : VAL.has(head) ? 'val' : '';
     html += tk(head, info, line, file, cls);
-    if (info && info.type === 'scoped' && info.sc.name === 'X' && file === 'S') recv = 'Chain';
+    if (info && info.type === 'scoped' && info.sc.recv && file === 'S') recv = info.sc.recv;
     k = matched;
   }
   for (; k < parts.length; k++) html += tk('.' + parts[k], lookMember(parts[k], recv), line, file, '');
@@ -284,7 +284,8 @@ function primerHtml() {
     G.primer.map((p, k) => `<div class="pr"><h3><span class="pr-n">${k + 1}</span>${esc(p.title)}</h3><pre class="pr-code">${code(p.code)}</pre><p>${mark(p.text)}</p></div>`).join('') +
     `</div></section>`;
 }
-const START = ['TheoremB_strand', 'TheoremA_strand', 'TheoremB', 'TheoremB_sharp', 'NestModel', 'TheoremA', 'ChainModel'];
+const START = ['TheoremB_strand', 'TheoremA_strand', 'TheoremB', 'TheoremB_sharp', 'TheoremB_exact', 'Grandparent',
+  'NestModel', 'TheoremA', 'ChainModel', 'NestCovers'];
 function startHtml() {
   return `<section class="sec" id="start"><h2>Where to start</h2><p class="lede">The file is written from the bottom
     up: small definitions first, the claims at the end. To read it, go the other way: pick a claim, then follow the
@@ -308,7 +309,7 @@ function reviewHtml() {
   });
   const nOk = ITEMS.reduce((n, it) => n + (it.checks || []).filter(c => c.tone === 'ok').length + (it.clauses || []).reduce((m, cl) => m + (cl.checks || []).filter(c => c.tone === 'ok').length, 0), 0);
   return `<section class="sec" id="review"><h2>Findings of this reading</h2>
-    <p class="lede">Every piece was read against the paper's definitions and its own comment. <strong>No line says something different from what it claims.</strong> The two conventions that are easiest to get wrong were re-derived from the paper: which port a ribbon continues as across an edge ([[across]]), and the order in which two children's shared sides are glued ([[compose]]). Both are right.</p>
+    <p class="lede">Every piece was read against the paper's definitions and its own comment. <strong>No line says something different from what it claims.</strong> The two conventions that are easiest to get wrong were re-derived from the paper: which port a ribbon continues as across an edge ([[straightThrough]]), and the order in which two children's shared sides are glued ([[compose]]). Both are right.</p>
     <p>The page carries ${nOk} "as intended" notes and ${notes.length} others. None of the others is an error. Each marks a place where a line's meaning depends on something outside it:</p>
     <ul class="findings">${notes.map(({ c, it, where }) => `<li class="t-${c.tone}"><span class="badge">${TONE[c.tone][1]} ${TONE[c.tone][0]}</span> <a href="#item-${it.id}">${esc(where)}</a>: ${esc(c.title)}</li>`).join('')}</ul></section>`.replace(/\[\[[^\]]+\]\]/g, m => mark(m));
 }
@@ -560,7 +561,7 @@ FIGS.across = function (host) {
     <div class="fig-body fig-across">${svgEl(W, H + 10, g, 'Two tiles sharing an edge, with two ribbons crossing at its crossing point')}
     <div class="fig-side"><div class="readout" aria-live="polite"></div><p class="fig-note">Click any of the four ribbon ends. Each ribbon runs straight through the crossing point, so the end heading towards one end of the edge in t continues as the end heading towards the other end of the edge in t′.</p></div></div>`;
   const svg = $('svg', host), out = $('.readout', host);
-  const LR_ = lineOf('| (t, i, true) => (P.glue t i)'), LL_ = lineOf('| (t, i, false) => (P.glue t');
+  const LR_ = lineOf('| (t, i, true) => (glue t i)'), LL_ = lineOf('| (t, i, false) => (glue t');
   const TXT = {
     UL: `<code>across (t, i, true)</code><p>Line ${LR_}. The port lies on e<sub>i</sub>: look up <code>glue t i = some (t′, j)</code>, answer <code>some (t′, j, true)</code>: R(v<sub>j</sub>) of t′, the lower right end.</p>`,
     UR: `<code>across (t, i+1, false)</code><p>Line ${LL_}. L(v<sub>i+1</sub>) lies on edge <code>(i+1+13) % 14</code> = i: look up <code>glue t i = some (t′, j)</code>, answer <code>some (t′, (j+1) % 14, false)</code>: L(v<sub>j+1</sub>) of t′, the lower left end.</p>`,

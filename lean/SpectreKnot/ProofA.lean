@@ -365,14 +365,14 @@ theorem loopPatch_closed : ¬ loopPatch.NoClosedStrand := by
     intro p r follow_pr
     induction follow_pr with
     | @leave p leaves =>
-      constructor <;> rintro rfl <;> simp [loopPatch, Patch.across, pieceEnd] at leaves
+      constructor <;> rintro rfl <;> simp [loopPatch, Patch.across, straightThrough, pieceEnd] at leaves
     | @next p q r crosses _ ih =>
       constructor <;> rintro rfl
       · have q_eq : q = (0, 4, true) := by -- from `L(v_5)` the walk goes on to `R(v_4)`
-          simp [loopPatch, Patch.across, pieceEnd] at crosses; exact crosses.symm
+          simp [loopPatch, Patch.across, straightThrough, pieceEnd] at crosses; exact crosses.symm
         exact ih.2 q_eq
       · have q_eq : q = (0, 5, false) := by -- from `R(v_4)` the walk goes on to `L(v_5)`
-          simp [loopPatch, Patch.across, pieceEnd] at crosses; exact crosses.symm
+          simp [loopPatch, Patch.across, straightThrough, pieceEnd] at crosses; exact crosses.symm
         exact ih.1 q_eq
   exact (key _ _ follow).1 rfl
 

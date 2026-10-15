@@ -126,8 +126,14 @@ def cites(decl, decls, short_index):
     return sorted(found)
 
 
+# How a row's Lean statement differs from the paper's: the first words of the README table's last column.
+DIFFERS = ('same', 'stronger', 'weaker', 'part', 'other form', 'not in the paper')
+
+
 def readme_table(readme_path):
-    """Rows of the README's 'What is formalised' table: paper column, Lean names, kind, description."""
+    """Rows of the README's 'What is formalised' table: paper column, Lean names, kind, description, and how the Lean
+    statement differs from the paper's. Stops unless every row has the five cells and its last says how it differs
+    (one of DIFFERS, then any detail), so that a row cannot pair a result with a weaker statement without saying so."""
     text = Path(readme_path).read_text(encoding='utf8')
     sec = text.split('## What is formalised', 1)[1].split('\n## ', 1)[0]
     rows = []
@@ -135,10 +141,15 @@ def readme_table(readme_path):
         if not line.startswith('|') or line.startswith('|---') or line.startswith('| paper'):
             continue
         cells = [c.strip() for c in line.strip().strip('|').split(' | ')]
-        if len(cells) != 4:
-            continue
-        paper, lean, kind, what = cells
-        rows.append({'paper': paper, 'lean': re.findall(r'`([^`]+)`', lean), 'kind': kind, 'what': what})
+        if len(cells) != 5:
+            raise SystemExit('lean/README.md, "What is formalised": a row with %d cells, not 5 (paper, Lean, kind, what '
+                             'it says, how it differs from the paper): %s' % (len(cells), line[:100]))
+        paper, lean, kind, what, differs = cells
+        if not re.match(r'(%s)(:|$)' % '|'.join(DIFFERS), differs):
+            raise SystemExit('lean/README.md, "What is formalised": the row for "%s" does not say how it differs from the '
+                             'paper (its last cell must start with one of: %s)' % (paper, ', '.join(DIFFERS)))
+        rows.append({'paper': paper, 'lean': re.findall(r'`([^`]+)`', lean), 'kind': kind, 'what': what,
+                     'differs': differs})
     return rows
 
 

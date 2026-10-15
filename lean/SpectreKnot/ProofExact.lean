@@ -104,11 +104,11 @@ theorem across_bport {o : Bool} {A B : Nat} (sig : P.HasSig o A B) {k : Nat} (k_
   cases s with
   | true =>
     obtain ⟨_, i_lt, unglued⟩ := sig.rim_ok k k_lt
-    cases o <;> simp only [bport, across, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
+    cases o <;> simp only [bport, across, straightThrough, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
       Option.map_none]
   | false =>
     obtain ⟨_, i_lt, unglued⟩ := sig.rim_ok _ (prv_lt k_lt)
-    cases o <;> simp only [bport, across, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
+    cases o <;> simp only [bport, across, straightThrough, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
       Option.map_none]
 
 /-- A rim port is a port of an actual tile. -/

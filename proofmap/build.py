@@ -297,28 +297,37 @@ def md_inline(s):
 
 
 def md_block(s):
+    """Paragraphs and bullet lists, with one level of indented bullets inside a bullet."""
     lines = s.split('\n')
-    out, para, items = [], [], []
+    out, para, items = [], [], []   # items: [the item's lines, its sub-items (each a list of lines)]
+
+    def ul(entries):
+        return '<ul class="md">%s</ul>' % ''.join(entries)
 
     def flush():
         if para:
             out.append('<p>%s</p>' % md_inline(' '.join(x.strip() for x in para)))
             para.clear()
         if items:
-            out.append('<ul class="md">%s</ul>' % ''.join('<li>%s</li>' % md_inline(' '.join(i)) for i in items))
+            out.append(ul('<li>%s%s</li>' % (md_inline(' '.join(i)), ul('<li>%s</li>' % md_inline(' '.join(x))
+                                                                        for x in sub) if sub else '')
+                          for i, sub in items))
             items.clear()
     for line in lines:
         if not line.strip():
             flush()
             continue
-        m = re.match(r'^\s*[-*]\s+(.*)', line)
+        m = re.match(r'^(\s*)[-*]\s+(.*)', line)
         if m:
             if para:
                 flush()
-            items.append([m.group(1)])
+            if m.group(1) and items:   # indented: a bullet inside the last one
+                items[-1][1].append([m.group(2)])
+            else:
+                items.append(([m.group(2)], []))
             continue
         if items and line.startswith('  '):
-            items[-1].append(line.strip())
+            (items[-1][1][-1] if items[-1][1] else items[-1][0]).append(line.strip())
             continue
         if items:
             flush()
@@ -1148,6 +1157,13 @@ def chips(i, big=False):
     return '<span class="chips">%s</span>' % s
 
 
+def differs_html(row):
+    """How a README row's Lean statement differs from the paper's: its first words (`leanparse.DIFFERS`) in italics."""
+    word, _, rest = row['differs'].partition(':')
+    return '<p class="small differs"><b>Differs from the paper:</b> <i>%s</i>%s.</p>' % (
+        esc(word), (':' + md_inline(rest)) if rest else '')
+
+
 def rlink_head(l, info):
     return '<a href="#%s">%s</a>' % (rid(l), esc(info[l]['head']))
 
@@ -1256,7 +1272,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
 <div class="hero">
 <div class="hero-l">
   %s%s
-  <p class="small">In Lean 4, the two main theorems. Their claims, <a href="#%s"><code>TheoremA_strand</code></a> and <a href="#%s"><code>TheoremB_strand</code></a>, are written out in the statement file in a combinatorial form, with patches described by which edges are glued:</p>
+  <p class="small">In Lean 4, the two main theorems. Their claims, <a href="#%s"><code>TheoremA_strand</code></a> and <a href="#%s"><code>TheoremB_strand</code></a>, are written out in the statement file in a combinatorial form, with patches and tilings described by which edges are glued:</p>
   <pre class="lean hero-lean">%s</pre>
   <p class="small">The build, <code>lean/build.sh</code>, runs <code>#print axioms</code> on the main theorems (<a href="lean-Axioms.html"><code>lean/Axioms.lean</code></a>) and fails unless the answer is among Lean&rsquo;s standard three, <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: no <code>sorryAx</code>, no <code>Lean.ofReduceBool</code>. It also fails if a main theorem no longer proves exactly its claim in the statement file, if the statement file or a file it imports has changed since its SHA-256 was recorded, or if <code>leanchecker</code>, replaying every declaration through the kernel, finds a problem.</p>
   <p class="small">That actual spectre tilings are glued as the formal statements assume is argued in the paper, not formalised: <a href="#notcovered">what the Lean does not cover</a>.</p>
@@ -1273,7 +1289,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
 <h2 class="sh" id="notcovered">What the Lean checks, and what it does not</h2>
 <div class="grid2">
 <div class="card"><h3 class="ch">What it checks</h3>
-<div class="md small"><p>The Lean formalisation proves the results marked <span class="st lean">Lean</span> about patches described by which edges are glued: every supertile has the signature (%s), every strand of a chain of supertiles covering the plane is two-way infinite (%s), and the nest tiling is one two-way infinite strand, with the paper&rsquo;s bounds (%s). Its kernel also re-runs the finite computations these use.</p>
+<div class="md small"><p>The Lean formalisation proves the results marked <span class="st lean">Lean</span> about patches described by which edges are glued: every supertile has the signature (%s); in the union of any chain of supertiles in which every edge is eventually glued, every strand is two-way infinite (%s), and the nest is such a chain; the nest tiling is one two-way infinite strand (%s), with the bounds of %s, which are exact; and every vertex of a tile of a block of the nest is surrounded by the block two levels up (%s, at the vertices of tiles). Its kernel also re-runs the finite computations these use.</p>
 <p>Its statement file, <code>lean/SpectreKnot/Statement.lean</code>, holds every definition the main theorems use, so whether the right thing has been proved comes down to reading it: <a href="%s">line by line</a>.</p></div></div>
 <div class="card"><h3 class="ch">What it does not cover</h3>
 <p class="small mut">From <code>lean/README.md</code>.</p>
@@ -1288,7 +1304,8 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
 </section>''' % ((ways, claim(a, 'the Daedalus Theorem'), claim(b, 'the Ariadne Theorem')) + claims + (
                   lean_html(lean_st), rid('thm:A'), rid('thm:B'), top_svg, PUBLIC_BASE,
                   nums, rlink_head('thm:signature', info), rlink_head('thm:A', info),
-                  rlink_head('thm:B', info), STATEMENT_FILE, notshown))
+                  rlink_head('thm:B', info), rlink_head('thm:merge', info), rlink_head('lem:gap', info),
+                  STATEMENT_FILE, notshown))
 
 
 
@@ -1691,17 +1708,18 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
         rows_html = []
         for row in lean_rows[l]:
             ds = ''.join(lean_card(n, decls, where) for n in row['decls'] if n in decls)
-            rows_html.append('<div class="leanrow"><p class="small"><b>%s</b> &middot; %s</p><p>%s</p>%s</div>' % (
-                md_inline(row['paper']), md_inline(row['kind']), md_inline(row['what']), ds))
+            rows_html.append('<div class="leanrow"><p class="small"><b>%s</b> &middot; %s</p><p>%s</p>%s%s</div>' % (
+                md_inline(row['paper']), md_inline(row['kind']), md_inline(row['what']), differs_html(row), ds))
         part = ('<p class="small mut">What the Lean covers here: %s</p>' % tex.inline(notes['lean_part'][l])) \
             if l in notes['lean_part'] else ''
         parts.append('<h2 class="sh">In Lean</h2>%s<p class="small mut">From the paper-to-Lean table of '
                      '<code>lean/README.md</code>; statements quoted from the Lean files.</p>%s' % (part, ''.join(rows_html)))
     elif r['env'] in texparse.GRAPH_ENVS:
+        m_part = {'thm:smkgs': 'M1', 'lem:rigid': 'M1', 'prop:nestwell': 'M3', 'prop:nesttiling': 'M3',
+                  'con:nest': 'M3'}.get(l)
         parts.append('<h2 class="sh">In Lean</h2><p class="mut">Not formalised.%s</p>' % (
-            ' It is part of the link to real tilings, assumption (M).' if l in ('thm:smkgs', 'lem:rigid',
-                                                                               'prop:nestwell', 'prop:nesttiling',
-                                                                               'con:nest') else ''))
+            ' It is part of the link to real tilings: assumption (%s) of the statement file.' % m_part
+            if m_part else ''))
     if comp_rows.get(l):
         lis = ''.join('<li><p>%s</p><p class="small mut">%s</p></li>' % (c['what'], script_links(c['scripts'])[0])
                       for c in comp_rows[l])
@@ -1783,14 +1801,16 @@ def lean_index_view(rows, decls, R, info, lean_all, rests, guide, files, where):
            'formalise a numbered result of the paper.</p></div></div>'
            '<h2 class="sh">The files, in reading order</h2><div class="lgroups">%s</div>'
            '<h2 class="sh">By result of the paper</h2><div class="tablebox"><table class="lt"><thead>'
-           '<tr><th>paper</th><th>Lean</th><th>kind</th></tr></thead><tbody>' % (
+           '<tr><th>paper</th><th>Lean</th><th>kind</th><th>differs from the paper</th></tr></thead><tbody>' % (
                len(files), STATEMENT_FILE, guide['n_lines'], len(guide['guide']['items']), files[0]['page'],
                len(files), ''.join(groups))]
     for row in rows:
         names = ', '.join('<a href="#%s"><code>%s</code></a>' % (lid(n), esc(n)) if n in decls else
                           '<code>%s</code>' % esc(n) for n in row['decls'])
-        out.append('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (md_inline(row['paper']), names,
-                                                                   md_inline(row['kind'])))
+        word, _, rest = row['differs'].partition(':')
+        out.append('<tr><td>%s</td><td>%s</td><td>%s</td><td><i>%s</i>%s</td></tr>' % (
+            md_inline(row['paper']), names, md_inline(row['kind']), esc(word),
+            '<span class="dmore">:%s</span>' % md_inline(rest) if rest else ''))
     out.append('</tbody></table></div><h2 class="sh">Every declaration, by file</h2><p class="small mut">%d '
                'declarations, each with its own page. The figure after a name counts the paper results that rest on '
                'it (see its page). <span class="kw">thm</span> marks theorems and lemmas.</p><div class="files">'
@@ -2725,7 +2745,7 @@ details summary { cursor: pointer; color: var(--mint); font-weight: 650; }
 details pre { margin-top: 10px; }
 .claimdef summary { font-size: .88rem; }
 .prose { display: grid; gap: 12px; }
-@media (max-width: 700px) { table.lt { display: block; overflow-x: auto; } }
+@media (max-width: 700px) { table.lt { display: block; overflow-x: auto; } table.lt .dmore { display: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <script>

@@ -45,7 +45,7 @@ theorem across_valid {o : Bool} {A B : Nat} (has_sig : P.HasSig o A B) {p q : Po
   cases s with
   | true =>
     -- port `R(v_i)`, on edge `e_i`
-    simp only [across] at across_eq
+    simp only [across, straightThrough] at across_eq
     cases glue_eq : P.glue t i with
     | none => rw [glue_eq] at across_eq; contradiction
     | some edge =>
@@ -56,7 +56,7 @@ theorem across_valid {o : Bool} {A B : Nat} (has_sig : P.HasSig o A B) {p q : Po
       exact has_sig.glue_ok t i t' j t_lt i_lt glue_eq
   | false =>
     -- port `L(v_i)`, on edge `e_{i-1}`
-    simp only [across] at across_eq
+    simp only [across, straightThrough] at across_eq
     cases glue_eq : P.glue t ((i + 13) % 14) with
     | none => rw [glue_eq] at across_eq; contradiction
     | some edge =>
@@ -92,24 +92,24 @@ theorem rim_port {o : Bool} {A B : Nat} (has_sig : P.HasSig o A B) {r : Port} (t
   have rim_pos : 0 < P.E := by
     cases s with
     | true =>
-      simp only [across, Option.map_eq_none_iff] at unglued
+      simp only [across, straightThrough, Option.map_eq_none_iff] at unglued
       obtain ⟨k, k_lt, _⟩ := has_sig.rim_all t i t_lt i_lt unglued
       omega
     | false =>
-      simp only [across, Option.map_eq_none_iff] at unglued
+      simp only [across, straightThrough, Option.map_eq_none_iff] at unglued
       obtain ⟨k, k_lt, _⟩ := has_sig.rim_all t _ t_lt (Nat.mod_lt _ (by omega)) unglued
       omega
   cases s with
   | true =>
     -- `R(v_i)` lies on rim edge `k`, near its start in the tile's own sense
-    simp only [across, Option.map_eq_none_iff] at unglued
+    simp only [across, straightThrough, Option.map_eq_none_iff] at unglued
     obtain ⟨k, k_lt, at_k⟩ := has_sig.rim_all t i t_lt i_lt unglued
     cases o with
     | true => exact ⟨k, true, k_lt, by simp [bport, at_k]⟩
     | false => exact ⟨nxt P.E k, false, nxt_lt k_lt, by simp [bport, prv_nxt k_lt, at_k]⟩
   | false =>
     -- `L(v_i)` lies on rim edge `k`, near its end in the tile's own sense
-    simp only [across, Option.map_eq_none_iff] at unglued
+    simp only [across, straightThrough, Option.map_eq_none_iff] at unglued
     obtain ⟨k, k_lt, at_k⟩ := has_sig.rim_all t _ t_lt (Nat.mod_lt _ (by omega)) unglued
     -- the vertex after edge `e_{i-1}` is `v_i`
     have mod_eq : ((i + 13) % 14 + 1) % 14 = i := by omega
@@ -161,7 +161,7 @@ theorem across_in {c t i : Nat} {s : Bool} {q' : Port} (c_lt : c < nk T) (t_lt :
   cases s with
   | true =>
     -- port `R(v_i)`, on edge `e_i`
-    simp only [Patch.across] at across_eq
+    simp only [Patch.across, straightThrough] at across_eq
     cases glue_eq : (child c).glue t i with
     | none => rw [glue_eq] at across_eq; contradiction
     | some edge =>
@@ -169,12 +169,12 @@ theorem across_in {c t i : Nat} {s : Bool} {q' : Port} (c_lt : c < nk T) (t_lt :
       rw [glue_eq] at across_eq
       simp only [Option.map_some, Option.some.injEq] at across_eq
       subst across_eq
-      simp only [shiftP, Patch.across]
+      simp only [shiftP, Patch.across, straightThrough]
       rw [kids.glue_shift c_lt t_lt]
       simp only [glueAt, glue_eq, Option.map_some]
   | false =>
     -- port `L(v_i)`, on edge `e_{i-1}`
-    simp only [Patch.across] at across_eq
+    simp only [Patch.across, straightThrough] at across_eq
     cases glue_eq : (child c).glue t ((i + 13) % 14) with
     | none => rw [glue_eq] at across_eq; contradiction
     | some edge =>
@@ -182,7 +182,7 @@ theorem across_in {c t i : Nat} {s : Bool} {q' : Port} (c_lt : c < nk T) (t_lt :
       rw [glue_eq] at across_eq
       simp only [Option.map_some, Option.some.injEq] at across_eq
       subst across_eq
-      simp only [shiftP, Patch.across]
+      simp only [shiftP, Patch.across, straightThrough]
       rw [kids.glue_shift c_lt t_lt]
       simp only [glueAt, glue_eq, Option.map_some]
 
@@ -220,8 +220,8 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the parent's gluing across rim edge `u`
       have glue_eq := kids.glue_rimEdge c_lt u_lt
       rw [mate_eq] at glue_eq
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, if_true, if_false, Bool.false_eq_true,
-        mod14 i_lt, glue_eq] <;> rfl
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+        Bool.false_eq_true, mod14 i_lt, glue_eq] <;> rfl
     | some p =>
       obtain ⟨c', k'⟩ := p
       -- the parent's gluing across rim edge `u`
@@ -231,8 +231,8 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the edge across is an actual edge of its tile in child `c'`
       have i_lt' := ((kids.sig c' (by rwa [ofLens_n] at c'_lt)).rim_ok k'
         (by rw [← kids.E_eq (by rwa [ofLens_n] at c'_lt)]; exact k'_lt)).2.1
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, if_true, if_false, Bool.false_eq_true,
-        mod14 i_lt, glue_eq, Option.map_some]
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+        Bool.false_eq_true, mod14 i_lt, glue_eq, Option.map_some]
   | false =>
     -- port `L(u)`, on rim edge `u - 1`
     -- the edge before `u` is a rim edge
@@ -246,8 +246,8 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the parent's gluing across rim edge `u - 1`
       have glue_eq := kids.glue_rimEdge c_lt prv_lt_E
       rw [mate_eq] at glue_eq
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, if_true, if_false, Bool.false_eq_true,
-        mod14 i_lt, glue_eq] <;> rfl
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+        Bool.false_eq_true, mod14 i_lt, glue_eq] <;> rfl
     | some p =>
       obtain ⟨c', k'⟩ := p
       -- the parent's gluing across rim edge `u - 1`
@@ -260,8 +260,8 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       rw [kids.E_eq c'_lt] at k'_lt ⊢
       -- the edge across is an actual edge of its tile in child `c'`
       have i_lt' := ((kids.sig c' c'_lt).rim_ok k' k'_lt).2.1
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, if_true, if_false, Bool.false_eq_true,
-        mod14 i_lt, glue_eq, Option.map_some, prv_nxt k'_lt]
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+        Bool.false_eq_true, mod14 i_lt, glue_eq, Option.map_some, prv_nxt k'_lt]
 
 /-- `across_in`, for a port not yet split into its tile, vertex and hand. -/
 theorem across_in' {c : Nat} {p q' : Port} (c_lt : c < nk T) (t_lt : p.1 < (child c).tiles)

@@ -59,7 +59,7 @@
 \author{Justin Roughley}
 \address{Independent researcher}
 \email{justin.e.roughley@gmail.com}
-\date{12 October 2026}
+\date{15 October 2026}
 \subjclass[2020]{Primary 52C20; Secondary 05B45, 52C23, 57K10}
 \keywords{aperiodic monotile, Spectre, substitution tiling, Celtic knot, knot tile, computer-assisted proof}
 
@@ -236,25 +236,31 @@ here is a separate implementation by the same AI system. A fuller account:
 \subsection*{Formal verification}
 The combinatorial part of the proof is formalised in the Lean~4 proof assistant~\cite{Lean4}, using its core library
 only (folder \code{lean/} of the ancillary files). Lean's kernel has checked the following, in a combinatorial form in
-which a patch is described by which edge of which tile is glued to which edge of which other tile: every supertile of
-every kind and every level $m\ge1$ has the signature (\cref{thm:signature}), and so contains no closed strand; in the union of any
-chain of supertiles, each a child of the next, in which every edge is eventually glued, every strand is a two-way
-infinite path (\cref{thm:A}); and in the nest tiling, built as the union of the blocks $N_b$, the pieces form one
-two-way infinite strand, with the bounds of \cref{thm:merge} (\cref{thm:B}). The kernel also re-runs the finite
+which a patch, or a whole tiling, is described by which edge of which tile is glued to which edge of which other tile:
+every supertile of every kind and every level $m\ge1$ has the signature (\cref{thm:signature}), and so contains no
+closed strand; in the union of any chain of supertiles, each a child of the next, in which every edge is eventually
+glued, every strand is a two-way infinite path (\cref{thm:A}), and the nest is such a chain; in the nest tiling, built
+as the union of the blocks $N_b$, the pieces form one two-way infinite strand (\cref{thm:B}), with the bounds of
+\cref{thm:merge}, which are exact (the last two rows of \cref{tab:merge}); and every vertex of every tile of $N_b$ is
+surrounded by tiles of $N_{b+2}$ (\cref{lem:gap}(a), at the vertices of tiles). The kernel also re-runs the finite
 computations that these use (\cref{comp:compose,comp:base,comp:junction}). The inputs are
 \cref{tab:children,tab:sides,tab:psides,tab:letters}, as computed from the geometry, and the nine level-$1$ supertiles as
-glued patches of tiles, computed in exact arithmetic by the program of \cref{app:computations}. The link with tilings of the plane is not
-formalised: that the supertiles of an actual tiling are glued as these tables say rests on~\cite{SMKGS-spectre} and
-\cref{sec:spectre} (\cref{thm:smkgs}, \cref{prop:pattern,lem:rigid}), and is a stated assumption of the formal
-statements; so is the first step of the proof of \cref{thm:A}, that a tiling whose hierarchy covers the plane is the
-union of such a chain, and so are the geometric \cref{prop:nestwell,prop:nesttiling} and \cref{lem:gap}(a). The Mystic
+glued patches of tiles, computed in exact arithmetic by the program of \cref{app:computations}. The link with tilings
+of the plane is not formalised; it is a stated assumption of the formal statements, in three parts: that the
+supertiles of an actual tiling are glued as these tables say, which rests on~\cite{SMKGS-spectre} and
+\cref{sec:spectre} (\cref{thm:smkgs}, \cref{prop:pattern,lem:rigid}); the first step of the proof of \cref{thm:A}, that
+a tiling whose hierarchy covers the plane is the union of such a chain; and the geometric
+\cref{prop:nestwell,prop:nesttiling}, with the step of \cref{lem:gap}(a) from the vertices of tiles to the points of the
+plane. The Mystic
 (\cref{lem:tilesig}) is not treated separately: the formalisation starts from the level-$1$ supertiles. The formal proofs follow
 \cref{sec:decoration,sec:boxes,sec:reduce,sec:lengths,sec:induction,sec:nest,sec:strand}, with these differences of detail: strands
 are modelled by two involutions on ports (\cref{lem:degree2}); the formal proof of \cref{lem:lengthen} shows that a move creates
 no closed strand through \cref{prop:reduce}(b),(c), rather than directly; \cref{prop:reduce}(c) is proved in the form used, that if every
 reduced walk reaches the rim there is no closed strand; in \cref{comp:junction} the kernel computes the second part,
 and the first is proved for every level from the signature of child~$1$; \cref{lem:junctions} is proved with two
-edges from the ends of a side, which is what its use needs; and \cref{lem:gap} is used in form (b). The proofs use only
+edges from the ends of a side, which is what its use needs; \cref{lem:gap}(b) is proved from the tables, as its proof
+notes; and the proof of \cref{lem:gap}(a) at the vertices of tiles uses that every supertile is a disc at its rim,
+which the paper takes from the geometry and the formalisation proves level by level. The proofs use only
 Lean's standard axioms. The formalisation was written by the AI system as well; its statement file
 (\code{lean/SpectreKnot/Statement.lean}) contains every definition that the formal theorems depend on, with comments in
 plain English.
@@ -1376,7 +1382,7 @@ interior to $N_{b+1}\subset N_{b+2}$. So $p$ lies on side $4$ of $N_{b+1}$ by th
 $N_{b+1}$, on the closed side $2$ of $N_{b+1}$. But the closed sides $2$ and $4$ of $N_{b+1}$ are disjoint: they are
 arcs of a simple closed curve separated by side $3$ on one side and by sides $5,0,1$ on the other.
 
-(b) follows from (a). It also follows from the tables alone, and this is the form used in the formalisation: a rim
+(b) follows from (a). It also follows from the tables alone, and this is how the formalisation proves it: a rim
 edge of $N_b$ lies on a side $j\ne2$ of $N_b$, which faces a sibling inside $N_{b+1}$, or on side $2$, which lies on
 side $4$ of $N_{b+1}$ (position $16$ of \cref{tab:psides}); and side $4$ of child $1$ faces sibling $3$ inside $N_{b+2}$
 (\cref{tab:sides}).
