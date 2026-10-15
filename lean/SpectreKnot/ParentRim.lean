@@ -63,7 +63,7 @@ theorem ownGo_append (l₁ l₂ : List (Nat × Nat)) (p : Nat) :
       · have in_l₁ : p < L c j + totL L l := by omega -- past the first piece, but within `l₁`
         simp [in_head, in_rest, in_l₁]
       · have past_l₁ : ¬ p < L c j + totL L l := by omega -- past the whole of `l₁`
-        simp only [in_head, in_rest, past_l₁, if_false]
+        simp only [in_head, in_rest, past_l₁, ite_false]
         congr 1; omega
 
 /-- Every position below the total length is an edge `pos j + o` of a listed side `(c, j)`, with `o` inside the
@@ -80,10 +80,10 @@ theorem ownGo_mem : ∀ (pcs : List (Nat × Nat)) (p : Nat), p < totL L pcs →
     simp only [ownGo]
     by_cases in_head : p < L c j
     · -- in the first piece, counted from the end of its side
-      rw [if_pos in_head]
+      rw [ite_eq_left in_head]
       exact ⟨c, j, L c j - 1 - p, List.mem_cons_self, by omega, by congr 1; omega⟩
     · -- in a later piece
-      rw [if_neg in_head]
+      rw [ite_eq_right in_head]
       obtain ⟨c', j', o, mem, o_lt, at_p⟩ := ih (p - L c j) (by omega)
       exact ⟨c', j', o, List.mem_cons_of_mem _ mem, o_lt, at_p⟩
 
@@ -102,13 +102,13 @@ theorem ownGo_surj : ∀ (pcs : List (Nat × Nat)) {c j o : Nat}, (c, j) ∈ pcs
       obtain ⟨rfl, rfl⟩ := is_head
       refine ⟨L c j - 1 - o, by simp only [totL]; omega, ?_⟩
       simp only [ownGo]
-      rw [if_pos (by omega)]
+      rw [ite_eq_left (by omega)]
       congr 1; omega
     · -- a later piece: after the first
       obtain ⟨p, p_lt, at_p⟩ := ih in_rest o_lt
       refine ⟨L c' j' + p, by simp only [totL]; omega, ?_⟩
       simp only [ownGo]
-      rw [if_neg (by omega), Nat.add_sub_cancel_left]
+      rw [ite_eq_right (by omega), Nat.add_sub_cancel_left]
       exact at_p
 
 /-- Positions in a side are distinct from those in another side of the same child. -/
@@ -153,14 +153,14 @@ theorem ownGo_inj (len_pos : ∀ c j, j < 6 → 1 ≤ L c j) : ∀ (pcs : List (
       exact nodup.1 (same_side.1 ▸ mem)
     by_cases in_head : p < L c j <;> by_cases in_head' : p' < L c j
     · -- both in the first piece
-      rw [if_pos in_head, if_pos in_head'] at same_edge
+      rw [ite_eq_left in_head, ite_eq_left in_head'] at same_edge
       simp only [Prod.mk.injEq] at same_edge
       omega
-    · rw [if_pos in_head, if_neg in_head'] at same_edge
+    · rw [ite_eq_left in_head, ite_eq_right in_head'] at same_edge
       exact absurd same_edge (sep p (p' - L c j) in_head (by omega))
-    · rw [if_neg in_head, if_pos in_head'] at same_edge
+    · rw [ite_eq_right in_head, ite_eq_left in_head'] at same_edge
       exact absurd same_edge.symm (sep p' (p - L c j) in_head' (by omega))
-    · rw [if_neg in_head, if_neg in_head'] at same_edge
+    · rw [ite_eq_right in_head, ite_eq_right in_head'] at same_edge
       -- both in later pieces: by induction
       have := ih nodup.2 rest_lt (p - L c j) (p' - L c j) (by omega) (by omega) same_edge
       omega
@@ -168,7 +168,7 @@ theorem ownGo_inj (len_pos : ∀ c j, j < 6 → 1 ≤ L c j) : ∀ (pcs : List (
 /-- Position 0 is the last edge of the first piece's side (sides are traversed backwards). -/
 theorem ownGo_zero {c j : Nat} {rest : List (Nat × Nat)} (len_pos : 1 ≤ L c j) :
     ownGo L ((c, j) :: rest) 0 = (c, pos (L c) j + L c j - 1) := by
-  simp only [ownGo]; rw [if_pos (show 0 < L c j by omega)]; rfl
+  simp only [ownGo]; rw [ite_eq_left (show 0 < L c j by omega)]; rfl
 
 /-- The last position is the first edge of the last piece's side. -/
 theorem ownGo_last {c j : Nat} (len_pos : 1 ≤ L c j) : ∀ (pcs : List (Nat × Nat)),
@@ -176,10 +176,10 @@ theorem ownGo_last {c j : Nat} (len_pos : 1 ≤ L c j) : ∀ (pcs : List (Nat ×
   intro pcs
   -- the last piece adds its side's length
   have total : totL L (pcs ++ [(c, j)]) = totL L pcs + L c j := by rw [totL_append]; simp [totL]
-  rw [ownGo_append, total, if_neg (show ¬ (totL L pcs + L c j - 1 < totL L pcs) by omega),
+  rw [ownGo_append, total, ite_eq_right (show ¬ (totL L pcs + L c j - 1 < totL L pcs) by omega),
     show totL L pcs + L c j - 1 - totL L pcs = L c j - 1 by omega]
   simp only [ownGo]
-  rw [if_pos (show L c j - 1 < L c j by omega)]
+  rw [ite_eq_left (show L c j - 1 < L c j by omega)]
   congr 1; omega
 
 /-- Going back one position: inside a piece, the next edge of the same side (in the children's sense); at the start
@@ -200,8 +200,8 @@ theorem ownGo_pred (len_pos : ∀ c j, 1 ≤ L c j) : ∀ (pcs : List (Nat × Na
     · -- inside the first piece
       left
       refine ⟨c, j, L c j - 1 - p, List.mem_cons_self, by omega, ?_, ?_⟩
-      · simp only [ownGo]; rw [if_pos in_head]; congr 1; omega
-      · simp only [ownGo]; rw [if_pos (by omega)]; congr 1; omega
+      · simp only [ownGo]; rw [ite_eq_left in_head]; congr 1; omega
+      · simp only [ownGo]; rw [ite_eq_left (by omega)]; congr 1; omega
     · by_cases at_start : p = L c j
       · -- at the start of the second piece: the step back is into the first
         right
@@ -212,10 +212,10 @@ theorem ownGo_pred (len_pos : ∀ c j, 1 ≤ L c j) : ∀ (pcs : List (Nat × Na
           obtain ⟨c₂, j₂⟩ := y
           refine ⟨c₂, j₂, c, j, .here, ?_, ?_⟩
           · simp only [ownGo]
-            rw [if_neg (show ¬ (L c j < L c j) by omega), Nat.sub_self,
-              if_pos (show 0 < L c₂ j₂ from len_pos c₂ j₂)]
+            rw [ite_eq_right (show ¬ (L c j < L c j) by omega), Nat.sub_self,
+              ite_eq_left (show 0 < L c₂ j₂ from len_pos c₂ j₂)]
             rfl
-          · simp only [ownGo]; rw [if_pos (by omega)]; congr 1; omega
+          · simp only [ownGo]; rw [ite_eq_left (by omega)]; congr 1; omega
       · -- further on: by induction, in the rest of the list
         -- a positive position in the rest of the list
         have past_pos : 0 < p - L c j := by omega
@@ -223,12 +223,12 @@ theorem ownGo_pred (len_pos : ∀ c j, 1 ≤ L c j) : ∀ (pcs : List (Nat × Na
           ⟨c', j', o, mem, o_lt, at_p, at_prev⟩ | ⟨c', j', c'', j'', consec, at_p, at_prev⟩
         · left
           refine ⟨c', j', o, List.mem_cons_of_mem _ mem, o_lt, ?_, ?_⟩
-          · simp only [ownGo]; rw [if_neg in_head]; exact at_p
-          · simp only [ownGo]; rw [if_neg (by omega), show p - 1 - L c j = p - L c j - 1 by omega]; exact at_prev
+          · simp only [ownGo]; rw [ite_eq_right in_head]; exact at_p
+          · simp only [ownGo]; rw [ite_eq_right (by omega), show p - 1 - L c j = p - L c j - 1 by omega]; exact at_prev
         · right
           refine ⟨c', j', c'', j'', .there consec, ?_, ?_⟩
-          · simp only [ownGo]; rw [if_neg in_head]; exact at_p
-          · simp only [ownGo]; rw [if_neg (by omega), show p - 1 - L c j = p - L c j - 1 by omega]; exact at_prev
+          · simp only [ownGo]; rw [ite_eq_right in_head]; exact at_p
+          · simp only [ownGo]; rw [ite_eq_right (by omega), show p - 1 - L c j = p - L c j - 1 by omega]; exact at_prev
 
 end Own
 
@@ -349,7 +349,7 @@ theorem nxt_last {f : Nat → Nat} (len_pos : ∀ i, 1 ≤ f i) {j : Nat} (j_lt 
     -- its last edge is the last on the rim, so the next position wraps round to 0
     have wraps : pos f 5 + f 5 - 1 + 1 = pos f 6 := by
       rw [show pos f 6 = pos f 5 + f 5 from pos_succ f 5]; omega
-    simp only [nxt]; rw [if_pos wraps]; rfl
+    simp only [nxt]; rw [ite_eq_left wraps]; rfl
   · -- an earlier side: no wrap-around
     -- vertex `j + 1` is before the end of the rim
     have before_end := pos_lt_of_pos f (fun i _ => len_pos i) (show j + 1 < 6 by omega) (Nat.le_refl 6)
@@ -358,7 +358,7 @@ theorem nxt_last {f : Nat → Nat} (len_pos : ∀ i, 1 ≤ f i) {j : Nat} (j_lt 
     -- side `j + 1` has an edge
     have len_next := len_pos (j + 1)
     simp only [nxt]
-    rw [if_neg (show ¬ (pos f j + f j - 1 + 1 = pos f 6) by omega), Nat.mod_eq_of_lt (show j + 1 < 6 by omega)]
+    rw [ite_eq_right (show ¬ (pos f j + f j - 1 + 1 = pos f 6) by omega), Nat.mod_eq_of_lt (show j + 1 < 6 by omega)]
     omega
 
 /-- An edge of a side that Table 2 puts on the parent's rim is unglued in the composition. -/
@@ -478,14 +478,14 @@ theorem own_rot (len_pos : ∀ c j, 1 ≤ L c j) {p : Nat} (p_lt : p < rimN T L)
     -- the last position is the first edge of the last piece's side
     have at_last : ownGo L (pcs T) (prv (rimN T L) 0) = (((pcs T).getLast nonempty).1,
         pos (L ((pcs T).getLast nonempty).1) ((pcs T).getLast nonempty).2) := by
-      simp only [prv, rimN, if_true]
+      simp only [prv, rimN, ite_true]
       conv => lhs; rw [← split_last]
       exact ownGo_last (len_pos _ _) _
     rw [at_zero, at_last, ofLens_E c_lt, nxt_last (len_pos _) j_lt]
     exact rot_tab len_pos 30 _ _ _ _ (pcs_wrap T) c_lt (Nat.mod_lt _ (by omega))
   · -- a later position
     -- the step back is to `p - 1`
-    have prv_eq : prv (rimN T L) p = p - 1 := by simp only [prv]; rw [if_neg p_zero]
+    have prv_eq : prv (rimN T L) p = p - 1 := by simp only [prv]; rw [ite_eq_right p_zero]
     rw [prv_eq]
     rcases ownGo_pred len_pos (pcs T) p (by omega) p_lt with
       ⟨c, j, o, mem, o_lt, at_p, at_prev⟩ | ⟨c, j, c', j', consec, at_p, at_prev⟩
@@ -497,7 +497,7 @@ theorem own_rot (len_pos : ∀ c j, 1 ≤ L c j) {p : Nat} (p_lt : p < rimN T L)
       rw [pos_succ] at side_end
       -- so the next position does not wrap round
       have nxt_eq : nxt (pos (L c) 6) (pos (L c) j + o) = pos (L c) j + (o + 1) := by
-        simp only [nxt]; rw [if_neg (by omega)]; omega
+        simp only [nxt]; rw [ite_eq_right (by omega)]; omega
       rw [nxt_eq, ← Nat.add_assoc]
       -- the next edge is unglued, so turning stops at once
       have unglued := ofLens_mate_none (d := d) (ω := ω) len_pos c_lt j_lt o_lt on_rim

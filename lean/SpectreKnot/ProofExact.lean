@@ -104,11 +104,11 @@ theorem across_bport {o : Bool} {A B : Nat} (sig : P.HasSig o A B) {k : Nat} (k_
   cases s with
   | true =>
     obtain ⟨_, i_lt, unglued⟩ := sig.rim_ok k k_lt
-    cases o <;> simp only [bport, across, straightThrough, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
+    cases o <;> simp only [bport, across, straightThrough, ite_true, ite_false, Bool.false_eq_true, mod14 i_lt, unglued,
       Option.map_none]
   | false =>
     obtain ⟨_, i_lt, unglued⟩ := sig.rim_ok _ (prv_lt k_lt)
-    cases o <;> simp only [bport, across, straightThrough, if_true, if_false, Bool.false_eq_true, mod14 i_lt, unglued,
+    cases o <;> simp only [bport, across, straightThrough, ite_true, ite_false, Bool.false_eq_true, mod14 i_lt, unglued,
       Option.map_none]
 
 /-- A rim port is a port of an actual tile. -/
@@ -137,7 +137,7 @@ theorem bport_inj {o : Bool} {A B : Nat} (sig : P.HasSig o A B) {k k' : Nat} (k_
   have at_same : ∀ x y, x < P.E → y < P.E → (P.edgeAt x).1 = (P.edgeAt y).1 → (P.edgeAt x).2 = (P.edgeAt y).2 →
       x = y := fun x y x_lt y_lt same_tile same_edge => sig.rim_inj x y x_lt y_lt (Prod.ext same_tile same_edge)
   cases o <;> cases s <;> cases s' <;>
-    simp only [bport, if_true, if_false, Bool.false_eq_true, Prod.mk.injEq, reduceCtorEq, and_false,
+    simp only [bport, ite_true, ite_false, Bool.false_eq_true, Prod.mk.injEq, reduceCtorEq, and_false,
       and_true] at same ⊢
   · exact prv_inj k_lt k_lt' (at_same _ _ (prv_lt k_lt) (prv_lt k_lt') same.1 (by omega))
   · exact at_same _ _ k_lt k_lt' same.1 (by omega)
@@ -166,7 +166,7 @@ theorem hook_ends {m : Nat} (m_pos : 1 ≤ m) {v : Nat} (two_le_v : 2 ≤ v) (v_
   -- which is `L(v)`, since `v` is not a corner
   have paired : btau (aPos m .Delta) (bPos m .Delta) (v, true) = (v, false) := by
     simp only [btau]
-    rw [if_neg (by omega), if_neg (by omega)]; rfl
+    rw [ite_eq_right (by omega), ite_eq_right (by omega)]; rfl
   rw [paired] at follows
   exact ⟨follows, .inl ⟨Patch.across_bport good_m.sig (by rw [rim_len]; omega) true, rfl⟩⟩
 

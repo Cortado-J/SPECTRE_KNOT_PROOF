@@ -220,7 +220,7 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the parent's gluing across rim edge `u`
       have glue_eq := kids.glue_rimEdge c_lt u_lt
       rw [mate_eq] at glue_eq
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, ite_true, ite_false,
         Bool.false_eq_true, mod14 i_lt, glue_eq] <;> rfl
     | some p =>
       obtain ⟨c', k'⟩ := p
@@ -231,7 +231,7 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the edge across is an actual edge of its tile in child `c'`
       have i_lt' := ((kids.sig c' (by rwa [ofLens_n] at c'_lt)).rim_ok k'
         (by rw [← kids.E_eq (by rwa [ofLens_n] at c'_lt)]; exact k'_lt)).2.1
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, ite_true, ite_false,
         Bool.false_eq_true, mod14 i_lt, glue_eq, Option.map_some]
   | false =>
     -- port `L(u)`, on rim edge `u - 1`
@@ -246,7 +246,7 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       -- the parent's gluing across rim edge `u - 1`
       have glue_eq := kids.glue_rimEdge c_lt prv_lt_E
       rw [mate_eq] at glue_eq
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, ite_true, ite_false,
         Bool.false_eq_true, mod14 i_lt, glue_eq] <;> rfl
     | some p =>
       obtain ⟨c', k'⟩ := p
@@ -260,7 +260,7 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
       rw [kids.E_eq c'_lt] at k'_lt ⊢
       -- the edge across is an actual edge of its tile in child `c'`
       have i_lt' := ((kids.sig c' c'_lt).rim_ok k' k'_lt).2.1
-      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, if_true, if_false,
+      cases o <;> simp only [ιP, shiftP, Patch.bport, Patch.across, straightThrough, ite_true, ite_false,
         Bool.false_eq_true, mod14 i_lt, glue_eq, Option.map_some, prv_nxt k'_lt]
 
 /-- `across_in`, for a port not yet split into its tile, vertex and hand. -/

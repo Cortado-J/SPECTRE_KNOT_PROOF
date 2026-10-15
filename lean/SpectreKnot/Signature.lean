@@ -228,7 +228,7 @@ theorem rot_port {x r : Nat × Nat} (turn : G.Rot x r) :
       -- the partner edge is not the last edge of `c₁`
       have e₁_lt := cut_ok.e₁ cut_glued
       refine .step (c' := κ.c₁) (k' := κ.e₁ + 2) ?_ ?_
-      · rw [cut_ok.sh_c₀_le (Nat.le_refl _), cut_ok.mate_cut₀, if_pos cut_glued]
+      · rw [cut_ok.sh_c₀_le (Nat.le_refl _), cut_ok.mate_cut₀, ite_eq_left cut_glued]
       · rw [cut_ok.E_c₁ cut_glued, nxt_of_lt' (by omega)]
         rw [nxt_of_lt' e₁_lt, cut_ok.sh_c₁_gt cut_glued (by omega)] at rest
         exact rest

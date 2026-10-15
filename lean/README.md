@@ -75,6 +75,11 @@ How the statement's definitions are tested (`Tests.lean`; `TestsSlow.lean` with 
   ribbon fails `NoClosedStrand`. So "no closed strand" is not built into the definitions either;
 - Theorem A in its final form applies to at least one chain (a claim of the statement, `NestCovers`): the nest, as a
   chain, covers. So `TheoremA_strand` is not true merely because no chain satisfies its hypothesis;
+- negative control for Theorem A on real supertiles: with another decoration, the Spectre Knot's with its crossing
+  moved from corner 0 to corner 5, the same gluing and the same rule for following a ribbon find closed strands (226 of
+  the 252 ports of N₁ inside N₃), and with no crossing at all, already in a level-1 supertile. The Spectre Knot's own
+  decoration, given in the same way, is `pieceEnd`, and gives none. So "no closed strand" comes from the design, not
+  from the definitions or the gluing;
 - the Grandparent Lemma on instances: every vertex of every tile of N₁ is surrounded in N₃, and of N₂ in N₄, but not
   one level up (side 2 of N_b lies on the rim of N_{b+1}); and a theorem (`rim_not_surrounded`): in a patch with the
   signature, no vertex on the rim is surrounded. So "surrounded" is not built into the definitions.
@@ -127,8 +132,9 @@ detail:
 ```
 ./build.sh          # about 9 minutes from clean (peak memory about 1.5 GB per kernel check); 3 minutes when cached
 ./build.sh --data   # first regenerate the data files from paper/code (python3, node)
-./build.sh --slow   # also run TestsSlow.lean (level-5 checks, about 2 minutes more)
+./build.sh --slow   # also run TestsSlow.lean (level-5 checks, about 5 minutes more)
 tools/check_data.sh # the data files are exactly what paper/code generates (about a minute)
+tools/comparator.sh # leanprover's comparator: the main theorems prove exactly the claims (about 4 minutes)
 ```
 
 `build.sh` fails if one of the files that fix what is proved has changed since `TRUSTED.sha256` was recorded
@@ -140,7 +146,18 @@ of `Axioms.lean`); if a theorem listed in `Axioms.lean` has not reported its axi
 standard three (`propext`, `Classical.choice`, `Quot.sound`); or if `leanchecker`, which replays every declaration of
 `SpectreKnot` through Lean's kernel, finds a problem (about 3 minutes). Names must be declared: the lakefile turns off
 Lean's automatic binding of undeclared names (`autoImplicit`). CI also runs `tools/check_data.sh` whenever `paper/code/`
-or the data change (`data.yml`). From clean, most of the time goes on the kernel computations: `CompFull` (the 18
+or the data change (`data.yml`).
+
+`tools/comparator.sh` runs leanprover's [comparator](https://github.com/leanprover/comparator), a tool built to judge
+whether proofs prove exactly the statements of a trusted file. It states each main theorem's claim, read from the pins
+at the end of `Axioms.lean`, with `sorry` in a challenge file that imports only `Statement.lean` (in a temporary copy
+of `lean/`, so that no `sorry` enters the sources); comparator then checks that each theorem of `SpectreKnot` has
+exactly that statement, uses only Lean's standard axioms, and is accepted by the kernel. A negative control: with one
+claim swapped for another in the challenge, it stops ("theorem statement do not match"). CI runs it in the public
+repository. comparator builds in landrun, a sandbox meant for proofs from an untrusted source; where landrun is not
+installed, the script uses comparator's development shim, which builds unsandboxed.
+
+From clean, most of the time goes on the kernel computations: `CompFull` (the 18
 compositions of Computation 7.3, about 2.5 minutes), `Tests` (about 1.5 minutes), `SigCheck` and `SkeletonWalks` (about
 30 s each), then the level-1 checks (`PatchSig`, a few seconds) and the junction map (`StepMap`, a few seconds).
 
@@ -181,7 +198,7 @@ the paper*. The proof map's build fails if a row does not say.
 | Comp 7.3 | `Compose.compositions_level1`, `Compose.compositions_level1_signature`, `Compose.sig_base` | kernel computation + proof | The 18 compositions C_T(ℓ₁, d₁, ±1), built from Tables 1–4 and ℓ₁, d₁, glued port by port (Lemma 4.2). For each, the checker `Comp.check` returns `true`, and `Comp.check_sound` turns that into statements: the walk from every port ends on the rim, every parent rim vertex but the Γ child's corners is a hook, and the corners are adjacent and carry the crossover. `sig_base` states the same as `Gluing.Sig` (each parent rim vertex found by turning about a child's vertex, `Gluing.Rot`), the form the induction carries. | same: and the checker's `true` is proved to mean the signature (`Comp.check_sound`) |
 | Prop 7.4 | `Compose.parity_lemma`, `Compose.parity_lemma_adj` | proof + kernel computation | For every m ≥ 1, every kind and both signs: C_T(ℓ_m, d_m, ω) is well formed and has the signature (`Gluing.Sig`): no strand closes up; every parent rim vertex is a hook except the Γ child's corners A and B; A and B lie on the parent's rim and carry the crossover (`parity_lemma`), and are adjacent, B after A in the children's sense if ω, before it otherwise (`parity_lemma_adj`). | same: for every m ≥ 1, every kind and both signs |
 | Comp 7.5 | `Statement.good_one` | kernel computation | The nine level-1 supertiles (from `exact.py`) have the signature, with A and B where the induction expects them. | same: on the level-1 supertiles computed by `exact.py`, which are input data |
-| §7.1 (a supertile is its composition), with Lemma 4.2 | `Statement.Kids.follow_of_reach`, `Statement.Kids.noClosed`, `Statement.glue_rim` | proof | In `compose T child`, if the children have the signature with the corners and side lengths of `Comp.ofLens`: across a child's rim edge, `compose` glues exactly what `Comp.mate` says; every walk of the composition is a strand of the parent; and the parent has no closed strand when the composition has none. | other form: at tile level, for the supertiles that `compose` builds; that actual supertiles are built so is (M1) |
+| §7.1 (a supertile is its composition), with Lemma 4.2 | `Statement.Kids.follow_of_reach`, `Statement.Kids.noClosed`, `Statement.glue_rim`, `Statement.compose_no_default` | proof | In `compose T child`, if the children have the signature with the corners and side lengths of `Comp.ofLens`: across a child's rim edge, `compose` glues exactly what `Comp.mate` says; every walk of the composition is a strand of the parent; and the parent has no closed strand when the composition has none. So, at every level, `compose` never falls back on a default: an unglued edge of a child is found at its one place on the child's rim, and sides that Table 2 glues have equal lengths (`compose_no_default`). | other form: at tile level, for the supertiles that `compose` builds; that actual supertiles are built so is (M1) |
 | Prop 2.4 for rims | `Statement.rim_edgeAt`, `Statement.own_rot`, `Statement.parent_vtx` | proof + table check | The parent's rim, read from Table 3, is the rim of the glued children: its positions are the children's unglued edges, each once; consecutive positions meet at a parent rim vertex (turning about it by Table 2: `rimTablesOk`); its six vertices are where the parent's side lengths put them. | part: only that Table 3 lists the rim of the glued children; Prop 2.4 itself is (M1) |
 | Thm 7.6 | `Statement.good`, `Statement.Kids.parent_sig`, `Statement.theoremA` | proof + kernel computation | Every supertile `super m K` of level m ≥ 1 has the signature at tile level (`Patch.HasSig`): its rim list is exactly its unglued edges, each once; no strand closes; following the ribbon from each rim port leads to the other port at the same rim vertex, except at the corners A and B (vertex 0, or for Σ the point d_m along side 5, with B next to A), which cross over (`corners_nonSigma`, `corners_sigma`). Hence `TheoremA`: no supertile of any level or kind contains a closed strand. | other form: for the supertiles built from the tables (`super m K`, m ≥ 1); that actual supertiles are glued so is (M1) |
 | **Theorem A** (the Daedalus Theorem) | `Statement.chainModel`, `Statement.theoremA_strand`, `Statement.nestCovers` | proof | For any chain of supertiles, each a child of the next: its union, with its tiles numbered so that every block keeps its own numbering, is a tiling containing every block (`ChainModel`; a `Tiling` that contains every block exists, its gluing chosen with `Classical.choice`). If the chain covers (every edge is eventually glued), every such tiling glues every edge, and every strand of the union is a two-way infinite path (`TheoremA_strand`): a closed strand would visit finitely many tiles, whose edges are all glued in one block (`all_glued_at`), and that block has no closed strand. The nest, as a chain, covers (`NestCovers`, from `no_boundary`), so the theorem applies to at least one chain. | other form: for the union of a chain of supertiles that covers (every edge eventually glued); that a tiling whose hierarchy covers the plane is such a union is (M2) |
@@ -217,6 +234,7 @@ they do not use is kept on purpose:
 | `Zigzag.zigzag`, `Gluing.prop_5_4_a` (with `smooth_corner`), `Gluing.fullReach_unique`, `sideLen_parity`, `Compose.parity_lemma_adj` (with `sig_adj`, `ofLens_B'`), `Compose.compositions_level1_signature` | Results of the paper, formalised as stated there; the main proofs use other forms of them (`walk_core`, `letterLen_parity`, `parity_lemma`, `compositions_level1`). |
 | `Skeletons.negative_control`, `Compose.negative_control` (with `spreadCorners`), `Statement.loopPatch_closed`, `Statement.rim_not_surrounded` | Negative controls: the checks and the definitions are not vacuous. |
 | `Compose.allKinds`, `Gluing.redWalk`, `Gluing.redWalk_sound` | Used by the tests. |
+| `Statement.compose_no_default` | Says outright that `compose` never uses its defaults; the main proofs use `glue_rim`, which implies it. |
 
 The tool has one blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace in the proofs that use it. It lists
 `iter_zero`, which `iter_add` uses that way.
@@ -360,14 +378,14 @@ There are also 490 generated lines. By stage, in today's files:
 - Stage 3, the lengthening: `Subdivide` 949 (cutting an edge), `Move` 709 (lengthening is cutting), `Parity` 574
   (the induction), `Signature` 298, `SigCheck` 208, `Lens` 183.
 - Stage 4, Theorem A for supertiles: `ParentRim` 515 (Table 3 as a rim), `ParentSig` 484 (the parent's signature),
-  `Bridge` 437 (Lemma 4.2), `ProofA` 379 (the induction and the corners), `ComposeTiles` 277, `PatchSig` 221 (the
+  `Bridge` 437 (Lemma 4.2), `ProofA` 416 (the induction and the corners), `ComposeTiles` 277, `PatchSig` 221 (the
   tile-level signature, the level-1 check), `Reverse` 178.
 - Stage 5, Theorem B: `StepMap` 841 (the junction map and its induction), `ProofStrand` 775 (the nest tiling and
   Lemma 3.4), `ProofB` 541 (the chain of sides, no boundary, the theorems), `NestStep` 273 (one level up at tile
   level), `NewWalk` 227, `Linked` 218 (symmetry).
 - Stage 6, Theorem A for chains: `ProofChain` 738 (with the nest as a chain that covers).
 - Stage 7, the exact counts and the Grandparent Lemma: `ProofExact` 420, `Turn` 525, `ProofGrand` 438.
-- The statement file 398; tests 236; `Axioms.lean` 109.
+- The statement file 398; tests 275; `Axioms.lean` 110.
 
 ## Assessment
 

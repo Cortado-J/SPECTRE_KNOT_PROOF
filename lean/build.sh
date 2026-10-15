@@ -11,7 +11,7 @@
 #
 #   ./build.sh            build everything (needs elan and the toolchain in lean-toolchain)
 #   ./build.sh --data     first regenerate the data files from paper/code (needs python3 and node)
-#   ./build.sh --slow     also run the slower tests (TestsSlow.lean, about 2 minutes)
+#   ./build.sh --slow     also run the slower tests (TestsSlow.lean, about 6 minutes)
 set -euo pipefail
 cd "$(dirname "$0")"
 export PATH="$HOME/.elan/bin:$PATH"

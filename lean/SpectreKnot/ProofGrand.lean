@@ -93,7 +93,7 @@ theorem tstep_sound (len_pos : ∀ c j, 1 ≤ L c j)
     c' < nk T ∧ j' < 6 ∧ bstep (Comp.ofLens T L d ω).toGluing o (c, pos (L c) j) = some (c', pos (L c') j') := by
   cases o
   · -- clockwise: across the first edge of side `j`, to the end of the side across
-    simp only [tstep, Bool.false_eq_true, if_false] at stepped
+    simp only [tstep, Bool.false_eq_true, ite_false] at stepped
     cases adj_eq : adjAt T c j with
     | none => rw [adj_eq] at stepped; contradiction
     | some e =>
@@ -105,10 +105,10 @@ theorem tstep_sound (len_pos : ∀ c j, 1 ≤ L c j)
       -- the first edge of side `j` is glued to the last edge of the side across
       have mate_eq := gmate (d := d) (ω := ω) len_pos c_lt j_lt (len_pos c j) adj_eq
       rw [Nat.add_zero, Nat.sub_zero] at mate_eq
-      simp only [bstep, Bool.false_eq_true, if_false, mate_eq, Option.map_some, ofLens_E e_lt,
+      simp only [bstep, Bool.false_eq_true, ite_false, mate_eq, Option.map_some, ofLens_E e_lt,
         nxt_last (len_pos e.1) e_side_lt]
   · -- counter-clockwise: across the last edge of side `j - 1`, to the start of the side across
-    simp only [tstep, if_true] at stepped
+    simp only [tstep, ite_true] at stepped
     -- the side before vertex `j`
     have prev_lt : (j + 5) % 6 < 6 := Nat.mod_lt _ (by omega)
     obtain ⟨c'_lt, j'_lt, _, _⟩ := adj_valid c_lt prev_lt stepped
@@ -124,17 +124,17 @@ theorem tstep_sound (len_pos : ∀ c j, 1 ≤ L c j)
         have last : pos (L c) 6 = pos (L c) 5 + L c 5 := pos_succ (L c) 5
         -- side 5 has an edge
         have len5' := len_pos c 5
-        simp only [prv, if_true]; omega
+        simp only [prv, ite_true]; omega
       · -- vertex `j ≥ 1`: the edge before it is the last edge of side `j - 1`
         obtain ⟨j₀, rfl⟩ : ∃ j₀, j = j₀ + 1 := ⟨j - 1, by omega⟩
         rw [show (j₀ + 1 + 5) % 6 = j₀ by omega] at prev_len ⊢
         -- side `j₀` ends at vertex `j₀ + 1`
         have side_end := pos_succ (L c) j₀
-        simp only [prv]; rw [if_neg (by omega)]; omega
+        simp only [prv]; rw [ite_eq_right (by omega)]; omega
     -- which is glued to the first edge of the side across
     have mate_eq := gmate (d := d) (ω := ω) len_pos c_lt prev_lt (r := L c ((j + 5) % 6) - 1) (by omega) stepped
     rw [pair c c_lt _ prev_lt _ _ stepped] at mate_eq
-    simp only [bstep, if_true, ofLens_E c_lt, before, mate_eq, Option.some.injEq, Prod.mk.injEq, true_and]
+    simp only [bstep, ite_true, ofLens_E c_lt, before, mate_eq, Option.some.injEq, Prod.mk.injEq, true_and]
     omega
 
 /-- Steps by Table 2 are steps of the gluing, at the children's vertices. -/
@@ -179,26 +179,26 @@ theorem side_cycle (len_pos : ∀ c j, 1 ≤ L c j)
     have second := gmate (d := d) (ω := ω) len_pos c'_lt j'_lt (r := L c j - r) (by omega) back
     -- the vertex reached
     have next1 : nxt (pos (L c') 6) (pos (L c') j' + L c' j' - 1 - r) = pos (L c') j' + (L c j - r) := by
-      unfold nxt; rw [if_neg (by omega)]; omega
+      unfold nxt; rw [ite_eq_right (by omega)]; omega
     -- and the vertex reached back
     have next2 : nxt (pos (L c) 6) (pos (L c) j + L c j - 1 - (L c j - r)) = pos (L c) j + r := by
-      unfold nxt; rw [if_neg (by omega)]; omega
-    simp only [bsteps, bstep, Bool.false_eq_true, if_false, first, Option.map_some, Option.bind_some,
+      unfold nxt; rw [ite_eq_right (by omega)]; omega
+    simp only [bsteps, bstep, Bool.false_eq_true, ite_false, first, Option.map_some, Option.bind_some,
       ofLens_E c'_lt, next1, second, ofLens_E c_lt, next2]
   · -- counter-clockwise: across the edge arriving at the vertex, and back across the edge arriving at the next
     -- the edge before the vertex
     have prev0 : prv (pos (L c) 6) (pos (L c) j + r) = pos (L c) j + (r - 1) := by
-      unfold prv; rw [if_neg (by omega)]; omega
+      unfold prv; rw [ite_eq_right (by omega)]; omega
     -- is glued to the side across, `r - 1` edges from its end
     have first := gmate (d := d) (ω := ω) len_pos c_lt j_lt (r := r - 1) (by omega) adj_eq
     -- the edge before the vertex reached
     have prev1 : prv (pos (L c') 6) (pos (L c') j' + L c' j' - 1 - (r - 1)) = pos (L c') j' + (L c j - r - 1) := by
-      unfold prv; rw [if_neg (by omega)]; omega
+      unfold prv; rw [ite_eq_right (by omega)]; omega
     -- is glued back
     have second := gmate (d := d) (ω := ω) len_pos c'_lt j'_lt (r := L c j - r - 1) (by omega) back
     -- to the edge before the start vertex
     have back_eq : pos (L c) j + L c j - 1 - (L c j - r - 1) = pos (L c) j + r := by omega
-    simp only [bsteps, bstep, if_true, ofLens_E c_lt, prev0, first, Option.bind_some, ofLens_E c'_lt, prev1, second,
+    simp only [bsteps, bstep, ite_true, ofLens_E c_lt, prev0, first, Option.bind_some, ofLens_E c'_lt, prev1, second,
       back_eq]
 
 end Lens

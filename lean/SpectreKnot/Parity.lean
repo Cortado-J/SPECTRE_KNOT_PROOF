@@ -153,7 +153,7 @@ theorem ofLens_congr {T : Kind} {L L' : Nat → Nat → Nat} {d d' : Nat} {ω : 
   rw [same_sides]
   by_cases is_sigma : kidAt T c = .Sigma
   · rw [same_d c c_lt is_sigma]
-  · simp only [mkKidL, is_sigma, if_false]
+  · simp only [mkKidL, is_sigma, ite_false]
 
 /-! ### Undoing a move -/
 
@@ -172,13 +172,13 @@ theorem hit_partner_mp (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.j₀ < 6) {c j c
   · have partner := adj₀ (T := T) (μ := μ)
     rw [glued] at partner
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued] at partner
+    · rw [ite_eq_left side_glued] at partner
       simp only [Option.some.injEq, Prod.mk.injEq] at partner
       exact Or.inr ⟨side_glued, partner.1, partner.2⟩
-    · rw [if_neg side_glued] at partner; contradiction
+    · rw [ite_eq_right side_glued] at partner; contradiction
   -- (c, j) = (c₁, j₁): Table 2 glues side `j₀` of `c₀` to it
   · have sib_glued := adj₀ (T := T) (μ := μ)
-    rw [if_pos side_glued] at sib_glued
+    rw [ite_eq_left side_glued] at sib_glued
     -- so the sibling's side is glued back to side `j₀` of `c₀`
     have glued_back := (adj_valid c₀_lt j₀_lt sib_glued).2.2.2
     rw [glued] at glued_back
@@ -199,7 +199,7 @@ theorem hit_big (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.j₀ 
   · exact long₀
   -- the sibling's side: Table 2 glues side `j₀` of `c₀` to it
   · have glued := adj₀ (T := T) (μ := μ)
-    rw [if_pos side_glued] at glued
+    rw [ite_eq_left side_glued] at glued
     rw [adm.pair _ c₀_lt _ j₀_lt _ _ glued]
     show letterLen 1 (letterOf (kidAt T (μ.c₁ T)) (μ.j₁ T)) + 2 ≤ _
     rw [pair_letter c₀_lt j₀_lt glued]
@@ -213,8 +213,8 @@ theorem lens_shorten (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.
   by_cases hit : μ.Hit T c j
   -- a side lengthened has at least two edges to spare
   · have := hit_big adm c₀_lt j₀_lt long₀ hit
-    rw [if_pos hit]; omega
-  · rw [if_neg hit]; omega
+    rw [ite_eq_left hit]; omega
+  · rw [ite_eq_right hit]; omega
 
 /-- Undoing a move from admissible lengths gives admissible lengths, with any Σ offset `d₀` that suits them. -/
 theorem adm_shorten (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.j₀ < 6)
@@ -228,14 +228,15 @@ theorem adm_shorten (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.j
     by_cases hit : μ.Hit T c j
     -- a side lengthened is at least two edges longer than at level 1
     · have := hit_big adm c₀_lt j₀_lt long₀ hit
-      rw [if_pos hit]; omega
-    · rw [if_neg hit]; omega
+      rw [ite_eq_left hit]; omega
+    · rw [ite_eq_right hit]; omega
   pair c c_lt j j_lt c' j' glued := by
     simp only [shorten]
     rw [adm.pair c c_lt j j_lt c' j' glued]
     by_cases hit : μ.Hit T c j
-    · rw [if_pos hit, if_pos ((hit_partner c₀_lt j₀_lt c_lt j_lt glued).mp hit)]
-    · rw [if_neg hit, if_neg (fun partner_hit => hit ((hit_partner c₀_lt j₀_lt c_lt j_lt glued).mpr partner_hit))]
+    · rw [ite_eq_left hit, ite_eq_left ((hit_partner c₀_lt j₀_lt c_lt j_lt glued).mp hit)]
+    · rw [ite_eq_right hit,
+        ite_eq_right (fun partner_hit => hit ((hit_partner c₀_lt j₀_lt c_lt j_lt glued).mpr partner_hit))]
   d_ge := d₀_ge
   d_par := d₀_par
   sig := sig_room
@@ -249,7 +250,7 @@ theorem excess_shorten (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : �
     simp only [shorten]; omega
   refine tot_lt (fun c _ => tot_le (fun j _ => no_growth c j)) c₀_lt (tot_lt (fun j _ => no_growth _ j) j₀_lt ?_)
   simp only [shorten]
-  rw [if_pos (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
+  rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
   omega
 
 /-- A move keeps the signature. -/
@@ -280,7 +281,7 @@ theorem back_step {ω : Bool} (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀
       c₀ := c₀_lt
       j₀ := j₀_lt
       r₀ := r₀_ge
-      r₀' := by simp only [shorten]; rw [if_pos (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
+      r₀' := by simp only [shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
       sig := fun c c_lt is_sigma => by
         -- the shorter side 5 has room for the corner
         have := adm₀.sig c c_lt is_sigma
@@ -348,7 +349,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
         intro μ c₀_sig j₀_5 side_glued sib_sigma
         -- Table 2 glues side 5 of the Σ child to the sibling's side
         have glued := Move.adj₀ (T := T) (μ := μ)
-        rw [if_pos side_glued] at glued
+        rw [ite_eq_left side_glued] at glued
         -- so the sibling is a child, different from the Σ child
         have valid := adj_valid (c₀_sig ▸ sig_lt) (by omega) glued
         exact valid.2.2.1 (sigma_unique T _ valid.1 _ (c₀_sig ▸ sig_lt) sib_sigma (c₀_sig ▸ sig_is_sigma))
@@ -381,7 +382,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           -- undoing the move shortens side 5 of the Σ child by 2
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
             simp only [Move.shorten]
-            rw [if_pos (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
+            rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
           -- the shorter lengths, with `d - 2`, are admissible
           have adm₀ : Adm T (μ.shorten T L) (d - 2) :=
             Move.adm_shorten adm c₀_lt j₀_lt long₀ (by omega) (by omega) (fun c' c'_lt is_sigma' => by
@@ -392,7 +393,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           -- the Σ offset after the move: `d - 2 + 2`
           have d_after := Move.d'_c₀ (L := μ.shorten T L) (d := d - 2) (by rw [c₀_sig]; exact sig_is_sigma) j₀_5
             (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sig μ c₀_sig j₀_5 side_glued sib_sigma)
-          rw [if_pos (by omega)] at d_after; omega
+          rw [ite_eq_left (by omega)] at d_after; omega
         -- after the corner, where `d = d₁`
         · have d_eq : d = dOff 1 := by omega
           obtain ⟨μ, c₀_sig, j₀_5, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = d + 1 :=
@@ -406,7 +407,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           -- undoing the move shortens side 5 of the Σ child by 2
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
             simp only [Move.shorten]
-            rw [if_pos (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
+            rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
           -- the shorter lengths, with the same `d`, are admissible
           have adm₀ : Adm T (μ.shorten T L) d :=
             Move.adm_shorten adm c₀_lt j₀_lt long₀ d_ge d_par (fun c' c'_lt is_sigma' => by
@@ -417,7 +418,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           -- the Σ offset after the move: still `d`
           have d_after := Move.d'_c₀ (L := μ.shorten T L) (d := d) (by rw [c₀_sig]; exact sig_is_sigma) j₀_5
             (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sig μ c₀_sig j₀_5 side_glued sib_sigma)
-          rw [if_neg (by omega)] at d_after; omega
+          rw [ite_eq_right (by omega)] at d_after; omega
       · -- a move elsewhere
         obtain ⟨μ, c₀_eq, j₀_eq, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 1 := ⟨⟨c, j, 1⟩, rfl, rfl, rfl⟩
         subst c₀_eq j₀_eq
@@ -429,7 +430,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           rintro ⟨side_glued, sib_sigma, sib_5⟩
           -- Table 2 glues the side cut to the sibling's side
           have glued := Move.adj₀ (T := T) (μ := μ)
-          rw [if_pos side_glued] at glued
+          rw [ite_eq_left side_glued] at glued
           -- the sibling is a child
           have valid := adj_valid c_lt j_lt glued
           rw [sigma_unique T _ valid.1 _ sig_lt sib_sigma sig_is_sigma, sib_5] at glued
@@ -441,7 +442,7 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           · exact not_sigma₁ ⟨side_glued, is_c₁ ▸ sig_is_sigma, is_j₁.symm⟩
         -- and undoing the move leaves it as it is
         have unshortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 := by
-          simp only [Move.shorten]; rw [if_neg not_hit_5]; omega
+          simp only [Move.shorten]; rw [ite_eq_right not_hit_5]; omega
         -- the shorter lengths, with the same `d`, are admissible
         have adm₀ : Adm T (μ.shorten T L) d :=
           Move.adm_shorten adm c_lt j_lt long adm.d_ge adm.d_par (fun c' c'_lt is_sigma' => by
@@ -557,10 +558,10 @@ theorem sig_adj {T : Kind} {L : Nat → Nat → Nat} {d : Nat} {ω : Bool} {G : 
       else prv (G.E (nk T - 1)) (G.A (nk T - 1)) := by subst G_eq; exact ofLens_B' g_lt
   cases ω with
   | true =>
-    rw [if_pos rfl] at B_eq ⊢
+    rw [ite_eq_left rfl] at B_eq ⊢
     rw [← B_eq]; exact .stop has_sig.rimB
   | false =>
-    rw [if_neg (by decide)] at B_eq ⊢
+    rw [ite_eq_right (by decide)] at B_eq ⊢
     rw [B_eq, nxt_prv (has_sig.wf.A_lt _ has_sig.g_lt)]; exact .stop has_sig.rimA
 
 /-- **The parity lemma, adjacency**: `A` and `B` are adjacent parent rim vertices, `B` right after `A` along the

@@ -214,4 +214,43 @@ def nestSurrounded (b k : Nat) : Bool :=
 #guard nestSurrounded 1 2 && nestSurrounded 2 2
 #guard !nestSurrounded 1 1 && !nestSurrounded 2 1
 
+/-- Another decoration, given as a pairing of the 28 ports of a tile: port `2i` is R(v_i), and port `2i - 1` (round
+28) is L(v_i). -/
+def designEnd (pairing : Array Nat) : Port → Port
+  | (t, i, s) =>
+    let k := pairing[if s then 2 * i else (2 * i + 27) % 28]!
+    if k % 2 = 0 then (t, k / 2, true) else (t, (k + 1) / 2 % 14, false)
+
+/-- Following a ribbon of `M` with the decoration `e`, as `mfollow` does with `pieceEnd`. -/
+def dfollow (M : MPatch) (e : Port → Port) : Nat → Port → Option Port
+  | 0, _ => none
+  | f + 1, p => match M.across (e p) with
+    | none => some (e p)
+    | some q => dfollow M e f q
+
+/-- The ports of the tiles `off … off + n - 1` of `M` whose ribbon, with the decoration `e`, never reaches the rim: those
+on closed strands (an open strand reaches the rim within `28 * M.tiles` steps). -/
+def closedPorts (M : MPatch) (e : Port → Port) (off n : Nat) : Nat :=
+  ((List.range n).flatMap fun t => (List.range 14).flatMap fun i => [(t + off, i, true), (t + off, i, false)]).countP
+    fun p => (dfollow M e (28 * M.tiles + 1) p).isNone
+
+/-- Three decorations, given that way: the Spectre Knot's; the Spectre Knot's with its crossing moved from corner 0 to
+corner 5; and no crossing, a hook at every corner. -/
+def knotDesign : Array Nat :=
+  #[2, 27, 0, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 18, 17, 20, 19, 22, 21, 24, 23, 26, 25, 1]
+def crossAt5 : Array Nat :=
+  #[27, 2, 1, 4, 3, 6, 5, 8, 7, 11, 12, 9, 10, 14, 13, 16, 15, 18, 17, 20, 19, 22, 21, 24, 23, 26, 25, 0]
+def noCrossing : Array Nat :=
+  #[27, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 18, 17, 20, 19, 22, 21, 24, 23, 26, 25, 0]
+
+-- Negative control for Theorem A on real supertiles: the Spectre Knot's pairing, read this way, is `pieceEnd`; with it
+-- no port of N_1 inside N_3 lies on a closed strand. With the crossing moved to corner 5, the same gluing and the same
+-- rule for following a ribbon find 226 of N_1's 252 ports on closed strands of N_3; with no crossing, 28 ports of the
+-- level-1 Δ already lie on closed strands. So "no closed strand" comes from the design, not from the definitions or
+-- the gluing.
+#guard (List.range 14).all fun i => [true, false].all fun s => designEnd knotDesign (5, i, s) == pieceEnd (5, i, s)
+#guard closedPorts ((mlevels 3)[kindIdx .Delta]!) (designEnd knotDesign) (nestOff 1 2) 9 == 0
+#guard closedPorts ((mlevels 3)[kindIdx .Delta]!) (designEnd crossAt5) (nestOff 1 2) 9 == 226
+#guard closedPorts ((mlevels 1)[kindIdx .Delta]!) (designEnd noCrossing) 0 9 == 28
+
 end StatementTests

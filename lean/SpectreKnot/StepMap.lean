@@ -66,28 +66,30 @@ theorem tgt_side {ω : Bool} {f : Nat → Nat} {j u : Nat} (s : Bool) (hj : j < 
     ⟨mono 1 2 (by omega), mono 2 3 (by omega), mono 3 4 (by omega), mono 4 5 (by omega)⟩
   rcases (show j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 by omega) with rfl | rfl | rfl | rfl | rfl | rfl
   · have before_end : u + 2 ≤ pos f 1 := before_end -- side 0 ends where side 1 starts
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true] <;>
-      rw [if_neg (by omega), if_pos (by omega)] <;> simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true] <;>
+      rw [ite_eq_right (by omega), ite_eq_left (by omega)] <;> simp
   · have before_end : u + 2 ≤ pos f 2 := before_end -- side 1 ends where side 2 starts
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true]
-    · rw [if_neg (by omega), if_neg (by omega), if_pos (by omega)]; simp
-    · rw [if_neg (by omega), if_pos (by omega)]; simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true]
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_left (by omega)]; simp
+    · rw [ite_eq_right (by omega), ite_eq_left (by omega)]; simp
   · have before_end : u + 2 ≤ pos f 3 := before_end -- side 2 ends where side 3 starts
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true]
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]; simp
-    · rw [if_neg (by omega), if_neg (by omega), if_pos (by omega)]; simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true]
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_left (by omega)]; simp
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_left (by omega)]; simp
   · have before_end : u + 2 ≤ pos f 4 := before_end -- side 3 ends where side 4 starts
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true]
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]; simp
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]; simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true]
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega)]; simp
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_left (by omega)]; simp
   · have before_end : u + 2 ≤ pos f 5 := before_end -- side 4 ends where side 5 starts
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true]
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]; simp
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]; simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true]
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega)]; simp
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega),
+        ite_eq_left (by omega)]; simp
   · have before_end : u + 2 ≤ pos f 6 := before_end -- side 5 ends where the rim ends
-    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, if_false, if_true]
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]; simp
-    · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]; simp
+    cases ω <;> simp only [tgt, sideTgt, Bool.false_eq_true, ite_false, ite_true]
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega)]; simp
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega), ite_eq_right (by omega),
+        ite_eq_right (by omega)]; simp
 
 /-! ### The base case: the kernel's check at the level-1 lengths -/
 
@@ -192,11 +194,11 @@ theorem shpos {c v : Nat} (hc : c < nk T) (hv : v ≤ 6) :
       -- side `j₀` ends no later than side `v` starts
       have j₀_end_le := pos_mono (L μ.c₀) (show μ.j₀ + 1 ≤ v by omega)
       rw [pos_succ] at j₀_end_le
-      rw [if_pos after_j₀, ok.sh₀_gt (by omega)]
+      rw [ite_eq_left after_j₀, ok.sh₀_gt (by omega)]
     · -- side `v` starts before the cut:
       -- side `v` starts no later than side `j₀`
       have := pos_mono (L μ.c₀) (show v ≤ μ.j₀ by omega)
-      rw [if_neg after_j₀, ok.sh₀_le (by omega), Nat.add_zero]
+      rw [ite_eq_right after_j₀, ok.sh₀_le (by omega), Nat.add_zero]
   · by_cases on_c₁ : μ.two T = true ∧ c = μ.c₁ T
     · obtain ⟨shared, rfl⟩ := on_c₁
       -- the sibling's side `j₁` is as long as side `j₀`
@@ -209,11 +211,11 @@ theorem shpos {c v : Nat} (hc : c < nk T) (hv : v ≤ 6) :
         -- side `j₁` ends no later than side `v` starts
         have j₁_end_le := pos_mono (L (μ.c₁ T)) (show μ.j₁ T + 1 ≤ v by omega)
         rw [pos_succ] at j₁_end_le
-        rw [if_pos after_j₁, ok.sh₁_gt shared (by simp only [Move.r₁]; omega)]
+        rw [ite_eq_left after_j₁, ok.sh₁_gt shared (by simp only [Move.r₁]; omega)]
       · -- side `v` starts before the cut:
         -- side `v` starts no later than side `j₁`
         have := pos_mono (L (μ.c₁ T)) (show v ≤ μ.j₁ T by omega)
-        rw [if_neg after_j₁, ok.sh₁_le shared (by simp only [Move.r₁]; omega), Nat.add_zero]
+        rw [ite_eq_right after_j₁, ok.sh₁_le shared (by simp only [Move.r₁]; omega), Nat.add_zero]
     · rw [ok.sh_oth on_c₀ on_c₁, ok.pos_other on_c₀ on_c₁]
 
 /-- Vertex 1 stays put (the cut edge is never the first edge of a child). -/
@@ -223,7 +225,7 @@ theorem sh_one (c : Nat) : (μ.cut T L).sh c 1 = 1 := by
   -- nor its last
   have cut_before_end := ok.r₀'
   unfold Cut.sh
-  rw [if_neg (by simp only [Move.cut]; omega), if_neg (by simp only [Move.cut, Move.r₁]; omega)]
+  rw [ite_eq_right (by simp only [Move.cut]; omega), ite_eq_right (by simp only [Move.cut, Move.r₁]; omega)]
 
 /-- The last vertex of a child moves with the end of its rim. -/
 theorem sh_last {c : Nat} (hc : c < nk T) :
@@ -273,7 +275,7 @@ theorem tgt_lt {ω : Bool} {f : Nat → Nat} {u : Nat} {s : Bool} {q : Nat} (tgt
     1 ≤ q ∧ q < 22 := by
   unfold tgt at tgt_eq
   revert tgt_eq
-  cases ω <;> cases s <;> simp only [Bool.false_eq_true, if_false, if_true] <;> (repeat' split) <;> intro tgt_eq <;>
+  cases ω <;> cases s <;> simp only [Bool.false_eq_true, ite_false, ite_true] <;> (repeat' split) <;> intro tgt_eq <;>
     simp only [Option.some.injEq, reduceCtorEq] at tgt_eq <;> omega
 
 /-- Each of the Δ supertile's 22 rim pieces is a side of an actual child. -/
@@ -288,8 +290,8 @@ theorem corner_one {L : Nat → Nat → Nat} {d : Nat} {ω : Bool} {x : Nat} (tw
   -- child 1 is an actual child
   have one_lt : 1 < nk .Delta := by decide
   simp only [Gluing.corner, Bool.or_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
-  rw [ofLens_B one_lt, ofLens_A one_lt, if_neg (by decide)]
-  cases ω <;> simp only [if_true, if_false, Bool.false_eq_true, nxt, prv] <;> constructor <;> (try split) <;> omega
+  rw [ofLens_B one_lt, ofLens_A one_lt, ite_eq_right (by decide)]
+  cases ω <;> simp only [ite_true, ite_false, Bool.false_eq_true, nxt, prv] <;> constructor <;> (try split) <;> omega
 
 /-- The map, read through a renumbering `φ` of child 1's rim that keeps the order, the first two vertices, the last
 vertex and the six corners (from side lengths `f` to `f'`). -/
@@ -418,8 +420,8 @@ theorem StepOK.move (clear₀ : μ.c₀ = 1 → 2 ≤ μ.r₀ ∧ μ.r₀ + 3 �
     -- and ends two edges later
     have end_j₀ := ok.pos_c₀ (μ.j₀ + 1)
     rw [μ_c₀] at start_j₀ end_j₀
-    rw [if_neg (by omega)] at start_j₀
-    rw [if_pos (by omega)] at end_j₀
+    rw [ite_eq_right (by omega)] at start_j₀
+    rw [ite_eq_left (by omega)] at end_j₀
     -- side `j₀` has `L 1 j₀` edges
     have side_len := pos_succ (L 1) μ.j₀
     -- and lies within the rim
@@ -494,8 +496,8 @@ theorem StepOK.move (clear₀ : μ.c₀ = 1 → 2 ≤ μ.r₀ ∧ μ.r₀ + 3 �
       -- and ends two edges later
       have end_j₁ := ok.pos_c₁ shared (μ.j₁ .Delta + 1)
       rw [μ_c₁] at start_j₁ end_j₁ same_len
-      rw [if_neg (by omega)] at start_j₁
-      rw [if_pos (by omega)] at end_j₁
+      rw [ite_eq_right (by omega)] at start_j₁
+      rw [ite_eq_left (by omega)] at end_j₁
       -- side `j₁` has `L 1 j₁` edges
       have side_len := pos_succ (L 1) (μ.j₁ .Delta)
       -- and lies within the rim
@@ -574,7 +576,7 @@ theorem mkOK {T : Kind} {μ : Move} {L : Nat → Nat → Nat} {ω : Bool} (hc₀
     c₀ := hc₀
     j₀ := hj₀
     r₀ := r₀_pos
-    r₀' := by simp only [shorten]; rw [if_pos (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
+    r₀' := by simp only [shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
     sig := fun c hc is_sigma => by
       -- room for the Σ corner on side 5, as at level 1
       have := adm₀.sig c hc is_sigma
@@ -654,7 +656,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           omega) adm₀
         -- side `j₀` of `c₀` is two edges shorter before the move
         have shortened : μ.shorten T L μ.c₀ μ.j₀ = L μ.c₀ μ.j₀ - 2 := by
-          simp only [Move.shorten]; rw [if_pos (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
+          simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
         -- the property survives the move
         have after := step μ _ _ move_ok (by
           rw [shortened]
@@ -667,7 +669,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
         intro μ on_sigma side_five shared sib_sigma
         -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
         have sib := Move.adj₀ (T := T) (μ := μ)
-        rw [if_pos shared] at sib
+        rw [ite_eq_left shared] at sib
         -- the sibling is an actual child, other than `c₀`
         have sib_valid := adj_valid (on_sigma ▸ sig_lt) (by omega) sib
         exact sib_valid.2.2.1 (sigma_unique T _ sib_valid.1 _ (on_sigma ▸ sig_lt) sib_sigma (on_sigma ▸ sig_kind))
@@ -698,7 +700,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           have big' : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [μ_c₀, μ_j₀]; exact big
           -- before the move it is two edges shorter
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
-            simp only [Move.shorten]; rw [if_pos (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
+            simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
           -- the shortened lengths, with `d - 2`, are admissible
           have adm₀ : Adm T (μ.shorten T L) (d - 2) :=
             Move.adm_shorten adm hc₀ hj₀ big' (by omega) (by omega) (fun c' hc' is_sigma => by
@@ -709,7 +711,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           -- the move puts the Σ corner back at `d`
           have new_d := Move.d'_c₀ (L := μ.shorten T L) (d := d - 2) (by rw [μ_c₀]; exact sig_kind) μ_j₀
             (fun ⟨shared, is_sigma, _⟩ => sib_not_sig μ μ_c₀ μ_j₀ shared is_sigma)
-          rw [if_pos (by omega)] at new_d; omega
+          rw [ite_eq_left (by omega)] at new_d; omega
         · -- `d = d₁`: cut the edge just after the Σ corner, which stays put
           have is_d₁ : d = dOff 1 := by omega -- `d` has the parity of `d₁`
           obtain ⟨μ, μ_c₀, μ_j₀, μ_r₀⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = d + 1 :=
@@ -720,7 +722,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           have big' : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [μ_c₀, μ_j₀]; exact big
           -- before the move it is two edges shorter
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
-            simp only [Move.shorten]; rw [if_pos (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
+            simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
           -- the shortened lengths, with the same `d`, are admissible
           have adm₀ : Adm T (μ.shorten T L) d :=
             Move.adm_shorten adm hc₀ hj₀ big' d_ge d_par (fun c' hc' is_sigma => by
@@ -731,7 +733,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           -- the move leaves the Σ corner at `d`
           have new_d := Move.d'_c₀ (L := μ.shorten T L) (d := d) (by rw [μ_c₀]; exact sig_kind) μ_j₀
             (fun ⟨shared, is_sigma, _⟩ => sib_not_sig μ μ_c₀ μ_j₀ shared is_sigma)
-          rw [if_neg (by omega)] at new_d; omega
+          rw [ite_eq_right (by omega)] at new_d; omega
       · -- a move elsewhere, cutting the third edge of the side
         obtain ⟨μ, μ_c₀, μ_j₀, μ_r₀⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 2 := ⟨⟨c, j, 2⟩, rfl, rfl, rfl⟩
         subst μ_c₀ μ_j₀
@@ -745,7 +747,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           rintro ⟨shared, is_sigma, side_five⟩
           -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
           have sib := Move.adj₀ (T := T) (μ := μ)
-          rw [if_pos shared] at sib
+          rw [ite_eq_left shared] at sib
           -- the sibling is an actual child
           have sib_valid := adj_valid hc hj sib
           rw [sigma_unique T _ sib_valid.1 _ sig_lt is_sigma sig_kind, side_five] at sib
@@ -757,7 +759,7 @@ theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat →
           · exact not_sig_five₁ ⟨shared, is_c₁ ▸ sig_kind, is_j₁.symm⟩
         -- the Σ child's side 5 is as long before the move as after
         have unchanged : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 := by
-          simp only [Move.shorten]; rw [if_neg sig_not_hit]; omega
+          simp only [Move.shorten]; rw [ite_eq_right sig_not_hit]; omega
         -- the shortened lengths, with the same `d`, are admissible
         have adm₀ : Adm T (μ.shorten T L) d :=
           Move.adm_shorten adm hc hj longer adm.d_ge adm.d_par (fun c' hc' is_sigma => by

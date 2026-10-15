@@ -29,7 +29,7 @@ theorem pcs_get {q : Nat} (hq : q < 22) : (pcs .Delta)[q]? = some (pieceD q) := 
 theorem jpos_succ (L : Nat → Nat → Nat) {q : Nat} (hq : q < 22) :
     jpos L (q + 1) = jpos L q + L (pieceD q).1 (pieceD q).2 := by
   simp only [jpos]
-  rw [List.take_succ, totL_append, pcs_get hq]
+  rw [List.take_add_one, totL_append, pcs_get hq]
   simp [totL]
 
 /-- With every side at least 5 edges long, the piece `k` places after piece `q` starts at least `5 k` edges later. -/
@@ -72,10 +72,10 @@ theorem ownGo_jpos (L : Nat → Nat → Nat) {q i : Nat} (hq : q < 22) (hi : i <
     rw [List.getElem?_eq_getElem (by rw [pcs_len]; exact hq)] at get_q
     simpa using get_q
   conv => lhs; rw [← List.take_append_drop q (pcs .Delta)]
-  rw [ownGo_append, drop_q, show totL L ((pcs .Delta).take q) = jpos L q from rfl, if_neg (by omega),
+  rw [ownGo_append, drop_q, show totL L ((pcs .Delta).take q) = jpos L q from rfl, ite_eq_right (by omega),
     Nat.add_sub_cancel_left]
   simp only [ownGo]
-  rw [if_pos hi]
+  rw [ite_eq_left hi]
 
 /-- Where side `J` of the Δ-supertile starts, as a piece number. -/
 def sJ (J : Nat) : Nat := [0, 5, 7, 11, 14, 19, 22].getD J 0
@@ -151,8 +151,8 @@ theorem corners_N {m : Nat} (m_pos : 1 ≤ m) :
   simp only [bPos, A_zero]
   show (if ori m = true then nxt (pos (Lk m .Delta 1) 6) 0 else prv (pos (Lk m .Delta 1) 6) 0) = 1 ∨ _
   split
-  · left; simp only [nxt]; rw [if_neg (by omega)]
-  · right; simp only [prv, if_true]; rfl
+  · left; simp only [nxt]; rw [ite_eq_right (by omega)]
+  · right; simp only [prv, ite_true]; rfl
 
 /-- **A hook**: at a rim vertex of `N_m` other than the corners, the two ports lie on one strand. -/
 theorem hook {m : Nat} (m_pos : 1 ≤ m) {v : Nat} (two_le_v : 2 ≤ v) (v_le : v + 2 ≤ pos (Lk m .Delta 1) 6) :
@@ -169,7 +169,7 @@ theorem hook {m : Nat} (m_pos : 1 ≤ m) {v : Nat} (two_le_v : 2 ≤ v) (v_le : 
   -- which is `R(v)`, since `v` is not a corner
   have paired : btau (aPos m .Delta) (bPos m .Delta) (v, false) = (v, true) := by
     simp only [btau]
-    rw [if_neg (by omega), if_neg (by omega)]; rfl
+    rw [ite_eq_right (by omega), ite_eq_right (by omega)]; rfl
   rw [paired] at follows
   exact .of_follow follows
 
@@ -213,7 +213,7 @@ theorem gL_jpos {m : Nat} (m_pos : 1 ≤ m) {q : Nat} (q_pos : 1 ≤ q) (hq : q 
   -- the rim position just before piece `q` is the last edge of piece `q - 1`
   have before_start : prv (rimN .Delta (Lk m .Delta)) (jpos (Lk m .Delta) q) =
       jpos (Lk m .Delta) (q - 1) + (Lk m .Delta (pieceD (q - 1)).1 (pieceD (q - 1)).2 - 1) := by
-    simp only [prv]; rw [if_neg (by omega)]; omega
+    simp only [prv]; rw [ite_eq_right (by omega)]; omega
   -- that edge, as an edge of the child (the first edge of its side)
   have last_edge := ownGo_jpos (Lk m .Delta) (show q - 1 < 22 by omega)
     (show Lk m .Delta (pieceD (q - 1)).1 (pieceD (q - 1)).2 - 1 < _ by omega)

@@ -237,7 +237,7 @@ theorem rot_bsteps {G : Gluing} {x r : Nat × Nat} (turn : G.Rot x r) : ∃ n, b
   | @step c u c' k' r glued _ ih =>
     obtain ⟨n, rest⟩ := ih
     refine ⟨n + 1, ?_⟩
-    simp only [bsteps, bstep, Bool.false_eq_true, if_false, glued, Option.map_some, Option.bind_some]
+    simp only [bsteps, bstep, Bool.false_eq_true, ite_false, glued, Option.map_some, Option.bind_some]
     exact rest
 
 /-- Turning backwards about a vertex (`RotB`) is a number of steps, for children oriented counter-clockwise. -/
@@ -247,7 +247,7 @@ theorem rotB_bsteps {G : Gluing} {x r : Nat × Nat} (turn : G.RotB x r) : ∃ n,
   | @step c u c' k' r glued _ ih =>
     obtain ⟨n, rest⟩ := ih
     refine ⟨n + 1, ?_⟩
-    simp only [bsteps, bstep, if_true, glued, Option.bind_some]
+    simp only [bsteps, bstep, ite_true, glued, Option.bind_some]
     exact rest
 
 /-! ### Chains in a composition -/
@@ -303,7 +303,7 @@ theorem bstep_valid {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) {y : 
   -- and `u` a rim vertex of it
   have u_lt_E : u < (Comp.ofLens T L d ω).toGluing.E c := by rw [kids.E_eq c_lt]; exact u_lt
   cases o
-  · simp only [bstep, Bool.false_eq_true, if_false] at stepped
+  · simp only [bstep, Bool.false_eq_true, ite_false] at stepped
     cases mate_eq : (Comp.ofLens T L d ω).toGluing.mate c u with
     | none => rw [mate_eq] at stepped; contradiction
     | some e =>
@@ -314,7 +314,7 @@ theorem bstep_valid {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) {y : 
       -- `e.1` is a child
       have c'_lt' : e.1 < nk T := by rw [ofLens_n] at c'_lt; exact c'_lt
       exact ⟨c'_lt', by rw [← kids.E_eq c'_lt']; exact nxt_lt k'_lt⟩
-  · simp only [bstep, if_true] at stepped
+  · simp only [bstep, ite_true] at stepped
     obtain ⟨c'_lt, k'_lt, _⟩ := wf.mate_valid c _ y.1 y.2 c_lt_n (prv_lt u_lt_E) stepped
     -- `y.1` is a child
     have c'_lt' : y.1 < nk T := by rw [ofLens_n] at c'_lt; exact c'_lt
@@ -354,7 +354,7 @@ theorem turn_fC {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) :
     show (compose T child).glue (((child c).edgeAt u).1 + offC child c)
       (((((child c).edgeAt u).2 + 1) % 14 + 13) % 14) = _
     rw [mod14 i_lt, kids.glue_rimEdge c_lt u_lt]
-    simp only [bstep, Bool.false_eq_true, if_false]
+    simp only [bstep, Bool.false_eq_true, ite_false]
     cases mate_eq : (Comp.ofLens T L d ω).toGluing.mate c u with
     | none => rfl
     | some e =>
@@ -362,7 +362,7 @@ theorem turn_fC {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) :
         wf.mate_valid c u e.1 e.2 c_lt_n (by rw [kids.E_eq c_lt]; exact u_lt) mate_eq
       -- `e.1` is a child
       have c'_lt' : e.1 < nk T := by rw [ofLens_n] at c'_lt; exact c'_lt
-      simp only [Option.map_some, shiftC, Patch.sC, Patch.corner, Patch.bport, Bool.false_eq_true, if_false,
+      simp only [Option.map_some, shiftC, Patch.sC, Patch.corner, Patch.bport, Bool.false_eq_true, ite_false,
         kids.E_eq c'_lt', prv_nxt (show e.2 < (child e.1).E by rw [← kids.E_eq c'_lt']; exact k'_lt)]
   · -- counter-clockwise children: the chain ends beside the rim edge `u - 1`
     -- which is an actual edge
@@ -370,7 +370,7 @@ theorem turn_fC {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) :
     show (compose T child).glue (((child c).edgeAt (prv (child c).E u)).1 + offC child c)
       (((((child c).edgeAt (prv (child c).E u)).2 + 1) % 14 + 13) % 14) = _
     rw [mod14 i_lt, kids.glue_rimEdge c_lt (prv_lt u_lt)]
-    simp only [bstep, if_true, kids.E_eq c_lt]
+    simp only [bstep, ite_true, kids.E_eq c_lt]
     cases (Comp.ofLens T L d ω).toGluing.mate c (prv (child c).E u) with
     | none => rfl
     | some e => rfl

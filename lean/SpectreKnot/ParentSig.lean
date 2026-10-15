@@ -87,7 +87,7 @@ theorem rimPiece_getD (shape : ∀ c, c < nk T → (child c).vtx = (List.range 7
     by_cases in_head : p < L c j
     · -- in the first piece: an edge of side `j`, counted from its end
       rw [List.getElem?_append_left (by rw [piece_len]; exact in_head)]
-      simp only [ownGo, if_pos in_head]
+      simp only [ownGo, ite_eq_left in_head]
       -- side `j` has `L c j` edges
       have side_len := side_length vtx_eq len_eq j_lt
       simp only [rimPiece, List.getElem?_map]
@@ -98,7 +98,7 @@ theorem rimPiece_getD (shape : ∀ c, c < nk T → (child c).vtx = (List.range 7
     · -- in a later piece: by induction
       rw [List.getElem?_append_right (by rw [piece_len]; omega), piece_len, ← List.getD_eq_getElem?_getD,
         ih (fun x mem => valid x (List.mem_cons_of_mem _ mem)) (p - L c j) (by omega)]
-      simp only [ownGo, if_neg in_head]
+      simp only [ownGo, ite_eq_right in_head]
 
 variable (T) in
 /-- Table 3's pieces are sides of actual children. -/
@@ -137,7 +137,7 @@ theorem totL_take (L : Nat → Nat → Nat) (T : Kind) : ∀ J, J ≤ 6 →
     intro J_le
     -- Table 3 has a row for side `J`
     have J_lt : J < (pside T).length := by rw [pside_length]; omega
-    rw [List.take_succ, List.flatMap_append, totL_append, ih (by omega), pos_succ, List.getElem?_eq_getElem J_lt]
+    rw [List.take_add_one, List.flatMap_append, totL_append, ih (by omega), pos_succ, List.getElem?_eq_getElem J_lt]
     simp only [Option.toList_some, List.flatMap_cons, List.flatMap_nil, List.append_nil, id, parentLen,
       List.getD_eq_getElem?_getD, List.getElem?_eq_getElem J_lt, Option.getD_some]
 
@@ -420,7 +420,7 @@ theorem parent_sig {pA pB : Nat} (pA_lt : pA < rimN T L) (pB_lt : pB < rimN T L)
     · by_cases p_eq_B : p = pB
       · -- at the corner `pB`: the crossover walks, backwards
         subst p_eq_B
-        simp only [btau, if_neg p_eq_A, ↓reduceIte]
+        simp only [btau, ite_eq_right p_eq_A, ↓reduceIte]
         cases s with
         | true =>
           rw [kids.bport_R p_lt, kids.bport_R pA_lt]
@@ -451,7 +451,7 @@ theorem parent_sig {pA pB : Nat} (pA_lt : pA < rimN T L) (pB_lt : pB < rimN T L)
           rw [gL_A, gL_B]
           exact kids.follow_of_fullReach (kids.gsig.crossR.reverse wf (gL_A ▸ kids.gL_valid pA_lt)
             (gL_A ▸ kids.gL_sigma pA_lt)) (gL_B ▸ kids.gL_valid p_lt)
-      · simp only [btau, if_neg p_eq_A, if_neg p_eq_B]
+      · simp only [btau, ite_eq_right p_eq_A, ite_eq_right p_eq_B]
         -- a hook
         obtain ⟨c₂, u₂, turn, corner_or_hook⟩ := kids.gsig.hooks _ _ (kids.gR_rimL p_lt)
         -- turning about the vertex of `gR p` reaches the vertex of `gL p`

@@ -121,16 +121,16 @@ theorem loc_gid : ∀ b t, t < (N b).tiles → gid b t < (N b).tiles ∧ loc b (
     by_cases in_child1 : nestShift b ≤ t ∧ t < nestShift b + (N b).tiles
     · -- a tile of child 1 (that is, of N_b): numbered as in N_b
       obtain ⟨bound, inverse⟩ := loc_gid b (t - nestShift b) (by omega)
-      simp only [gid, loc, if_pos in_child1, if_pos bound, inverse]
+      simp only [gid, loc, ite_eq_left in_child1, ite_eq_left bound, inverse]
       exact ⟨by omega, by omega⟩
     · by_cases in_child0 : t < nestShift b
       · -- a tile of child 0: numbered just after N_b
-        simp only [gid, loc, if_neg in_child1, if_pos in_child0]
-        rw [if_neg (by omega), if_pos (by omega)]
+        simp only [gid, loc, ite_eq_right in_child1, ite_eq_left in_child0]
+        rw [ite_eq_right (by omega), ite_eq_left (by omega)]
         exact ⟨by omega, by omega⟩
       · -- a tile of a later child: keeps its number
-        simp only [gid, loc, if_neg in_child1, if_neg in_child0]
-        rw [if_neg (by omega), if_neg (by omega)]
+        simp only [gid, loc, ite_eq_right in_child1, ite_eq_right in_child0]
+        rw [ite_eq_right (by omega), ite_eq_right (by omega)]
         exact ⟨ht, rfl⟩
 
 /-- `loc b` sends 0 … |N_b| - 1 to tiles of `N_b`, and `gid b` undoes it. -/
@@ -142,17 +142,17 @@ theorem gid_loc : ∀ b g, g < (N b).tiles → loc b g < (N b).tiles ∧ gid b (
     by_cases old : g < (N b).tiles
     · -- a number of N_b: its tile in child 1
       obtain ⟨bound, inverse⟩ := gid_loc b g old
-      simp only [loc, if_pos old, gid]
-      rw [if_pos ⟨by omega, by omega⟩, Nat.add_sub_cancel, inverse]
+      simp only [loc, ite_eq_left old, gid]
+      rw [ite_eq_left ⟨by omega, by omega⟩, Nat.add_sub_cancel, inverse]
       exact ⟨by omega, rfl⟩
     · by_cases from_child0 : g < (N b).tiles + nestShift b
       · -- a number just after N_b: a tile of child 0
-        simp only [loc, if_neg old, if_pos from_child0, gid]
-        rw [if_neg (by omega), if_pos (by omega)]
+        simp only [loc, ite_eq_right old, ite_eq_left from_child0, gid]
+        rw [ite_eq_right (by omega), ite_eq_left (by omega)]
         exact ⟨by omega, by omega⟩
       · -- a later number: a tile of a later child, same number
-        simp only [loc, if_neg old, if_neg from_child0, gid]
-        rw [if_neg (by omega), if_neg (by omega)]
+        simp only [loc, ite_eq_right old, ite_eq_right from_child0, gid]
+        rw [ite_eq_right (by omega), ite_eq_right (by omega)]
         exact ⟨hg, rfl⟩
 
 /-- `gid b` is one to one on the tiles of `N_b`. -/
@@ -173,7 +173,7 @@ theorem gid_up1 {b t : Nat} (ht : t < (N b).tiles) :
   show t + nestShift b < _ ∧ gid (b + 1) (t + nestShift b) = gid b t
   refine ⟨by omega, ?_⟩
   simp only [gid]
-  rw [if_pos ⟨by omega, by omega⟩, Nat.add_sub_cancel]
+  rw [ite_eq_left ⟨by omega, by omega⟩, Nat.add_sub_cancel]
 
 /-- Any number of levels up, a tile of `N_b` is still a tile, and keeps its number. -/
 theorem gid_up {b t : Nat} (ht : t < (N b).tiles) :

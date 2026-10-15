@@ -1,5 +1,5 @@
 /-
-Slower tests: the level-5 entries of the paper's Table 5 and of Remark 10.1 (about 2 minutes), and the conclusion of
+Slower tests: the level-5 entries of the paper's Table 5 and of Remark 10.1 (about 6 minutes), and the conclusion of
 the parity lemma (the paper's Prop 7.4) at level 2, computed directly.
 Run with `./build.sh --slow`.
 -/

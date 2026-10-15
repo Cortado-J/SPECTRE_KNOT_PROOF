@@ -5,6 +5,12 @@ themselves. Dates are UK dates.
 
 ## 15 October 2026
 
+- **Lean:** comparator, the Lean developers’ tool for judging whether proofs prove exactly the statements of a
+  trusted file, confirms that the ten main theorems prove exactly the claims of the statement file, using only Lean’s
+  standard axioms; the public repository’s checks now run it (`lean/tools/comparator.sh`). A new theorem says that the
+  construction of the supertiles never falls back on a default value, at any level. A new test shows that the same
+  definitions do find closed strands when the decoration is changed: with the crossing moved to another corner, or
+  with no crossing at all. The proofs no longer use lemma names that Lean has deprecated. What is proved is unchanged.
 - **Lean:** the statement changed: the link with actual tilings, assumption (M), is written out in its three parts,
   each with where the paper argues it; whole tilings have a type of their own, so that notions meant for finite
   patches cannot be applied to them; and a new claim, proved, says that the nest is a chain of supertiles in which

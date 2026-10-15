@@ -120,16 +120,16 @@ theorem loc_gid (X : Chain) : ∀ m t, 1 ≤ m → t < (X.block m).tiles →
     by_cases in_child : X.shift (m + 1) ≤ t ∧ t < X.shift (m + 1) + (X.block (m + 1)).tiles
     · -- a tile of X_{m+1}: numbered as in X_{m+1}
       obtain ⟨bound, inverse⟩ := X.loc_gid (m + 1) (t - X.shift (m + 1)) (by omega) (by omega)
-      simp only [Chain.gid, Chain.loc, if_pos in_child, if_pos bound, inverse]
+      simp only [Chain.gid, Chain.loc, ite_eq_left in_child, ite_eq_left bound, inverse]
       exact ⟨by omega, by omega⟩
     · by_cases before : t < X.shift (m + 1)
       · -- a tile of an earlier child: numbered just after X_{m+1}
-        simp only [Chain.gid, Chain.loc, if_neg in_child, if_pos before]
-        rw [if_neg (by omega), if_pos (by omega)]
+        simp only [Chain.gid, Chain.loc, ite_eq_right in_child, ite_eq_left before]
+        rw [ite_eq_right (by omega), ite_eq_left (by omega)]
         exact ⟨by omega, by omega⟩
       · -- a tile of a later child: keeps its number
-        simp only [Chain.gid, Chain.loc, if_neg in_child, if_neg before]
-        rw [if_neg (by omega), if_neg (by omega)]
+        simp only [Chain.gid, Chain.loc, ite_eq_right in_child, ite_eq_right before]
+        rw [ite_eq_right (by omega), ite_eq_right (by omega)]
         exact ⟨ht, rfl⟩
 
 /-- `X.loc m` sends 0 … |X_m| - 1 to tiles of X_m, and `X.gid m` undoes it. -/
@@ -144,17 +144,17 @@ theorem gid_loc (X : Chain) : ∀ m g, 1 ≤ m → g < (X.block m).tiles →
     by_cases old : g < (X.block (m + 1)).tiles
     · -- a number of X_{m+1}: its tile in X_{m+1}
       obtain ⟨bound, inverse⟩ := X.gid_loc (m + 1) g (by omega) old
-      simp only [Chain.loc, if_pos old, Chain.gid]
-      rw [if_pos ⟨by omega, by omega⟩, Nat.add_sub_cancel, inverse]
+      simp only [Chain.loc, ite_eq_left old, Chain.gid]
+      rw [ite_eq_left ⟨by omega, by omega⟩, Nat.add_sub_cancel, inverse]
       exact ⟨by omega, rfl⟩
     · by_cases from_before : g < (X.block (m + 1)).tiles + X.shift (m + 1)
       · -- a number just after X_{m+1}: a tile of an earlier child
-        simp only [Chain.loc, if_neg old, if_pos from_before, Chain.gid]
-        rw [if_neg (by omega), if_pos (by omega)]
+        simp only [Chain.loc, ite_eq_right old, ite_eq_left from_before, Chain.gid]
+        rw [ite_eq_right (by omega), ite_eq_left (by omega)]
         exact ⟨by omega, by omega⟩
       · -- a later number: a tile of a later child, same number
-        simp only [Chain.loc, if_neg old, if_neg from_before, Chain.gid]
-        rw [if_neg (by omega), if_neg (by omega)]
+        simp only [Chain.loc, ite_eq_right old, ite_eq_right from_before, Chain.gid]
+        rw [ite_eq_right (by omega), ite_eq_right (by omega)]
         exact ⟨hg, rfl⟩
 
 /-- `X.gid m` is one to one on the tiles of X_m. -/
@@ -184,7 +184,7 @@ theorem gid_up1 (X : Chain) {m t : Nat} (m_pos : 1 ≤ m) (ht : t < (X.block m).
   show t + X.shift (m' + 1) < _ ∧ X.gid (m' + 2) (t + X.shift (m' + 1)) = _
   refine ⟨by omega, ?_⟩
   simp only [Chain.gid]
-  rw [if_pos ⟨by omega, by omega⟩, Nat.add_sub_cancel]
+  rw [ite_eq_left ⟨by omega, by omega⟩, Nat.add_sub_cancel]
 
 /-- Any number of levels up, a tile of X_m is still a tile, and keeps its number. -/
 theorem gid_up (X : Chain) {m t : Nat} (m_pos : 1 ≤ m) (ht : t < (X.block m).tiles) :
@@ -443,7 +443,7 @@ theorem chainTiling_contains (X : Chain) : X.Contains X.chainTiling := by
     rw [show g + 1 + m = m + (g + 1) by omega, ← number, X.loc_gid_up m_pos ht, X.glue_lift m_pos ht glued]
     rfl
   unfold chainGlue
-  rw [dif_pos found]
+  rw [dite_eq_left found]
   -- the block that `chainGlue` reads glues the edge
   have spec := Classical.choose_spec found
   generalize Classical.choose found = k at spec ⊢

@@ -264,7 +264,7 @@ theorem two_mate (cut_glued : κ.two = true) :
     κ.c₁ < G.n ∧ κ.e₁ < G.E κ.c₁ ∧ G.mate κ.c₁ κ.e₁ = some (κ.c₀, κ.e₀) := by
   -- the cut edge is glued to edge `e₁` of `c₁`
   have glued := cut_ok.mate
-  rw [if_pos cut_glued] at glued
+  rw [ite_eq_left cut_glued] at glued
   -- the cut edge is not the last edge of `c₀`
   have e₀_lt := cut_ok.e₀
   exact cut_ok.wf.mate_valid _ _ _ _ cut_ok.c₀ (by omega) glued
@@ -275,42 +275,43 @@ theorem sh_c₀_le {p : Nat} (p_le : p ≤ κ.e₀) : κ.sh κ.c₀ p = p := by
   -- `c₀` is not the partner child `c₁`
   have not_c₁ : ¬ (κ.two = true ∧ κ.c₀ = κ.c₁ ∧ κ.e₁ < p) :=
     fun ⟨cut_glued, same, _⟩ => cut_ok.ne cut_glued same.symm
-  rw [if_neg (by omega), if_neg not_c₁]
+  rw [ite_eq_right (by omega), ite_eq_right not_c₁]
 
 /-- On `c₀`, positions after the cut edge move on by 2. -/
 theorem sh_c₀_gt {p : Nat} (p_gt : κ.e₀ < p) : κ.sh κ.c₀ p = p + 2 := by
-  unfold Cut.sh; rw [if_pos ⟨rfl, p_gt⟩]
+  unfold Cut.sh; rw [ite_eq_left ⟨rfl, p_gt⟩]
 
 /-- On `c₁` (when the cut edge is glued), positions up to the partner edge stay put. -/
 theorem sh_c₁_le (cut_glued : κ.two = true) {p : Nat} (p_le : p ≤ κ.e₁) : κ.sh κ.c₁ p = p := by
   unfold Cut.sh
-  rw [if_neg (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), if_neg (by omega)]
+  rw [ite_eq_right (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), ite_eq_right (by omega)]
 
 /-- On `c₁` (when the cut edge is glued), positions after the partner edge move on by 2. -/
 theorem sh_c₁_gt (cut_glued : κ.two = true) {p : Nat} (p_gt : κ.e₁ < p) : κ.sh κ.c₁ p = p + 2 := by
   unfold Cut.sh
-  rw [if_neg (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), if_pos ⟨cut_glued, rfl, p_gt⟩]
+  rw [ite_eq_right (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), ite_eq_left ⟨cut_glued, rfl, p_gt⟩]
 
 /-- On every other child, positions stay put. -/
 theorem sh_other {c p : Nat} (not_c₀ : c ≠ κ.c₀) (not_c₁ : ¬ (κ.two = true ∧ c = κ.c₁)) : κ.sh c p = p := by
   unfold Cut.sh
-  rw [if_neg (fun ⟨is_c₀, _⟩ => not_c₀ is_c₀), if_neg (fun ⟨cut_glued, is_c₁, _⟩ => not_c₁ ⟨cut_glued, is_c₁⟩)]
+  rw [ite_eq_right (fun ⟨is_c₀, _⟩ => not_c₀ is_c₀),
+    ite_eq_right (fun ⟨cut_glued, is_c₁, _⟩ => not_c₁ ⟨cut_glued, is_c₁⟩)]
 
 /-- The cut child `c₀` has two more edges after the cut. -/
 theorem E_c₀ : (subdiv G κ).E κ.c₀ = G.E κ.c₀ + 2 := by
   dsimp only [subdiv]
-  rw [if_pos rfl, if_neg (fun ⟨cut_glued, same⟩ => cut_ok.ne cut_glued same.symm)]
+  rw [ite_eq_left rfl, ite_eq_right (fun ⟨cut_glued, same⟩ => cut_ok.ne cut_glued same.symm)]
 
 /-- The partner child `c₁` (when the cut edge is glued) has two more edges after the cut. -/
 theorem E_c₁ (cut_glued : κ.two = true) : (subdiv G κ).E κ.c₁ = G.E κ.c₁ + 2 := by
   dsimp only [subdiv]
-  rw [if_neg (cut_ok.ne cut_glued), if_pos ⟨cut_glued, rfl⟩]
+  rw [ite_eq_right (cut_ok.ne cut_glued), ite_eq_left ⟨cut_glued, rfl⟩]
 
 /-- Every other child keeps its rim length. -/
 theorem E_other {c : Nat} (not_c₀ : c ≠ κ.c₀) (not_c₁ : ¬ (κ.two = true ∧ c = κ.c₁)) :
     (subdiv G κ).E c = G.E c := by
   dsimp only [subdiv]
-  rw [if_neg not_c₀, if_neg not_c₁]; simp
+  rw [ite_eq_right not_c₀, ite_eq_right not_c₁]; simp
 
 /-- Positions move only forwards, and never onto the new vertices. -/
 theorem sh_cases (c p : Nat) :
@@ -362,13 +363,13 @@ becomes, or on the parent's rim like the cut edge. -/
 theorem mate_new₀ {i : Nat} (i_le : i ≤ 2) :
     (subdiv G κ).mate κ.c₀ (κ.e₀ + i) = if κ.two = true then some (κ.c₁, κ.e₁ + 2 - i) else none := by
   dsimp only [subdiv]
-  rw [if_pos ⟨rfl, by omega, by omega⟩, show κ.e₀ + i - κ.e₀ = i by omega]
+  rw [ite_eq_left ⟨rfl, by omega, by omega⟩, show κ.e₀ + i - κ.e₀ = i by omega]
 
 /-- The three edges that the partner edge of `c₁` becomes: glued, in reverse order, to the three new edges of `c₀`. -/
 theorem mate_new₁ (cut_glued : κ.two = true) {i : Nat} (i_le : i ≤ 2) :
     (subdiv G κ).mate κ.c₁ (κ.e₁ + i) = some (κ.c₀, κ.e₀ + 2 - i) := by
   dsimp only [subdiv]
-  rw [if_neg (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), if_pos ⟨cut_glued, rfl, by omega, by omega⟩,
+  rw [ite_eq_right (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), ite_eq_left ⟨cut_glued, rfl, by omega, by omega⟩,
     show κ.e₁ + i - κ.e₁ = i by omega]
 
 /-- An edge that is not cut is glued as before (with positions moved on). -/
@@ -383,16 +384,16 @@ theorem mate_old {c k : Nat} (not_cut₀ : ¬ (c = κ.c₀ ∧ k = κ.e₀))
     · rw [stays]
       by_cases is_c₀ : c = κ.c₀
       · have k_le := le₀ is_c₀  -- `k` is at most the cut edge
-        rw [if_neg (by omega), if_neg (fun ⟨cut_glued, is_c₁, _⟩ => cut_ok.ne cut_glued (is_c₁ ▸ is_c₀))]
-      · rw [if_neg (fun ⟨on_c₀, _⟩ => is_c₀ on_c₀)]
+        rw [ite_eq_right (by omega), ite_eq_right (fun ⟨cut_glued, is_c₁, _⟩ => cut_ok.ne cut_glued (is_c₁ ▸ is_c₀))]
+      · rw [ite_eq_right (fun ⟨on_c₀, _⟩ => is_c₀ on_c₀)]
         by_cases is_c₁ : κ.two = true ∧ c = κ.c₁
         · have k_le := le₁ is_c₁  -- `k` is at most the partner edge
-          rw [if_neg (by omega)]
-        · rw [if_neg (fun ⟨cut_glued, on_c₁, _⟩ => is_c₁ ⟨cut_glued, on_c₁⟩)]
+          rw [ite_eq_right (by omega)]
+        · rw [ite_eq_right (fun ⟨cut_glued, on_c₁, _⟩ => is_c₁ ⟨cut_glued, on_c₁⟩)]
     · rw [moves]
       rcases after with ⟨rfl, k_gt⟩ | ⟨cut_glued, rfl, k_gt⟩
-      · rw [if_pos ⟨rfl, by omega⟩]; omega
-      · rw [if_neg (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), if_pos ⟨cut_glued, rfl, by omega⟩]; omega
+      · rw [ite_eq_left ⟨rfl, by omega⟩]; omega
+      · rw [ite_eq_right (fun ⟨same, _⟩ => cut_ok.ne cut_glued same), ite_eq_left ⟨cut_glued, rfl, by omega⟩]; omega
   -- the shifted position is not one of the three new edges of `c₀`
   have not_new₀ : ¬ (c = κ.c₀ ∧ κ.e₀ ≤ κ.sh c k ∧ κ.sh c k ≤ κ.e₀ + 2) := by
     rintro ⟨rfl, ge_cut, le_cut⟩
@@ -413,7 +414,7 @@ theorem mate_old {c k : Nat} (not_cut₀ : ¬ (c = κ.c₀ ∧ k = κ.e₀))
       rcases after with ⟨same, _⟩ | ⟨_, _, k_gt⟩
       · exact cut_ok.ne cut_glued same
       · omega
-  rw [if_neg not_new₀, if_neg not_new₁, unshift]
+  rw [ite_eq_right not_new₀, ite_eq_right not_new₁, unshift]
 
 /-- Going back one vertex commutes with the shift, except at the old vertex just after a cut edge. -/
 theorem prv_sh {c p : Nat} (p_lt : p < G.E c) (not_after₀ : ¬ (c = κ.c₀ ∧ p = κ.e₀ + 1))
@@ -473,8 +474,8 @@ theorem nxt_sh {c k : Nat} (k_lt : k < G.E c) (not_cut₀ : ¬ (c = κ.c₀ ∧ 
     rw [cut_ok.E_c₀]
     unfold nxt
     by_cases before : k < κ.e₀
-    · rw [cut_ok.sh_c₀_le (p := k) (by omega), if_neg (show ¬ (k + 1 = G.E κ.c₀ + 2) by omega),
-        if_neg (show ¬ (k + 1 = G.E κ.c₀) by omega), cut_ok.sh_c₀_le (p := k + 1) (by omega)]
+    · rw [cut_ok.sh_c₀_le (p := k) (by omega), ite_eq_right (show ¬ (k + 1 = G.E κ.c₀ + 2) by omega),
+        ite_eq_right (show ¬ (k + 1 = G.E κ.c₀) by omega), cut_ok.sh_c₀_le (p := k + 1) (by omega)]
     -- `k` is past the cut edge
     · have k_gt : κ.e₀ < k := by
         -- by assumption, `k` is not the cut edge
@@ -482,8 +483,9 @@ theorem nxt_sh {c k : Nat} (k_lt : k < G.E c) (not_cut₀ : ¬ (c = κ.c₀ ∧ 
         omega
       rw [cut_ok.sh_c₀_gt k_gt]
       by_cases at_end : k + 1 = G.E κ.c₀
-      · rw [if_pos (show k + 2 + 1 = G.E κ.c₀ + 2 by omega), if_pos at_end, cut_ok.sh_c₀_le (p := 0) (by omega)]
-      · rw [if_neg (show ¬ (k + 2 + 1 = G.E κ.c₀ + 2) by omega), if_neg at_end,
+      · rw [ite_eq_left (show k + 2 + 1 = G.E κ.c₀ + 2 by omega), ite_eq_left at_end,
+          cut_ok.sh_c₀_le (p := 0) (by omega)]
+      · rw [ite_eq_right (show ¬ (k + 2 + 1 = G.E κ.c₀ + 2) by omega), ite_eq_right at_end,
           cut_ok.sh_c₀_gt (p := k + 1) (by omega)]
   · by_cases is_c₁ : κ.two = true ∧ c = κ.c₁
     · obtain ⟨cut_glued, rfl⟩ := is_c₁
@@ -492,8 +494,8 @@ theorem nxt_sh {c k : Nat} (k_lt : k < G.E c) (not_cut₀ : ¬ (c = κ.c₀ ∧ 
       rw [cut_ok.E_c₁ cut_glued]
       unfold nxt
       by_cases before : k < κ.e₁
-      · rw [cut_ok.sh_c₁_le cut_glued (p := k) (by omega), if_neg (show ¬ (k + 1 = G.E κ.c₁ + 2) by omega),
-          if_neg (show ¬ (k + 1 = G.E κ.c₁) by omega), cut_ok.sh_c₁_le cut_glued (p := k + 1) (by omega)]
+      · rw [cut_ok.sh_c₁_le cut_glued (p := k) (by omega), ite_eq_right (show ¬ (k + 1 = G.E κ.c₁ + 2) by omega),
+          ite_eq_right (show ¬ (k + 1 = G.E κ.c₁) by omega), cut_ok.sh_c₁_le cut_glued (p := k + 1) (by omega)]
       -- `k` is past the partner edge
       · have k_gt : κ.e₁ < k := by
           -- by assumption, `k` is not the partner edge
@@ -501,9 +503,9 @@ theorem nxt_sh {c k : Nat} (k_lt : k < G.E c) (not_cut₀ : ¬ (c = κ.c₀ ∧ 
           omega
         rw [cut_ok.sh_c₁_gt cut_glued k_gt]
         by_cases at_end : k + 1 = G.E κ.c₁
-        · rw [if_pos (show k + 2 + 1 = G.E κ.c₁ + 2 by omega), if_pos at_end,
+        · rw [ite_eq_left (show k + 2 + 1 = G.E κ.c₁ + 2 by omega), ite_eq_left at_end,
             cut_ok.sh_c₁_le cut_glued (p := 0) (by omega)]
-        · rw [if_neg (show ¬ (k + 2 + 1 = G.E κ.c₁ + 2) by omega), if_neg at_end,
+        · rw [ite_eq_right (show ¬ (k + 2 + 1 = G.E κ.c₁ + 2) by omega), ite_eq_right at_end,
             cut_ok.sh_c₁_gt cut_glued (p := k + 1) (by omega)]
     · rw [cut_ok.E_other is_c₀ is_c₁, cut_ok.sh_other is_c₀ is_c₁, cut_ok.sh_other is_c₀ is_c₁]
 
@@ -518,10 +520,10 @@ theorem target_not_cut {c k c₂ k₂ : Nat} (c_lt : c < G.n) (k_lt : k < G.E c)
     have cut_mate := cut_ok.mate
     rw [glued_back] at cut_mate
     by_cases cut_glued : κ.two = true
-    · rw [if_pos cut_glued] at cut_mate
+    · rw [ite_eq_left cut_glued] at cut_mate
       simp only [Option.some.injEq, Prod.mk.injEq] at cut_mate
       exact not_cut₁ ⟨cut_glued, cut_mate.1, cut_mate.2⟩
-    · rw [if_neg cut_glued] at cut_mate; contradiction
+    · rw [ite_eq_right cut_glued] at cut_mate; contradiction
   · rintro ⟨cut_glued, rfl, rfl⟩
     rw [(cut_ok.two_mate cut_glued).2.2] at glued_back
     simp only [Option.some.injEq, Prod.mk.injEq] at glued_back
@@ -538,15 +540,15 @@ theorem tau_port (x : GPort) : (subdiv G κ).tau (κ.port x) = κ.port (G.tau x)
   by_cases at_A : p = G.A c
   -- at corner `A` the piece goes to corner `B`
   · have tau_A : G.tau (c, p, s) = (c, G.B c, s) := by simp [Gluing.tau, at_A]
-    rw [tau_A, if_pos (by rw [at_A])]; rfl
-  · rw [if_neg (fun same => at_A (cut_ok.sh_inj same))]
+    rw [tau_A, ite_eq_left (by rw [at_A])]; rfl
+  · rw [ite_eq_right (fun same => at_A (cut_ok.sh_inj same))]
     by_cases at_B : p = G.B c
     -- at corner `B` the piece goes to corner `A`
     · have tau_B : G.tau (c, p, s) = (c, G.A c, s) := by simp [Gluing.tau, at_A, at_B]
-      rw [tau_B, if_pos (by rw [at_B])]; rfl
+      rw [tau_B, ite_eq_left (by rw [at_B])]; rfl
     -- elsewhere the piece goes to the other port at the same vertex
     · have tau_other : G.tau (c, p, s) = (c, p, !s) := by simp [Gluing.tau, at_A, at_B]
-      rw [tau_other, if_neg (fun same => at_B (cut_ok.sh_inj same))]; rfl
+      rw [tau_other, ite_eq_right (fun same => at_B (cut_ok.sh_inj same))]; rfl
 
 /-- The new vertices of `c₀` are not corners. -/
 theorem corner_new₀ {i : Nat} (i_ge : 1 ≤ i) (i_le : i ≤ 2) : (subdiv G κ).corner κ.c₀ (κ.e₀ + i) = false := by
@@ -588,7 +590,7 @@ theorem smooth_new₀ {i : Nat} (i_ge : 1 ≤ i) (i_le : i ≤ 2) : (subdiv G κ
     rw [show κ.e₀ + i = (κ.e₀ + (i - 1)) + 1 by omega, prv_succ']
   rw [prev_edge, cut_ok.mate_new₀ i_le, cut_ok.mate_new₀ (i := i - 1) (by omega)]
   by_cases cut_glued : κ.two = true
-  · rw [if_pos cut_glued, if_pos cut_glued]
+  · rw [ite_eq_left cut_glued, ite_eq_left cut_glued]
     right
     -- the partner edge is not the last edge of `c₁`
     have e₁_lt := cut_ok.e₁ cut_glued
@@ -597,7 +599,7 @@ theorem smooth_new₀ {i : Nat} (i_ge : 1 ≤ i) (i_le : i ≤ 2) : (subdiv G κ
       congr 2; omega
     · rw [cut_ok.E_c₁ cut_glued, nxt_of_lt' (by omega), show κ.e₁ + 2 - i + 1 = κ.e₁ + (3 - i) by omega]
       exact cut_ok.corner_new₁ cut_glued (by omega) (by omega)
-  · rw [if_neg cut_glued, if_neg cut_glued]
+  · rw [ite_eq_right cut_glued, ite_eq_right cut_glued]
     left; exact ⟨rfl, rfl⟩
 
 /-- The new vertices of `c₁` (when the cut edge is glued) are smooth. -/
@@ -662,7 +664,7 @@ theorem two_true {q : Nat × Nat} (glued : G.mate κ.c₀ κ.e₀ = some q) : κ
   rw [glued] at cut_mate
   cases cut_glued : κ.two
   · rw [cut_glued] at cut_mate; simp at cut_mate
-  · rw [cut_glued] at cut_mate; simp only [if_true, Option.some.injEq] at cut_mate; exact ⟨rfl, cut_mate⟩
+  · rw [cut_glued] at cut_mate; simp only [ite_true, Option.some.injEq] at cut_mate; exact ⟨rfl, cut_mate⟩
 
 /-- The first new edge of `c₀` (where the cut edge began) is glued to the last new edge of `c₁`, or lies on the rim. -/
 theorem mate_cut₀ : (subdiv G κ).mate κ.c₀ κ.e₀ = if κ.two = true then some (κ.c₁, κ.e₁ + 2) else none := by
@@ -765,7 +767,7 @@ theorem sim : Sim G (subdiv G κ) κ.port where
         rw [cut_ok.sh_c₀_le (Nat.le_refl _)]
         simp only [Cut.port]
         rw [cut_ok.sh_c₁_le cut_glued (Nat.le_refl _)]
-        refine .more (p₁ := (κ.c₁, κ.e₁ + 2, true)) (by rw [sigmaR, cut_ok.mate_cut₀, if_pos cut_glued]; rfl) ?_
+        refine .more (p₁ := (κ.c₁, κ.e₁ + 2, true)) (by rw [sigmaR, cut_ok.mate_cut₀, ite_eq_left cut_glued]; rfl) ?_
         rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
         refine .more (p₁ := (κ.c₀, κ.e₀ + 2, false)) ?_ ?_
         · rw [sigmaL, cut_ok.E_c₁ cut_glued, show κ.e₁ + 2 = (κ.e₁ + 1) + 1 by omega, prv_succ',
@@ -774,7 +776,7 @@ theorem sim : Sim G (subdiv G κ) κ.port where
           rw [nxt_of_lt' (by omega)]; congr 3
         · rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
           refine .one ?_
-          rw [sigmaR, cut_ok.mate_new₀ (by omega), if_pos cut_glued]; rfl
+          rw [sigmaR, cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]; rfl
       · by_cases is_cut₁ : κ.two = true ∧ c = κ.c₁ ∧ p = κ.e₁
         · obtain ⟨cut_glued, rfl, rfl⟩ := is_cut₁
           -- the partner of the cut edge: three crossings, from R(e₁) of c₁ to R(e₀) of c₀
@@ -790,7 +792,7 @@ theorem sim : Sim G (subdiv G κ) κ.port where
           rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
           refine .more (p₁ := (κ.c₁, κ.e₁ + 2, false)) ?_ ?_
           · rw [sigmaL, cut_ok.E_c₀, show κ.e₀ + 2 = (κ.e₀ + 1) + 1 by omega, prv_succ',
-              cut_ok.mate_new₀ (by omega), if_pos cut_glued]
+              cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]
             simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
             rw [nxt_of_lt' (by omega)]; congr 3
           · rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
@@ -817,14 +819,14 @@ theorem sim : Sim G (subdiv G κ) κ.port where
         rw [nxt_of_lt' e₁_lt, cut_ok.sh_c₁_gt cut_glued (by omega)]
         refine .more (p₁ := (κ.c₁, κ.e₁ + 1, false)) ?_ ?_
         · rw [sigmaL, cut_ok.E_c₀, show κ.e₀ + 1 + 2 = (κ.e₀ + 2) + 1 by omega, prv_succ', cut_ok.mate_new₀ (by omega),
-            if_pos cut_glued]
+            ite_eq_left cut_glued]
           simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
           rw [nxt_of_lt' (by omega)]; congr 3
         · rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
           refine .more (p₁ := (κ.c₀, κ.e₀ + 1, true)) (by rw [sigmaR, cut_ok.mate_new₁ cut_glued (by omega)]; rfl) ?_
           rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
           refine .one ?_
-          rw [sigmaL, cut_ok.E_c₀, prv_succ', cut_ok.mate_cut₀, if_pos cut_glued]
+          rw [sigmaL, cut_ok.E_c₀, prv_succ', cut_ok.mate_cut₀, ite_eq_left cut_glued]
           simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
           rw [nxt_of_lt' (by omega)]
       · by_cases after_cut₁ : κ.two = true ∧ c = κ.c₁ ∧ p = κ.e₁ + 1
@@ -845,7 +847,7 @@ theorem sim : Sim G (subdiv G κ) κ.port where
             rw [nxt_of_lt' (by omega)]; congr 3
           · rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
             refine .more (p₁ := (κ.c₁, κ.e₁ + 1, true))
-              (by rw [sigmaR, cut_ok.mate_new₀ (by omega), if_pos cut_glued]; rfl) ?_
+              (by rw [sigmaR, cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]; rfl) ?_
             rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
             refine .one ?_
             rw [sigmaL, cut_ok.E_c₁ cut_glued, prv_succ', cut_ok.mate_cut₁ cut_glued]
@@ -900,7 +902,7 @@ theorem wf_subdiv : (subdiv G κ).WF where
     · obtain ⟨rfl, k_ge, k_le⟩ := new₀
       rw [show k = κ.e₀ + (k - κ.e₀) by omega, cut_ok.mate_new₀ (by omega)] at glued
       by_cases cut_glued : κ.two = true
-      · rw [if_pos cut_glued] at glued
+      · rw [ite_eq_left cut_glued] at glued
         simp only [Option.some.injEq, Prod.mk.injEq] at glued
         obtain ⟨rfl, rfl⟩ := glued
         -- the partner edge is not the last edge of `c₁`
@@ -908,7 +910,7 @@ theorem wf_subdiv : (subdiv G κ).WF where
         refine ⟨(cut_ok.two_mate cut_glued).1, by rw [cut_ok.E_c₁ cut_glued]; omega, ?_⟩
         rw [show κ.e₁ + 2 - (k - κ.e₀) = κ.e₁ + (2 - (k - κ.e₀)) by omega, cut_ok.mate_new₁ cut_glued (by omega)]
         congr 2; omega
-      · rw [if_neg cut_glued] at glued; contradiction
+      · rw [ite_eq_right cut_glued] at glued; contradiction
     · by_cases new₁ : κ.two = true ∧ c = κ.c₁ ∧ κ.e₁ ≤ k ∧ k ≤ κ.e₁ + 2
       · obtain ⟨cut_glued, rfl, k_ge, k_le⟩ := new₁
         rw [show k = κ.e₁ + (k - κ.e₁) by omega, cut_ok.mate_new₁ cut_glued (by omega)] at glued
@@ -916,7 +918,7 @@ theorem wf_subdiv : (subdiv G κ).WF where
         obtain ⟨rfl, rfl⟩ := glued
         refine ⟨cut_ok.c₀, by rw [cut_ok.E_c₀]; omega, ?_⟩
         rw [show κ.e₀ + 2 - (k - κ.e₁) = κ.e₀ + (2 - (k - κ.e₁)) by omega, cut_ok.mate_new₀ (by omega),
-          if_pos cut_glued]
+          ite_eq_left cut_glued]
         congr 2; omega
       · obtain ⟨u, u_lt, rfl⟩ := cut_ok.preimage k_lt (fun ⟨is_c₀, k_gt, k_le⟩ => new₀ ⟨is_c₀, by omega, k_le⟩)
           (fun ⟨cut_glued, is_c₁, k_gt, k_le⟩ => new₁ ⟨cut_glued, is_c₁, by omega, k_le⟩)

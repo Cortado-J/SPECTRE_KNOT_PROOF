@@ -84,10 +84,10 @@ theorem sideIdx_eq (f : Nat → Nat) (len_pos : ∀ i, i < 6 → 1 ≤ f i) {j o
       simp only [Comp.sideIdx]
       rw [prefixSums_getD f (by omega)]
       by_cases at_j : j = i + 1
-      · subst at_j; rw [if_pos (by omega)]
+      · subst at_j; rw [ite_eq_left (by omega)]
       -- side `j` ends before side `i + 1` begins
       · have ends_before := pos_lt_of_pos f len_pos (show j < i + 1 by omega) (by omega)
-        rw [if_neg (by omega)]
+        rw [ite_eq_right (by omega)]
         exact ih (by omega) (by omega)
   exact search 5 (by omega) (by omega)
 

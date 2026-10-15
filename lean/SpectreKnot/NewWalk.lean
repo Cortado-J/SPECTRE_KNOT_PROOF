@@ -63,14 +63,14 @@ theorem nw0_2F (not_corner : G.corner κ.c₀ κ.e₀ = false) {r : GPort} (old_
     rw [tau_of_not_corner not_corner, Bool.not_false, sigmaR]
     -- the cut edge is edge `e₁` of `c₁`
     have cut_mate := ok.mate
-    rw [if_pos shared] at cut_mate
+    rw [ite_eq_left shared] at cut_mate
     rw [cut_mate]; rfl
   -- the rest of the old walk, from `R_{c₁}(e₁)`, carried into the cut gluing
   have new_walk := ok.port_reach ⟨c₁_lt, e₁_lt⟩ (fullReach_first first_step old_walk)
   simp only [Cut.port, ok.sh_c₁_le shared (Nat.le_refl _)] at new_walk
   -- in the cut gluing: through the new hook, then across new edge `e₀ + 2` to `R_{c₁}(e₁)`
   refine fullReach_step ?_ new_walk
-  rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), if_pos shared]
+  rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), ite_eq_left shared]
   simp
 
 /-- New vertex `e₀ + 2` of `c₀`, port `R`: the walk from `R(e₀ + 2)` in the cut gluing ends where the walk from the
@@ -87,7 +87,7 @@ theorem nw0_2T {r : GPort} (old_walk : G.FullReach (κ.c₀, κ.e₀, true) r) :
   -- two steps: across new edge `e₀ + 1` to `L_{c₁}(e₁ + 2)`, then across new edge `e₁ + 2` back to `R_{c₀}(e₀)`
   refine fullReach_step (y := (κ.c₁, κ.e₁ + 2, false)) ?_ (fullReach_step ?_ new_walk)
   · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_true, sigmaL, ok.E_c₀, show κ.e₀ + 2 = (κ.e₀ + 1) + 1 from rfl,
-      prv_succ', ok.mate_new₀ (by omega), if_pos shared]
+      prv_succ', ok.mate_new₀ (by omega), ite_eq_left shared]
     simp only [Option.map_some, show κ.e₁ + 2 - 1 = κ.e₁ + 1 by omega, ok.E_c₁ shared, nxt_of_lt' (show κ.e₁ + 1 + 1 <
       (G.E κ.c₁ + 2) by omega)]
   · rw [ok.tau_new₁ shared (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₁ shared (by omega)]
@@ -107,7 +107,7 @@ theorem nw0_1T (not_corner : G.corner κ.c₀ (κ.e₀ + 1) = false) {r : GPort}
     rw [tau_of_not_corner not_corner, Bool.not_true, sigmaL, prv_succ']
     -- the cut edge is edge `e₁` of `c₁`
     have cut_mate := ok.mate
-    rw [if_pos shared] at cut_mate
+    rw [ite_eq_left shared] at cut_mate
     rw [cut_mate]
     simp only [Option.map_some, nxt_of_lt' e₁_succ_lt]
   -- the rest of the old walk, from `L_{c₁}(e₁ + 1)`, carried into the cut gluing (where it is `e₁ + 3`)
@@ -115,7 +115,7 @@ theorem nw0_1T (not_corner : G.corner κ.c₀ (κ.e₀ + 1) = false) {r : GPort}
   simp only [Cut.port, ok.sh_c₁_gt shared (show κ.e₁ < κ.e₁ + 1 by omega)] at new_walk
   -- in the cut gluing: through the new hook, then across new edge `e₀` to `L_{c₁}(e₁ + 3)`
   refine fullReach_step ?_ new_walk
-  rw [ok.tau_new₀ (by omega) (by omega), Bool.not_true, sigmaL, prv_succ', ok.mate_cut₀, if_pos shared]
+  rw [ok.tau_new₀ (by omega) (by omega), Bool.not_true, sigmaL, prv_succ', ok.mate_cut₀, ite_eq_left shared]
   simp only [Option.map_some, ok.E_c₁ shared, nxt_of_lt' (show κ.e₁ + 2 + 1 < G.E κ.c₁ + 2 by omega)]
 
 /-- New vertex `e₀ + 1` of `c₀`, port `L`: the walk from `L(e₀ + 1)` in the cut gluing ends where the walk from the
@@ -131,7 +131,7 @@ theorem nw0_1F {r : GPort} (old_walk : G.FullReach (κ.c₀, κ.e₀ + 1, false)
   simp only [Cut.port, ok.sh_c₀_gt (show κ.e₀ < κ.e₀ + 1 by omega)] at new_walk
   -- two steps: across new edge `e₀ + 1` to `R_{c₁}(e₁ + 1)`, then across new edge `e₁` to `L_{c₀}(e₀ + 3)`
   refine fullReach_step (y := (κ.c₁, κ.e₁ + 1, true)) ?_ (fullReach_step ?_ new_walk)
-  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), if_pos shared]
+  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), ite_eq_left shared]
     simp only [Option.map_some, show κ.e₁ + 2 - 1 = κ.e₁ + 1 by omega]
   · rw [ok.tau_new₁ shared (by omega) (by omega), Bool.not_true, sigmaL, prv_succ', ok.mate_cut₁ shared]
     simp only [Option.map_some, ok.E_c₀, nxt_of_lt' (show κ.e₀ + 2 + 1 < G.E κ.c₀ + 2 by omega)]
@@ -174,7 +174,7 @@ theorem nw1_2T {r : GPort} (old_walk : G.FullReach (κ.c₁, κ.e₁, true) r) :
       show κ.e₁ + 2 = (κ.e₁ + 1) + 1 from rfl, prv_succ', ok.mate_new₁ shared (by omega)]
     simp only [Option.map_some, show κ.e₀ + 2 - 1 = κ.e₀ + 1 by omega, ok.E_c₀,
       nxt_of_lt' (show κ.e₀ + 1 + 1 < G.E κ.c₀ + 2 by omega)]
-  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), if_pos shared]
+  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₀ (by omega), ite_eq_left shared]
     simp
 
 /-- New vertex `e₁ + 1` of `c₁`, port `R`: the walk from `R(e₁ + 1)` in the cut gluing ends where the walk from the
@@ -217,7 +217,7 @@ theorem nw1_1F {r : GPort} (old_walk : G.FullReach (κ.c₁, κ.e₁ + 1, false)
   refine fullReach_step (y := (κ.c₀, κ.e₀ + 1, true)) ?_ (fullReach_step ?_ new_walk)
   · rw [ok.tau_new₁ shared (by omega) (by omega), Bool.not_false, sigmaR, ok.mate_new₁ shared (by omega)]
     simp only [Option.map_some, show κ.e₀ + 2 - 1 = κ.e₀ + 1 by omega]
-  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_true, sigmaL, prv_succ', ok.mate_cut₀, if_pos shared]
+  · rw [ok.tau_new₀ (by omega) (by omega), Bool.not_true, sigmaL, prv_succ', ok.mate_cut₀, ite_eq_left shared]
     simp only [Option.map_some, ok.E_c₁ shared, nxt_of_lt' (show κ.e₁ + 2 + 1 < G.E κ.c₁ + 2 by omega)]
 
 end

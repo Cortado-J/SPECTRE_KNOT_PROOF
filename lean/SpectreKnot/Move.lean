@@ -84,9 +84,9 @@ theorem adj₀ : adjAt T μ.c₀ μ.j₀ = if μ.two T = true then some (μ.c₁
 theorem d'_eq (not_sigma₀ : ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5))
     (not_sigma₁ : ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5)) : μ.d' T L d = d := by
   unfold d'
-  rw [if_neg (show ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5 ∧ μ.r₀ + 2 ≤ d) from
+  rw [ite_eq_right (show ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5 ∧ μ.r₀ + 2 ≤ d) from
       fun ⟨is_sigma, is_5, _⟩ => not_sigma₀ ⟨is_sigma, is_5⟩),
-    if_neg (show ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5 ∧ μ.r₁ L + 2 ≤ d) from
+    ite_eq_right (show ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5 ∧ μ.r₁ L + 2 ≤ d) from
       fun ⟨side_glued, is_sigma, is_5, _⟩ => not_sigma₁ ⟨side_glued, is_sigma, is_5⟩)]
   rfl
 
@@ -96,11 +96,11 @@ theorem d'_c₀ (is_sigma : kidAt T μ.c₀ = .Sigma) (is_5 : μ.j₀ = 5)
     (not_sigma₁ : ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5)) :
     μ.d' T L d = d + if μ.r₀ + 2 ≤ d then 2 else 0 := by
   unfold d'
-  rw [if_neg (show ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5 ∧ μ.r₁ L + 2 ≤ d) from
+  rw [ite_eq_right (show ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5 ∧ μ.r₁ L + 2 ≤ d) from
       fun ⟨side_glued, sib_sigma, sib_5, _⟩ => not_sigma₁ ⟨side_glued, sib_sigma, sib_5⟩), Nat.add_zero]
   by_cases before : μ.r₀ + 2 ≤ d
-  · rw [if_pos ⟨is_sigma, is_5, before⟩, if_pos before]
-  · rw [if_neg (fun ⟨_, _, before'⟩ => before before'), if_neg before]
+  · rw [ite_eq_left ⟨is_sigma, is_5, before⟩, ite_eq_left before]
+  · rw [ite_eq_right (fun ⟨_, _, before'⟩ => before before'), ite_eq_right before]
 
 /-- If the sibling's side `j₁` is side 5 of the Σ child, the Σ offset moves on by 2 exactly when the cut lies before
 the corner. -/
@@ -108,11 +108,11 @@ theorem d'_c₁ (side_glued : μ.two T = true) (is_sigma : kidAt T (μ.c₁ T) =
     (not_sigma₀ : ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5)) :
     μ.d' T L d = d + if μ.r₁ L + 2 ≤ d then 2 else 0 := by
   unfold d'
-  rw [if_neg (show ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5 ∧ μ.r₀ + 2 ≤ d) from
+  rw [ite_eq_right (show ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5 ∧ μ.r₀ + 2 ≤ d) from
       fun ⟨c₀_sigma, c₀_5, _⟩ => not_sigma₀ ⟨c₀_sigma, c₀_5⟩), Nat.add_zero]
   by_cases before : μ.r₁ L + 2 ≤ d
-  · rw [if_pos ⟨side_glued, is_sigma, is_5, before⟩, if_pos before]
-  · rw [if_neg (fun ⟨_, _, _, before'⟩ => before before'), if_neg before]
+  · rw [ite_eq_left ⟨side_glued, is_sigma, is_5, before⟩, ite_eq_left before]
+  · rw [ite_eq_right (fun ⟨_, _, _, before'⟩ => before before'), ite_eq_right before]
 
 namespace OK
 
@@ -127,14 +127,14 @@ theorem sib (side_glued : μ.two T = true) :
     μ.c₁ T < nk T ∧ μ.j₁ T < 6 ∧ μ.c₁ T ≠ μ.c₀ ∧ adjAt T (μ.c₁ T) (μ.j₁ T) = some (μ.c₀, μ.j₀) := by
   -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
   have glued := adj₀ (T := T) (μ := μ)
-  rw [if_pos side_glued] at glued
+  rw [ite_eq_left side_glued] at glued
   exact adj_valid move_ok.c₀ move_ok.j₀ glued
 
 /-- The sibling's side `j₁` is as long as side `j₀` of `c₀`. -/
 theorem L₁ (side_glued : μ.two T = true) : L (μ.c₁ T) (μ.j₁ T) = L μ.c₀ μ.j₀ := by
   -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
   have glued := adj₀ (T := T) (μ := μ)
-  rw [if_pos side_glued] at glued
+  rw [ite_eq_left side_glued] at glued
   exact move_ok.pair _ move_ok.c₀ _ move_ok.j₀ _ _ glued
 
 /-- Only one side of each child is hit: of `c₀`, side `j₀`. -/
@@ -169,11 +169,11 @@ theorem pos_c₀ (j : Nat) : pos (μ.lens T L μ.c₀) j = pos (L μ.c₀) j + i
     rw [pos_succ, pos_succ, ih]
     simp only [lens]
     by_cases is_j₀ : j = μ.j₀
-    · rw [if_pos (move_ok.hit_c₀.mpr is_j₀), if_neg (by omega), if_pos (by omega)]; omega
-    · rw [if_neg (fun hit => is_j₀ (move_ok.hit_c₀.mp hit))]
+    · rw [ite_eq_left (move_ok.hit_c₀.mpr is_j₀), ite_eq_right (by omega), ite_eq_left (by omega)]; omega
+    · rw [ite_eq_right (fun hit => is_j₀ (move_ok.hit_c₀.mp hit))]
       by_cases after : μ.j₀ < j
-      · rw [if_pos after, if_pos (by omega)]; omega
-      · rw [if_neg after, if_neg (by omega)]; omega
+      · rw [ite_eq_left after, ite_eq_left (by omega)]; omega
+      · rw [ite_eq_right after, ite_eq_right (by omega)]; omega
 
 /-- Positions of the new composition, on the sibling `c₁`: the sides after `j₁` begin two edges later. -/
 theorem pos_c₁ (side_glued : μ.two T = true) (j : Nat) :
@@ -184,11 +184,11 @@ theorem pos_c₁ (side_glued : μ.two T = true) (j : Nat) :
     rw [pos_succ, pos_succ, ih]
     simp only [lens]
     by_cases is_j₁ : j = μ.j₁ T
-    · rw [if_pos ((move_ok.hit_c₁ side_glued).mpr is_j₁), if_neg (by omega), if_pos (by omega)]; omega
-    · rw [if_neg (fun hit => is_j₁ ((move_ok.hit_c₁ side_glued).mp hit))]
+    · rw [ite_eq_left ((move_ok.hit_c₁ side_glued).mpr is_j₁), ite_eq_right (by omega), ite_eq_left (by omega)]; omega
+    · rw [ite_eq_right (fun hit => is_j₁ ((move_ok.hit_c₁ side_glued).mp hit))]
       by_cases after : μ.j₁ T < j
-      · rw [if_pos after, if_pos (by omega)]; omega
-      · rw [if_neg after, if_neg (by omega)]; omega
+      · rw [ite_eq_left after, ite_eq_left (by omega)]; omega
+      · rw [ite_eq_right after, ite_eq_right (by omega)]; omega
 
 /-- Positions of the new composition, on every other child: unchanged. -/
 theorem pos_other {c : Nat} (not_c₀ : c ≠ μ.c₀) (not_c₁ : ¬ (μ.two T = true ∧ c = μ.c₁ T)) (j : Nat) :
@@ -196,7 +196,7 @@ theorem pos_other {c : Nat} (not_c₀ : c ≠ μ.c₀) (not_c₁ : ¬ (μ.two T 
   induction j with
   | zero => rfl
   | succ j ih =>
-    rw [pos_succ, pos_succ, ih]; simp only [lens]; rw [if_neg (move_ok.hit_other not_c₀ not_c₁)]; omega
+    rw [pos_succ, pos_succ, ih]; simp only [lens]; rw [ite_eq_right (move_ok.hit_other not_c₀ not_c₁)]; omega
 
 /-- After the move every side still has an edge. -/
 theorem lens_pos_len : ∀ c, c < nk T → ∀ j, j < 6 → 1 ≤ μ.lens T L c j := by
@@ -229,10 +229,10 @@ theorem cutOK : (μ.cut T L).OK (Comp.ofLens T L d ω).toGluing where
     have r₀_le := move_ok.r₀'
     rw [ofLens_mate move_ok.pos_len move_ok.c₀ move_ok.j₀ (by omega), adj₀]
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued, if_pos side_glued]
+    · rw [ite_eq_left side_glued, ite_eq_left side_glued]
       simp only [Option.map_some, move_ok.L₁ side_glued, r₁]
       congr 2; omega
-    · rw [if_neg side_glued, if_neg side_glued]; rfl
+    · rw [ite_eq_right side_glued, ite_eq_right side_glued]; rfl
   ne side_glued := (move_ok.sib side_glued).2.2.1
   e₁ side_glued := by
     obtain ⟨c₁_lt, j₁_lt, _, _⟩ := move_ok.sib side_glued
@@ -287,11 +287,11 @@ theorem sh_side {c j q : Nat} (c_lt : c < nk T) (j_lt : j < 6) (q_lt : q < L c j
     -- side `j` ends no later than side `j₀` begins
     · have side_ends := pos_mono (L μ.c₀) (show j + 1 ≤ μ.j₀ by omega)
       rw [pos_succ] at side_ends
-      rw [move_ok.sh₀_le (by omega), if_neg (by omega)]; omega
+      rw [move_ok.sh₀_le (by omega), ite_eq_right (by omega)]; omega
     -- side `j` begins no earlier than side `j₀` ends
     · have side_begins := pos_mono (L μ.c₀) (show μ.j₀ + 1 ≤ j by omega)
       rw [pos_succ] at side_begins
-      rw [move_ok.sh₀_gt (by omega), if_pos (by omega)]; omega
+      rw [move_ok.sh₀_gt (by omega), ite_eq_left (by omega)]; omega
   · by_cases is_c₁ : μ.two T = true ∧ c = μ.c₁ T
     · obtain ⟨side_glued, rfl⟩ := is_c₁
       -- side `j` is not the sibling's side cut
@@ -303,11 +303,11 @@ theorem sh_side {c j q : Nat} (c_lt : c < nk T) (j_lt : j < 6) (q_lt : q < L c j
       -- side `j` ends no later than side `j₁` begins
       · have side_ends := pos_mono (L (μ.c₁ T)) (show j + 1 ≤ μ.j₁ T by omega)
         rw [pos_succ] at side_ends
-        rw [move_ok.sh₁_le side_glued (by simp only [r₁]; omega), if_neg (by omega)]; omega
+        rw [move_ok.sh₁_le side_glued (by simp only [r₁]; omega), ite_eq_right (by omega)]; omega
       -- side `j` begins no earlier than side `j₁` ends
       · have side_begins := pos_mono (L (μ.c₁ T)) (show μ.j₁ T + 1 ≤ j by omega)
         rw [pos_succ] at side_begins
-        rw [move_ok.sh₁_gt side_glued (by simp only [r₁]; omega), if_pos (by omega)]; omega
+        rw [move_ok.sh₁_gt side_glued (by simp only [r₁]; omega), ite_eq_left (by omega)]; omega
     · rw [move_ok.sh_oth is_c₀ is_c₁, move_ok.pos_other is_c₀ is_c₁]
 
 /-- A position determines its side and offset. -/
@@ -329,10 +329,10 @@ theorem not_hit_partner {c j c' j' : Nat} (c_lt : c < nk T) (j_lt : j < 6) (glue
   · have partner := adj₀ (T := T) (μ := μ)
     rw [glued_back] at partner
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued] at partner
+    · rw [ite_eq_left side_glued] at partner
       simp only [Option.some.injEq, Prod.mk.injEq] at partner
       exact not_hit (Or.inr ⟨side_glued, partner.1, partner.2⟩)
-    · rw [if_neg side_glued] at partner; contradiction
+    · rw [ite_eq_right side_glued] at partner; contradiction
   -- (c', j') = (c₁, j₁): then (c, j) is the partner of (c₁, j₁), that is (c₀, j₀)
   · have partner := (move_ok.sib side_glued).2.2.2
     rw [glued_back] at partner
@@ -380,10 +380,10 @@ theorem E_eq {c : Nat} (c_lt : c < nk T) : (G₁).E c = (Gs).E c := by
   -- side `j₀` is one of the six sides
   have j₀_lt := move_ok.j₀
   by_cases is_c₀ : c = μ.c₀
-  · subst is_c₀; rw [move_ok.pos_c₀, if_pos (by omega), move_ok.sE₀, ofLens_E c_lt]
+  · subst is_c₀; rw [move_ok.pos_c₀, ite_eq_left (by omega), move_ok.sE₀, ofLens_E c_lt]
   · by_cases is_c₁ : μ.two T = true ∧ c = μ.c₁ T
     · obtain ⟨side_glued, rfl⟩ := is_c₁
-      rw [move_ok.pos_c₁ side_glued, if_pos (move_ok.sib side_glued).2.1, move_ok.sE₁ side_glued, ofLens_E c_lt]
+      rw [move_ok.pos_c₁ side_glued, ite_eq_left (move_ok.sib side_glued).2.1, move_ok.sE₁ side_glued, ofLens_E c_lt]
     · rw [move_ok.pos_other is_c₀ is_c₁, move_ok.sE_oth is_c₀ is_c₁, ofLens_E c_lt]
 
 /-- Corners agree. -/
@@ -396,7 +396,7 @@ theorem A_eq {c : Nat} (c_lt : c < nk T) : (G₁).A c = (μ.cut T L).sh c ((G₀
   -- side `j₀` is one of the six sides
   have j₀_lt := move_ok.j₀
   by_cases is_sigma : kidAt T c = .Sigma
-  · rw [if_pos is_sigma, if_pos is_sigma]
+  · rw [ite_eq_left is_sigma, ite_eq_left is_sigma]
     obtain ⟨d_ge, d_le⟩ := move_ok.sig c c_lt is_sigma
     by_cases is_c₀ : c = μ.c₀
     · subst is_c₀
@@ -405,14 +405,14 @@ theorem A_eq {c : Nat} (c_lt : c < nk T) : (G₁).A c = (μ.cut T L).sh c ((G₀
         (move_ok.sib side_glued).2.2.1 (move_ok.sig1 _ _ (move_ok.sib side_glued).1 c_lt sib_sigma is_sigma)
       rw [move_ok.pos_c₀]
       by_cases is_5 : μ.j₀ = 5
-      · rw [if_neg (by omega)]
+      · rw [ite_eq_right (by omega)]
         -- side `j₀` is side 5
         have pos_5 : pos (L μ.c₀) μ.j₀ = pos (L μ.c₀) 5 := by rw [is_5]
         rw [d'_c₀ is_sigma is_5 (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sigma ⟨side_glued, sib_sigma⟩)]
         rcases move_ok.cut₀ is_sigma is_5 with cut_after | cut_before
-        · rw [if_neg (show ¬ μ.r₀ + 2 ≤ d by omega), move_ok.sh₀_le (by omega)]; omega
-        · rw [if_pos cut_before, move_ok.sh₀_gt (by omega)]; omega
-      · rw [if_pos (by omega), d'_eq (fun ⟨_, is_5'⟩ => is_5 is_5')
+        · rw [ite_eq_right (show ¬ μ.r₀ + 2 ≤ d by omega), move_ok.sh₀_le (by omega)]; omega
+        · rw [ite_eq_left cut_before, move_ok.sh₀_gt (by omega)]; omega
+      · rw [ite_eq_left (by omega), d'_eq (fun ⟨_, is_5'⟩ => is_5 is_5')
           (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sigma ⟨side_glued, sib_sigma⟩)]
         -- side `j₀` ends before side 5 begins
         have side_ends := pos_mono (L μ.c₀) (show μ.j₀ + 1 ≤ 5 by omega)
@@ -427,16 +427,16 @@ theorem A_eq {c : Nat} (c_lt : c < nk T) : (G₁).A c = (μ.cut T L).sh c ((G₀
         have same_len := move_ok.L₁ side_glued
         rw [move_ok.pos_c₁ side_glued]
         by_cases is_5 : μ.j₁ T = 5
-        · rw [if_neg (by omega)]
+        · rw [ite_eq_right (by omega)]
           -- side `j₁` is side 5
           have pos_5 : pos (L (μ.c₁ T)) (μ.j₁ T) = pos (L (μ.c₁ T)) 5 := by rw [is_5]
           rw [d'_c₁ side_glued is_sigma is_5 (fun ⟨c₀_sigma, _⟩ => c₀_not_sigma c₀_sigma)]
           rcases move_ok.cut₁ side_glued is_sigma is_5 with cut_after | cut_before
-          · rw [if_neg (show ¬ μ.r₁ L + 2 ≤ d by omega), move_ok.sh₁_le side_glued (by omega)]; omega
-          · rw [if_pos cut_before, move_ok.sh₁_gt side_glued (by omega)]; omega
+          · rw [ite_eq_right (show ¬ μ.r₁ L + 2 ≤ d by omega), move_ok.sh₁_le side_glued (by omega)]; omega
+          · rw [ite_eq_left cut_before, move_ok.sh₁_gt side_glued (by omega)]; omega
         -- side `j₁` is one of the six sides, and not side 5
         · have j₁_lt := (move_ok.sib side_glued).2.1
-          rw [if_pos (by omega)]
+          rw [ite_eq_left (by omega)]
           rw [d'_eq (fun ⟨c₀_sigma, _⟩ => c₀_not_sigma c₀_sigma) (fun ⟨_, _, is_5'⟩ => is_5 is_5')]
           -- side `j₁` ends before side 5 begins
           have side_ends := pos_mono (L (μ.c₁ T)) (show μ.j₁ T + 1 ≤ 5 by omega)
@@ -450,7 +450,7 @@ theorem A_eq {c : Nat} (c_lt : c < nk T) : (G₁).A c = (μ.cut T L).sh c ((G₀
           is_c₁ ⟨side_glued, move_ok.sig1 _ _ c_lt (move_ok.sib side_glued).1 is_sigma sib_sigma⟩
         rw [move_ok.pos_other is_c₀ is_c₁, d'_eq (fun ⟨c₀_sigma, _⟩ => c₀_not_sigma c₀_sigma)
           (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sigma ⟨side_glued, sib_sigma⟩), move_ok.sh_oth is_c₀ is_c₁]
-  · rw [if_neg is_sigma, if_neg is_sigma]
+  · rw [ite_eq_right is_sigma, ite_eq_right is_sigma]
     by_cases is_c₀ : c = μ.c₀
     · subst is_c₀; rw [move_ok.sh₀_le (by omega)]
     · by_cases is_c₁ : μ.two T = true ∧ c = μ.c₁ T
@@ -470,7 +470,7 @@ theorem A_clear₀ {c : Nat} (c_lt : c < nk T) (is_c₀ : c = μ.c₀) :
   -- side `j₀` is one of the six sides
   have j₀_lt := move_ok.j₀
   by_cases is_sigma : kidAt T μ.c₀ = .Sigma
-  · rw [if_pos is_sigma]
+  · rw [ite_eq_left is_sigma]
     obtain ⟨d_ge, d_le⟩ := move_ok.sig _ c_lt is_sigma
     by_cases is_5 : μ.j₀ = 5
     -- side `j₀` is side 5, and the cut is clear of the corner
@@ -479,7 +479,7 @@ theorem A_clear₀ {c : Nat} (c_lt : c < nk T) (is_c₀ : c = μ.c₀) :
     -- side `j₀` ends before side 5 begins
     · have side_ends := pos_mono (L μ.c₀) (show μ.j₀ + 1 ≤ 5 by omega)
       rw [pos_succ] at side_ends; omega
-  · rw [if_neg is_sigma]; omega
+  · rw [ite_eq_right is_sigma]; omega
 
 /-- The cut edge is not the first edge of the sibling's side. -/
 theorem r₁_ge : 1 ≤ μ.r₁ L := by
@@ -509,7 +509,7 @@ theorem A_clear₁ (side_glued : μ.two T = true) {c : Nat} (c_lt : c < nk T) (i
   -- side `j₁` is one of the six sides
   have j₁_lt := (move_ok.sib side_glued).2.1
   by_cases is_sigma : kidAt T (μ.c₁ T) = .Sigma
-  · rw [if_pos is_sigma]
+  · rw [ite_eq_left is_sigma]
     obtain ⟨d_ge, d_le⟩ := move_ok.sig _ c_lt is_sigma
     by_cases is_5 : μ.j₁ T = 5
     -- side `j₁` is side 5, and the cut is clear of the corner
@@ -518,7 +518,7 @@ theorem A_clear₁ (side_glued : μ.two T = true) {c : Nat} (c_lt : c < nk T) (i
     -- side `j₁` ends before side 5 begins
     · have side_ends := pos_mono (L (μ.c₁ T)) (show μ.j₁ T + 1 ≤ 5 by omega)
       rw [pos_succ] at side_ends; omega
-  · rw [if_neg is_sigma]; omega
+  · rw [ite_eq_right is_sigma]; omega
 
 /-- Second corners agree. -/
 theorem B_eq {c : Nat} (c_lt : c < nk T) : (G₁).B c = (μ.cut T L).sh c ((G₀).B c) := by
@@ -545,9 +545,9 @@ theorem B_eq {c : Nat} (c_lt : c < nk T) : (G₁).B c = (μ.cut T L).sh c ((G₀
     · exact clear.1 at_cut
     · exact clear.2 at_cut
   by_cases B_after_A : ω = true
-  · rw [if_pos B_after_A, if_pos B_after_A]
+  · rw [ite_eq_left B_after_A, ite_eq_left B_after_A]
     exact move_ok.cutOK.nxt_sh A_lt (not_cut₀ 0 (by omega)) (not_cut₁ 0 (by omega))
-  · rw [if_neg B_after_A, if_neg B_after_A]
+  · rw [ite_eq_right B_after_A, ite_eq_right B_after_A]
     exact move_ok.cutOK.prv_sh A_lt (not_cut₀ 1 (by omega)) (not_cut₁ 1 (by omega))
 
 /-- The gluing along the lengthened side `j₀` of `c₀`. -/
@@ -558,7 +558,7 @@ theorem mate_hit₀ {o : Nat} (o_lt : o < L μ.c₀ μ.j₀ + 2) :
   have r₀_le := move_ok.r₀'
   -- and at least one edge from its start
   have r₀_ge := move_ok.r₀
-  rw [move_ok.pos_c₀, if_neg (Nat.lt_irrefl _), Nat.add_zero]
+  rw [move_ok.pos_c₀, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero]
   -- `c₀` is not the sibling, so none of its edges is the sibling's cut edge
   have not_cut₁ : ∀ k, ¬ (μ.two T = true ∧ μ.c₀ = μ.c₁ T ∧ k = pos (L (μ.c₁ T)) (μ.j₁ T) + μ.r₁ L) :=
     fun _ ⟨side_glued, same, _⟩ => (move_ok.sib side_glued).2.2.1 same.symm
@@ -573,35 +573,35 @@ theorem mate_hit₀ {o : Nat} (o_lt : o < L μ.c₀ μ.j₀ + 2) :
     show ((Comp.ofLens T L d ω).mate μ.c₀ (pos (L μ.c₀) μ.j₀ + q)).map _ = _
     rw [ofLens_mate move_ok.pos_len move_ok.c₀ move_ok.j₀ q_lt, adj₀]
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued, if_pos side_glued]; simp only [Option.map_some, move_ok.L₁ side_glued]
-    · rw [if_neg side_glued, if_neg side_glued]; rfl
+    · rw [ite_eq_left side_glued, ite_eq_left side_glued]; simp only [Option.map_some, move_ok.L₁ side_glued]
+    · rw [ite_eq_right side_glued, ite_eq_right side_glued]; rfl
   rw [adj₀]
   rcases (show o < μ.r₀ ∨ (μ.r₀ ≤ o ∧ o ≤ μ.r₀ + 2) ∨ μ.r₀ + 2 < o by omega) with before | at_cut | after
   · rw [← move_ok.sh₀_le (p := pos (L μ.c₀) μ.j₀ + o) (by omega), old o (by omega) (by omega)]
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued, if_pos side_glued]; simp only [Option.map_some]
-      rw [move_ok.pos_c₁ side_glued, if_neg (Nat.lt_irrefl _), Nat.add_zero, lens,
-        if_pos ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued,
+    · rw [ite_eq_left side_glued, ite_eq_left side_glued]; simp only [Option.map_some]
+      rw [move_ok.pos_c₁ side_glued, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero, lens,
+        ite_eq_left ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued,
         move_ok.sh₁_gt side_glued (by simp only [r₁]; omega)]
       congr 2; omega
-    · rw [if_neg side_glued, if_neg side_glued]; rfl
+    · rw [ite_eq_right side_glued, ite_eq_right side_glued]; rfl
   · obtain ⟨i, i_le, rfl⟩ : ∃ i, i ≤ 2 ∧ o = μ.r₀ + i := ⟨o - μ.r₀, by omega, by omega⟩
     rw [show pos (L μ.c₀) μ.j₀ + (μ.r₀ + i) = pos (L μ.c₀) μ.j₀ + μ.r₀ + i by omega, move_ok.smate_new₀ i_le]
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued, if_pos side_glued]; simp only [Option.map_some]
-      rw [move_ok.pos_c₁ side_glued, if_neg (Nat.lt_irrefl _), Nat.add_zero, lens,
-        if_pos ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued]
+    · rw [ite_eq_left side_glued, ite_eq_left side_glued]; simp only [Option.map_some]
+      rw [move_ok.pos_c₁ side_glued, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero, lens,
+        ite_eq_left ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued]
       simp only [r₁]; congr 2; omega
-    · rw [if_neg side_glued, if_neg side_glued]; rfl
+    · rw [ite_eq_right side_glued, ite_eq_right side_glued]; rfl
   · rw [show pos (L μ.c₀) μ.j₀ + o = pos (L μ.c₀) μ.j₀ + (o - 2) + 2 by omega,
       ← move_ok.sh₀_gt (p := pos (L μ.c₀) μ.j₀ + (o - 2)) (by omega), old (o - 2) (by omega) (by omega)]
     by_cases side_glued : μ.two T = true
-    · rw [if_pos side_glued, if_pos side_glued]; simp only [Option.map_some]
-      rw [move_ok.pos_c₁ side_glued, if_neg (Nat.lt_irrefl _), Nat.add_zero, lens,
-        if_pos ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued,
+    · rw [ite_eq_left side_glued, ite_eq_left side_glued]; simp only [Option.map_some]
+      rw [move_ok.pos_c₁ side_glued, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero, lens,
+        ite_eq_left ((move_ok.hit_c₁ side_glued).mpr rfl), move_ok.L₁ side_glued,
         move_ok.sh₁_le side_glued (by simp only [r₁]; omega)]
       congr 2; omega
-    · rw [if_neg side_glued, if_neg side_glued]; rfl
+    · rw [ite_eq_right side_glued, ite_eq_right side_glued]; rfl
 
 /-- The gluing along the lengthened side `j₁` of the sibling `c₁`. -/
 theorem mate_hit₁ (side_glued : μ.two T = true) {o : Nat} (o_lt : o < L μ.c₀ μ.j₀ + 2) :
@@ -616,8 +616,8 @@ theorem mate_hit₁ (side_glued : μ.two T = true) {o : Nat} (o_lt : o < L μ.c�
   -- the offset of the cut edge in the sibling's side
   have r₁_eq : μ.r₁ L = L μ.c₀ μ.j₀ - 1 - μ.r₀ := rfl
   obtain ⟨c₁_lt, j₁_lt, c₁_ne, glued_back⟩ := move_ok.sib side_glued
-  rw [move_ok.pos_c₁ side_glued, if_neg (Nat.lt_irrefl _), Nat.add_zero, glued_back]; simp only [Option.map_some]
-  rw [move_ok.pos_c₀, if_neg (Nat.lt_irrefl _), Nat.add_zero, lens, if_pos (move_ok.hit_c₀.mpr rfl)]
+  rw [move_ok.pos_c₁ side_glued, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero, glued_back]; simp only [Option.map_some]
+  rw [move_ok.pos_c₀, ite_eq_right (Nat.lt_irrefl _), Nat.add_zero, lens, ite_eq_left (move_ok.hit_c₀.mpr rfl)]
   -- the sibling is not `c₀`, so none of its edges is the cut edge of `c₀`
   have not_cut₀ : ∀ k, ¬ (μ.c₁ T = μ.c₀ ∧ k = pos (L μ.c₀) μ.j₀ + μ.r₀) := fun _ ⟨same, _⟩ => c₁_ne same
   -- an old edge of side `j₁` other than the cut edge is glued as Table 2 says, with positions moved on
@@ -651,13 +651,13 @@ theorem mate_eq {c k : Nat} (c_lt : c < nk T) (k_lt : k < (G₁).E c) : (G₁).m
   by_cases side_hit : μ.Hit T c j
   -- a lengthened side: the offset, against the old length plus 2
   · have o_lt_old := o_lt
-    simp only [lens, if_pos side_hit] at o_lt_old
+    simp only [lens, ite_eq_left side_hit] at o_lt_old
     rcases side_hit with ⟨rfl, rfl⟩ | ⟨side_glued, rfl, rfl⟩
     · exact move_ok.mate_hit₀ o_lt_old
     · rw [move_ok.L₁ side_glued] at o_lt_old; exact move_ok.mate_hit₁ side_glued o_lt_old
   -- a side that is not lengthened keeps its length
   · have unchanged : ∀ c j, ¬ μ.Hit T c j → μ.lens T L c j = L c j := fun c j not_hit => by
-      simp only [lens]; rw [if_neg not_hit, Nat.add_zero]
+      simp only [lens]; rw [ite_eq_right not_hit, Nat.add_zero]
     rw [unchanged c j side_hit] at o_lt
     rw [← move_ok.sh_side c_lt j_lt o_lt side_hit]
     -- the edge is not the cut edge of `c₀`, which lies in a lengthened side

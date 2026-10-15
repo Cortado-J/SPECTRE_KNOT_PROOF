@@ -51,6 +51,7 @@ open SpectreKnot
 #print axioms Statement.good
 #print axioms Statement.theoremA
 #print axioms Statement.loopPatch_closed
+#print axioms Statement.compose_no_default
 -- Theorem B (the statement file's `TheoremB`, `TheoremB_sharp`): the junction map (Computation 9.2, Lemma 9.3) at every
 -- level, then the nest
 #print axioms Statement.step_base

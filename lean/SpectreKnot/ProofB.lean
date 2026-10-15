@@ -71,7 +71,7 @@ theorem stretch_eq {m : Nat} (m_pos : 1 ≤ m) {u : Nat} (after_two : pos (Lk m 
       -- the end of edge `u - 1` is vertex `u`
       have next_vertex : nxt (pos (Lk m .Delta 1) 6) (pos (Lk m .Delta 1) 2 + Lk m .Delta 1 2 - 1 -
           (pos (Lk m .Delta 1) 3 - u)) = u := by
-        simp only [nxt]; rw [if_neg (by omega)]; omega
+        simp only [nxt]; rw [ite_eq_right (by omega)]; omega
       simp only [gR, stp, edge_at, ofLens_E (show 1 < nk .Delta by decide), next_vertex]
     rw [gR_eq, iota1]
   · rw [Bool.not_true, kids.bport_L stp_lt]
@@ -80,7 +80,7 @@ theorem stretch_eq {m : Nat} (m_pos : 1 ≤ m) {u : Nat} (after_two : pos (Lk m 
         jpos (Lk m .Delta) 16 + (pos (Lk m .Delta 1) 3 - u - 1) := by
       -- `stp u` is not rim position 0
       have stp_ne : stp (Lk m .Delta) u ≠ 0 := by simp only [stp]; omega
-      simp only [prv]; rw [if_neg stp_ne]; simp only [stp]; omega
+      simp only [prv]; rw [ite_eq_right stp_ne]; simp only [stp]; omega
     -- the parent's rim edge there is child 1's edge `u`
     have edge_at := ownGo16 (Lk m .Delta) (i := pos (Lk m .Delta 1) 3 - u - 1) (by omega)
     -- so the gluing's port there is `R` at child 1's vertex `u`
@@ -225,7 +225,7 @@ theorem tgt_none {ω : Bool} {f : Nat → Nat} {u : Nat} {s : Bool} (tgt_eq : tg
     pos f 2 < u ∧ u < pos f 3 := by
   unfold tgt at tgt_eq
   revert tgt_eq
-  cases ω <;> simp only [Bool.false_eq_true, if_false, if_true] <;> (repeat' split) <;> intro tgt_eq <;>
+  cases ω <;> simp only [Bool.false_eq_true, ite_false, ite_true] <;> (repeat' split) <;> intro tgt_eq <;>
     first | omega | (exfalso; simp at tgt_eq)
 
 /-- For `ω = true` the map names only junctions 17, 9, 16 and 12. -/
@@ -233,7 +233,7 @@ theorem tgt_vals_t {f : Nat → Nat} {u : Nat} {s : Bool} {q : Nat} (tgt_eq : tg
     q = 17 ∨ q = 9 ∨ q = 16 ∨ q = 12 := by
   unfold tgt at tgt_eq
   revert tgt_eq
-  cases s <;> simp only [if_true] <;> (repeat' split) <;> intro tgt_eq <;>
+  cases s <;> simp only [ite_true] <;> (repeat' split) <;> intro tgt_eq <;>
     simp only [Option.some.injEq, reduceCtorEq] at tgt_eq <;> omega
 
 /-- For `ω = false` the map names only junctions 21, 16 and 17. -/
@@ -241,7 +241,7 @@ theorem tgt_vals_f {f : Nat → Nat} {u : Nat} {s : Bool} {q : Nat} (tgt_eq : tg
     q = 21 ∨ q = 16 ∨ q = 17 := by
   unfold tgt at tgt_eq
   revert tgt_eq
-  cases s <;> simp only [Bool.false_eq_true, if_false] <;> (repeat' split) <;> intro tgt_eq <;>
+  cases s <;> simp only [Bool.false_eq_true, ite_false] <;> (repeat' split) <;> intro tgt_eq <;>
     simp only [Option.some.injEq, reduceCtorEq] at tgt_eq <;> omega
 
 /-- **The first step**: one level up, every port of `N_b` reaches a hook inside side 2, 3 or 4 of `N_{b+1}` (if
