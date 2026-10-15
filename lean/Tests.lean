@@ -204,4 +204,14 @@ def chainCount (m k : Nat) : Nat :=
 -- is not built into the definitions.
 #guard [chainCount 1 1, chainCount 1 2, chainCount 1 3] == [32, 3, 3]
 
+-- the Grandparent Lemma on instances: every vertex of every tile of N_1 is surrounded in N_3, and of N_2 in N_4; but not
+-- one level up (side 2 of N_b lies on the rim of N_{b+1}). So "surrounded" is not built into the definitions.
+def surroundedIn (P : Patch) (t i : Nat) : Bool :=
+  (List.range 30).any fun n => 0 < n && P.turns n (t, i) == some (t, i)
+def nestSurrounded (b k : Nat) : Bool :=
+  let P := ((mlevels (b + k))[kindIdx .Delta]!).toPatch
+  (List.range (nestTiles b)).all fun t => (List.range 14).all fun i => surroundedIn P (t + nestOff b k) i
+#guard nestSurrounded 1 2 && nestSurrounded 2 2
+#guard !nestSurrounded 1 1 && !nestSurrounded 2 1
+
 end StatementTests

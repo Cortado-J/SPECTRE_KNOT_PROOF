@@ -230,3 +230,54 @@ def check_numbers(results, pdf_path):
             bad.append(needle)
     if bad:
         raise SystemExit('numbering differs from the PDF (rebuild the paper, or fix texparse.py): ' + '; '.join(bad))
+
+
+def pdf_pages(results, pdf_path):
+    """Where things begin in the built PDF: {(kind, number): page} for every result found, {section number: page}
+    from the PDF's outline, the number of pages, and {table number: page} from the tables' captions ('Table 2.' opening
+    a line; a reference in the text has no full stop after the number, or comes later). A result's heading is bold (italic for the kinds amsthm sets in the remark style) and opens
+    a line, followed by its title or a full stop; references in running text are upright, or italic inside a theorem,
+    which is why italic counts only for kinds that never appear in bold. Fails if the pages do not rise in the paper's
+    order, which would mean a heading was misread."""
+    import pymupdf
+    kinds = sorted({r['kind'] for r in results})
+    pat = re.compile(r'^(%s)\s+([0-9]+\.[0-9]+|[A-Z])\s*[.(]' % '|'.join(kinds))
+    doc = pymupdf.open(str(pdf_path))
+    bold, italic, tables = {}, {}, {}
+    for pno in range(doc.page_count):
+        for block in doc[pno].get_text('dict')['blocks']:
+            for line in block.get('lines', []):
+                spans = [s for s in line['spans'] if s['text'].strip()]
+                if not spans:
+                    continue
+                head = re.sub(r'\s+', ' ', ' '.join(s['text'] for s in spans[:4])).strip()
+                t = re.match(r'^Table (\d+)\. ', head)
+                if t:
+                    tables.setdefault(t.group(1), pno + 1)
+                m = pat.match(head)
+                if not m:
+                    continue
+                if spans[0]['flags'] & 16:
+                    bold.setdefault((m.group(1), m.group(2)), pno + 1)
+                elif spans[0]['flags'] & 2:
+                    italic.setdefault((m.group(1), m.group(2)), pno + 1)
+    in_bold = {k for k, _ in bold}
+    found = dict(bold)
+    for key, page in italic.items():
+        if key[0] not in in_bold:
+            found.setdefault(key, page)
+    last = 0
+    for r in results:
+        page = found.get((r['kind'], r['number']))
+        if page is None:
+            continue
+        if page < last:
+            raise SystemExit('pdf_pages: %s %s is on page %d, before the result above it (page %d)'
+                             % (r['kind'], r['number'], page, last))
+        last = page
+    secs = {}
+    for _, title, page in doc.get_toc():
+        m = re.match(r'^(?:Appendix\s+)?([0-9]+(?:\.[0-9]+)?|[A-Z])\.\s', title)
+        if m:
+            secs[m.group(1)] = page
+    return found, secs, doc.page_count, tables

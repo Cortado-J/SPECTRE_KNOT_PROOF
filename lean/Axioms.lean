@@ -64,6 +64,20 @@ open SpectreKnot
 #print axioms Statement.no_boundary
 #print axioms Statement.theoremB_sharp
 #print axioms Statement.theoremB
+-- The bound is exact (the statement file's `TheoremB_exact`, the last two rows of Table 5): hooks at different
+-- vertices lie on different strands, and each of the two strands is reached
+#print axioms Statement.Patch.Linked.ends
+#print axioms Statement.hooks_apart
+#print axioms Statement.theoremB_exact
+-- The Grandparent Lemma (the statement file's `Grandparent`, Lemma 8.3(a) at tile vertices): every supertile is a disc
+-- at its rim, and the tables make every vertex of N_b surrounded in N_{b+2}; negative control
+#print axioms Statement.Patch.surrounded_or_chain
+#print axioms Statement.Kids.rimChains
+#print axioms Statement.level1Chains
+#print axioms Statement.chains_super
+#print axioms Statement.delta_cycles
+#print axioms Statement.grandparent
+#print axioms Statement.rim_not_surrounded
 -- Theorem B, final form (the statement file's `NestModel`, `TheoremB_strand`): the nest tiling as one patch, and
 -- Lemma 3.4 applied to it
 #print axioms Statement.super_noSelf

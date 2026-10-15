@@ -2,6 +2,7 @@
  "_about": "Written by proofmap/build.py in SPECTRE_KNOT_PROOF. The addresses of the proof site that the public site may link to.",
  "base": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/",
  "statement": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/statement.html",
+ "lean": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#lean",
  "paper": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/downloads/The-Spectre-Knot-paper.pdf",
  "code": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/downloads/The-Spectre-Knot-proof-code.zip",
  "steps": {

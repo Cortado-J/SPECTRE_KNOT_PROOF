@@ -32,3 +32,6 @@ import SpectreKnot.NestStep
 import SpectreKnot.ProofB
 import SpectreKnot.ProofStrand
 import SpectreKnot.ProofChain
+import SpectreKnot.ProofExact
+import SpectreKnot.Turn
+import SpectreKnot.ProofGrand

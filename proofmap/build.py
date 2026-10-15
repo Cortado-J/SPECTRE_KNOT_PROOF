@@ -13,6 +13,7 @@ the public site's Prove page) and proofmap/status.html (the line about AI, linki
     python3 proofmap/build.py --site DIR   # the site into DIR
 """
 import html
+import io
 import json
 import re
 import shutil
@@ -56,6 +57,8 @@ class Tex:
         self.bib = bib
         self.pages = set()
         self.figpages = set()
+        self.secnums = set()      # sections with a place in the contents
+        self.tabpages = {}        # table number -> page of the PDF
 
     def refname(self, lab, cap):
         info = self.labels.get(lab)
@@ -68,10 +71,17 @@ class Tex:
                 return '<a href="#%s">%s</a>' % (rid(lab), text)
             return text
         word = {'section': 'Section', 'figure': 'Figure', 'table': 'Table', 'equation': 'Equation'}[t]
+        if t == 'section' and not n[:1].isdigit():
+            word = 'Appendix'
         if t == 'figure' and int(n) in self.figpages:
             return '<a href="#f-%s">Figure&nbsp;%s</a>' % (n, n)
         if t == 'equation':
             return '%s&nbsp;(%s)' % (word, n)
+        if t == 'section' and n in self.secnums:      # its place in the paper's contents
+            return '<a href="#sec-%s">%s&nbsp;%s</a>' % (n, word, n)
+        if t == 'table' and n in self.tabpages:      # tables are in the PDF only: its page
+            return '<a href="%s#page=%d" title="page %d of the PDF">Table&nbsp;%s</a>' % (
+                PDF_FILE, self.tabpages[n], self.tabpages[n], n)
         return '<span class="pref" title="in the paper">%s&nbsp;%s</span>' % (word, n)
 
     def ref(self, cmd, arg):
@@ -218,8 +228,56 @@ def read_bib(path):
         sur = [s.replace('\\"u', 'ü').replace("\\'a", 'á').replace("\\'c", 'ć') for s in sur]
         who = sur[0] + (' et al.' if len(sur) > 2 else (' and ' + sur[1] if len(sur) == 2 else '')) if sur else key
         title = re.sub(r'[{}]', '', f.get('title', ''))
-        bib[key] = {'short': '%s, <i>%s</i>' % (esc(who), esc(title)), 'title': title}
+        bib[key] = {'short': '%s, <i>%s</i>' % (esc(who), esc(title)), 'title': title, 'full': bib_full(f),
+                    'first': sur[0] if sur else key, 'year': f.get('year', '')}
     return bib
+
+
+def bib_text(s):
+    """A BibTeX field as HTML: accents, links, braces; maths left for MathJax."""
+    s = re.sub(r'\{\\(["\'])(\w)\}|\\(["\'])(\w)', lambda m: (m.group(2) or m.group(4)) + {'"': '\u0308', "'": '\u0301'}[
+        m.group(1) or m.group(3)], s)
+    links = []
+
+    def keep(h):
+        links.append(h)
+        return '\x00%d\x00' % (len(links) - 1)
+    s = re.sub(r'\\href\{([^}]*)\}\{([^}]*)\}', lambda m: keep('<a href="%s">%s</a>' % (esc(m.group(1)), esc(m.group(2)))), s)
+    s = re.sub(r'\\url\{([^}]*)\}', lambda m: keep('<a href="%s">%s</a>' % (esc(m.group(1)), esc(m.group(1)))), s)
+    s = re.sub(r'\\texttt\{([^}]*)\}', lambda m: keep('<code>%s</code>' % esc(m.group(1).replace('\\_', '_'))), s)
+    s = ''.join(part if part.startswith('$') else re.sub(r'[{}]', '', part)     # braces go; maths stays for MathJax
+                for part in re.split(r'(\$[^$]*\$)', s))
+    s = esc(s.replace('--', '\u2013').replace('~', '\u00a0'), quote=False)
+    s = re.sub(r'(?<![/>])arXiv:(\d{4}\.\d{4,5})', r'<a href="https://arxiv.org/abs/\1">arXiv:\1</a>', s)
+    return re.sub(r'\x00(\d+)\x00', lambda m: links[int(m.group(1))], s)
+
+
+def bib_full(f):
+    """A reference in full: authors, title, where it appeared, and its links."""
+    names = [' '.join(reversed([x.strip() for x in a.split(',', 1)])) for a in f.get('author', '').split(' and ') if a.strip()]
+    who = ', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else (names[0] if names else '')
+    where = []
+    if f.get('journal'):
+        where.append('%s %s%s (%s)' % (f['journal'], f.get('volume', ''), '(%s)' % f['number'] if f.get('number') else '',
+                                       f.get('year', '')))
+    elif f.get('booktitle'):
+        where.append('in %s' % f['booktitle'])
+    for k in ('series', 'publisher', 'address'):
+        if f.get(k) and not f.get('journal'):
+            where.append(f[k] + (' ' + f['volume'] if k == 'series' and f.get('volume') else ''))
+    if f.get('edition'):
+        where.append(f['edition'].lower() + ' edition')
+    if f.get('year') and not f.get('journal'):
+        where.append(f['year'])
+    if f.get('pages'):
+        where.append(f['pages'])
+    for k in ('howpublished', 'note'):
+        if f.get(k):
+            where.append(f[k])
+    out = '%s, <i>%s</i>, %s' % (bib_text(who), bib_text(f.get('title', '')), ', '.join(bib_text(w) for w in where))
+    if f.get('doi'):
+        out += ', <a href="https://doi.org/%s">doi:%s</a>' % (esc(f['doi']), esc(f['doi']))
+    return out + '.'
 
 
 # ---------------------------------------------------------------- small Markdown (README, Lean doc comments)
@@ -502,19 +560,58 @@ def plain(tex):
 
 
 def computations_table(body_tex, tex):
-    """Rows of the appendix table 'What was computed': labels -> (computation, scripts)."""
+    """The rows of the appendix table 'What was computed', in order, and by the labels each row names."""
     part = body_tex.split('\\subsection*{What was computed}', 1)[1]
     part = part.split('\\midrule', 1)[1].split('\\bottomrule', 1)[0]
-    rows = defaultdict(list)
+    rows, ordered = defaultdict(list), []
     for row in re.split(r'\\\\\s*\n', part):
         cells = [c.strip() for c in re.split(r'(?<!\\)&', row)]
         if len(cells) != 3:
             continue
         labs = [l.strip() for m in re.finditer(r'\\[cC]ref\{([^}]*)\}', cells[0]) for l in m.group(1).split(',')]
+        r = {'what': tex.inline(cells[1]), 'scripts': tex.inline(cells[2]), 'for': tex.inline(cells[0]),
+             'labels': labs}
+        ordered.append(r)
         for l in labs:
-            rows[l].append({'what': tex.inline(cells[1]), 'scripts': tex.inline(cells[2]),
-                            'for': tex.inline(cells[0])})
-    return rows
+            rows[l].append(r)
+    return rows, ordered
+
+
+def script_links(cell):
+    """A cell of the table 'What was computed' with each program linked to its file on GitHub, and each Lean file to
+    its page here; and the programs' paths under paper/code/. The table names a program by its folder and file
+    (`<code>dir/</code><code>file</code>`), and the next ones of the same folder by file alone."""
+    cur, paths = [''], []
+
+    def repl(m):
+        d, f = m.group(1), m.group(2)
+        if f.endswith('.lean'):
+            ok = (LEAN / 'SpectreKnot' / f).is_file()
+            return '<a href="lean-%s.html"><code>%s</code></a>' % (f[:-len('.lean')], f) if ok else m.group(0)
+        if d:
+            cur[0] = d
+        path = cur[0] + f
+        if not (ROOT / 'paper/code' / path).is_file():
+            return m.group(0)
+        paths.append(path)
+        return '<a href="%s/blob/main/paper/code/%s"><code>%s</code></a>' % (REPO_URL, path, d + f if d else f)
+    return re.sub(r'(?:<code>([\w./-]+/)</code>)?<code>([\w.-]+\.(?:js|py|lean))</code>', repl, cell), paths
+
+
+def run_logs():
+    """{program under paper/code/: [its logs]}, read from the steps of paper/code/run_all.sh."""
+    out = defaultdict(list)
+    text = (ROOT / 'paper/code/run_all.sh').read_text(encoding='utf8')
+    for m in re.finditer(r'^\s*run\s+(\S+\.log)\s+(.*)$', text, flags=re.M):
+        log, cmd = m.groups()
+        cd = re.search(r'\bcd (\w+)', cmd)
+        for tok in re.findall(r'[\w./-]+\.(?:js|py)\b', cmd):
+            path = tok if '/' in tok or not cd else cd.group(1) + '/' + tok
+            if (ROOT / 'paper/code' / path).is_file() and log not in out[path]:
+                out[path].append(log)
+    return out
+
+
 
 
 def status_box():
@@ -534,6 +631,9 @@ def build(site_dir=None):
     R = {r['label']: r for r in results if r['label']}
     tex.pages = set(R)
     sec_title = {s['number']: s['title'] for s in data['sections']}
+    res_page, sec_page, n_pdf, tab_page = texparse.pdf_pages(results, PDF)
+    tex.secnums = set(sec_title)
+    tex.tabpages = tab_page
 
     decls = leanparse.index(LEAN)
     short_index = defaultdict(list)
@@ -580,7 +680,7 @@ def build(site_dir=None):
         for c in cs:
             lean_cited_by[c].append(k)
 
-    comp_rows = computations_table(strip_body(TEX), tex)
+    comp_rows, comp_ordered = computations_table(strip_body(TEX), tex)
 
     figs = figmod.extract(PDF, OUT / 'proofmap_figs', [f['number'] for f in data['figures']])
     tex.figpages = set(figs)
@@ -703,27 +803,36 @@ def build(site_dir=None):
         (lean_lines, 'lines of Lean, not counting the generated data files'),
     ]
 
+    # where things begin in the PDF: every result's heading, every section and figure
+    pdf = {'pages': n_pdf, 'size': PDF.stat().st_size, 'res': {l: res_page.get((R[l]['kind'], R[l]['number']))
+                                                               for l in R}, 'sec': sec_page,
+           'fig': {n: img['page'] for n, img in figs.items()}}
     views = []
-    views.append(front_view(R, info, tex, notes, decls, top_svg, steps, numbers))
+    views.append(front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf))
     views.append(route_view(R, info, tex, notes, steps))
     for k in steps:
-        views.append(step_view(k, R, info, tex, notes, steps, step_svgs.get(k), geo, lean_rows))
+        views.append(step_view(k, R, info, tex, notes, steps, step_svgs.get(k), geo, lean_rows,
+                               {f['label']: (f, figs[n]) for n, f in fig_by_num.items()}))
     views.append(graph_view(R, info, graph, loose, off, linked, geo, notes, order))
-    views.append(index_view(results, info, sec_title, lean_rows, data['figures'], tex))
-    for r in results:
-        if r['label']:
-            views.append(result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title,
-                                     [(fig_by_num[n], figs[n]) for n in figs_of[r['label']]], geo))
-    for n, f in sorted(fig_by_num.items()):
-        views.append(figure_view(f, figs[n], tex, [l for l in figs_of if n in figs_of[l]], info))
-    # every declaration outside the generated data files gets a page
-    lean_pages = set(lean_all)
+    # the Lean files, in full: one page each (lean-….html beside the map)
+    files = lean_files()
+    where = {f['repo']: f['page'] for f in files}
+    lean_pages = set(lean_all)       # every declaration outside the generated data files gets a page on the map
     paper_of = defaultdict(list)
     for lab, rs in lean_rows.items():
         for row in rs:
             for n in row['decls']:
                 if lab not in paper_of[n]:
                     paper_of[n].append(lab)
+    views.append(paper_view(results, info, data['sections'], data['figures'], tex, pdf,
+                            cited_works(data, bib, info, tex)))
+    for r in results:
+        if r['label']:
+            views.append(result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title,
+                                     [(fig_by_num[n], figs[n]) for n in figs_of[r['label']]], geo, where, pdf,
+                                     [x['label'] for x in results if x['label']]))
+    for n, f in sorted(fig_by_num.items()):
+        views.append(figure_view(f, figs[n], tex, [l for l in figs_of if n in figs_of[l]], info))
     # which paper results rest on a declaration: those whose named declarations reach it through the names in
     # their proofs (textual, so a guide rather than a certificate)
     rests = defaultdict(list)
@@ -739,39 +848,64 @@ def build(site_dir=None):
                 todo.append(decls[n]['claim'])
         for n in seen:
             rests[n].append(lab)
-    views.append(lean_index_view(rows, decls, R, info, lean_all, rests, guide))
+    views.append(lean_index_view(rows, decls, R, info, lean_all, rests, guide, files, where))
     for n in lean_all:
-        views.append(lean_view(n, decls, lean_cites, lean_cited_by, lean_pages, paper_of, info, rests, guide))
-    views.append(about_view(data, decls, lean_all, rows, notes))
+        views.append(lean_view(n, decls, lean_cites, lean_cited_by, lean_pages, paper_of, info, rests, guide, where))
+    code_zip = proof_code_zip()
+    views.append(code_view(comp_ordered, files, pdf, len(code_zip)))
+    views.append(about_view(data, decls, lean_all, rows, notes, files))
 
+    views = [titled(v) for v in views]
     macros = json.dumps({k: v[0] if v[1] == 0 else [v[0], v[1]] for k, v in data['macros'].items() if k != 'code'})
-    # the search box: every numbered item of the paper, the steps of the route, every Lean declaration with a page
-    search = [['#' + rid(l), 'paper', info[l]['head'], info[l]['short']] for l in sorted(R, key=order.get)]
-    search += [['#' + sanchor(k), 'route', 'Step ' + k, notes['route'][k]['title']]
-               for k in steps]
+    # the search box: the pages themselves, every numbered item of the paper, the steps of the route, every Lean file
+    # and every Lean declaration with a page
+    search = [[h, 'page', t, d] for h, t, d in (
+        (PDF_FILE, 'The paper (PDF)', '%d pages' % n_pdf),
+        ('#paper', 'The paper: contents', 'every section and result, with its page in the PDF'),
+        ('#route', 'The route', 'the proof in ten steps'), ('#graph', 'The graph', 'every result and what it rests on'),
+        ('#lean', 'The Lean formalisation', 'every file and every declaration'),
+        (STATEMENT_FILE, 'Statement.lean, line by line', 'the statement file beside a plain reading of each piece'),
+        ('#code', 'The code', 'the repository, the downloads, and how to build and run them'),
+        ('#about', 'About this site', 'how these pages are made'))]
+    search += [['#' + rid(l), 'paper', info[l]['head'], info[l]['short'], search_text(R[l]['statement']),
+                search_text(' '.join(pr['tex'] for pr in R[l]['proofs']))] for l in sorted(R, key=order.get)]
+    search += [['#' + sanchor(k), 'route', 'Step ' + k, notes['route'][k]['title'],
+                search_text(notes['route'][k]['summary'])] for k in steps]
+    search += [[f['page'], 'file', f['rel'], re.sub(r'\*\*|`', '', f['line1']), re.sub(r'\*\*|`', '', ' '.join(
+        f['para'].split()))] for f in files]
     search += [['#' + lid(n), 'Lean', n, decls[n]['file'][len('lean/'):]] for n in lean_all]
-    global SEARCH_HINT
-    SEARCH_HINT = 'Search %d items of the paper, %d Lean names\u2026' % (len(R), len(lean_all))
+    global SEARCH_LABEL, SOURCES_DATE
+    SOURCES_DATE = sources_date()
+    SEARCH_LABEL = ('Search the paper\u2019s %d numbered items (their names, statements and proofs), the ten steps, %d '
+                    'Lean files, %d Lean declarations, and these pages' % (len(R), len(files), len(lean_all)))
+    search_js = 'window.PM_SEARCH = %s;\n' % json.dumps(search, ensure_ascii=False, separators=(',', ':'))
     page = (TEMPLATE.replace('%MACROS%', macros).replace('%VIEWS%', '\n'.join(views)).replace('%PMCSS%', PM_CSS)
-            .replace('%STATUS%', status_box()).replace('%FONTS%', FONTS)
-            .replace('%SEARCH%', json.dumps(search, ensure_ascii=False).replace('</', '<\\/')))
+            .replace('%STATUS%', status_box()).replace('%FONTS%', FONTS).replace('%SEARCHJS%', SEARCH_JS))
     OUT.mkdir(exist_ok=True)
     gparts = build_guide.prerender_parts(build_guide.assemble(guide), OUT)
     guide_html = build_guide.fill(build_guide.assemble(
-        guide, title=GUIDE_TITLE, head=FAVICON + '\n' + FONTS, css=PM_CSS + GUIDE_CSS, top=map_header(MAP_FILE, current='statement') + PM_H_SCRIPT,
-        foot=FOOTER), gparts)
-    # the artifact (its main page is served as index.html): MathJax from a public CDN, the guide beside it
-    art = page.replace('%MATHJAX%', MATHJAX_CDN).replace('%HEADER%', map_header('')).replace('%FOOTER%', FOOTER)
+        guide, title=GUIDE_TITLE, head=FAVICON + '\n' + FONTS, css=PM_CSS + GUIDE_CSS,
+        top=map_header(MAP_FILE, current='lean') + PM_H_SCRIPT + '<div class="pm-sub"><div class="in">Also: '
+        '<a href="lean-Statement.html">Statement.lean in full</a>, with every name linked to where it is declared; '
+        '<a href="%s#lean">every Lean file</a>, in reading order.</div></div>' % MAP_FILE,
+        foot=footer(MAP_FILE) + '\n<script src="search.js"></script>\n' + SEARCH_JS), gparts)
+    readers = {f['page']: lean_reader_page(f, files, decls, where, lean_pages, paper_of, info, guide) for f in files}
+    # the artifact (its main page is served as index.html): MathJax from a public CDN, the guide beside it; the Lean
+    # files' pages are not part of it
+    art = page.replace('%MATHJAX%', MATHJAX_CDN).replace('%HEADER%', map_header('')).replace('%FOOTER%', footer(''))
     (OUT / 'proofmap-artifact.html').write_text(art.replace('<!--BODY-->', ''), encoding='utf8')
     (OUT / 'artifact-statement.html').write_text(guide_html, encoding='utf8')
-    # the website: index.html and statement.html, MathJax served from the site, the figures and the downloads
+    (OUT / 'search.js').write_text(search_js, encoding='utf8')
+    # the website: index.html, statement.html and the Lean files' pages, MathJax served from the site, the figures
+    # and the downloads
     www = Path(site_dir) if site_dir else OUT / 'site'
-    write_site(page, www, guide_html)
+    write_site(page, www, guide_html, readers, code_zip, search_js)
     write_addresses(R, info, notes, linked)
     print('proof map: %d results (%d in the graph, %d not cited by number), %d Lean pages, %d KB; '
-          'Statement.lean guide: %d items; site in %s' % (len(R), len(linked), len(loose), len(lean_all),
-                                                          len(page.encode()) // 1024, len(guide['guide']['items']),
-                                                          www.relative_to(ROOT) if www.is_relative_to(ROOT) else www))
+          'Statement.lean guide: %d items; %d Lean files, %d KB; site in %s' % (
+              len(R), len(linked), len(loose), len(lean_all), len(page.encode()) // 1024, len(guide['guide']['items']),
+              len(readers), sum(len(h.encode()) for h in readers.values()) // 1024,
+              www.relative_to(ROOT) if www.is_relative_to(ROOT) else www))
 
 
 PROOF_BASE = 'https://cortado-j.github.io/SPECTRE_KNOT_PROOF/'   # this site, once the owner turns on Pages
@@ -790,44 +924,74 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">')
 MATHJAX_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.js'
 MATHJAX_LOCAL = 'assets/mathjax/tex-svg-full.js'
-NAV_ITEMS = [('map', 'Overview'), ('route', 'Route'), ('graph', 'Graph'), ('results', 'Results'), ('lean', 'Lean'),
-             ('statement', 'Statement.lean'), ('about', 'About')]
-SEARCH_HINT = 'Search by name\u2026'   # set by build() with the counts
-FOOTER = ('<footer class="pm-foot"><div class="in"><p>The tile is the straight-edged form of the spectre, discovered in '
-          '2023 by David Smith, Joseph Samuel Myers, Craig&nbsp;S. Kaplan and Chaim Goodman&#8209;Strauss. The knot: '
-          'Justin Roughley came up with the original idea of looking for a mono&#8209;stranded aperiodic knot, and then '
-          'used AI to search for it (2026). <a href="%sabout.html#licence">Licence and contact</a>.</p></div></footer>'
-          % PUBLIC_BASE)
+REPO_URL = 'https://github.com/Cortado-J/SPECTRE_KNOT_PROOF'   # the public repository this site is published from
+PDF_FILE = 'downloads/The-Spectre-Knot-paper.pdf'
+ZIP_FILE = 'downloads/The-Spectre-Knot-proof-code.zip'
+# The menu: the ways in (the paper, the argument, its structure, the Lean, the code), not the kinds of page.
+# Statement.lean and the Lean files are reached from Lean, which is marked on their pages.
+NAV_ITEMS = [('map', 'Overview'), ('paper', 'Paper'), ('route', 'Route'), ('graph', 'Graph'), ('lean', 'Lean'),
+             ('code', 'Code'), ('about', 'About')]
+SEARCH_LABEL = 'Search'   # set by build(): what the search box finds, with the counts
+SOURCES_DATE = ''         # set by build(): the date of the sources the site is built from
+
+
+def footer(base):
+    """The footer; `base` is '' on the map, or the map's file name on the pages beside it."""
+    return ('<footer class="pm-foot"><div class="in"><p>The tile is the straight-edged form of the spectre, discovered '
+            'in 2023 by David Smith, Joseph Samuel Myers, Craig&nbsp;S. Kaplan and Chaim Goodman&#8209;Strauss. The '
+            'knot: Justin Roughley came up with the original idea of looking for a mono&#8209;stranded aperiodic knot, '
+            'and then used AI to search for it (2026).</p><p class="fl"><a href="%s">The paper (PDF)</a> &middot; '
+            '<a href="%s#code">The code</a> &middot; <a href="%sabout.html#licence">Licence and contact</a>%s</p></div>'
+            '</footer>' % (PDF_FILE, base, PUBLIC_BASE, ' &middot; <span>Built from the sources of %s</span>' % SOURCES_DATE
+                           if SOURCES_DATE else ''))
 
 
 def map_nav(base, current=None):
-    """The map's navigation. `base` is '' inside the map (hash links) or the map's file name from another page; the
-    line-by-line guide is its own page."""
-    links = []
-    for k, t in NAV_ITEMS:
-        href = STATEMENT_FILE if k == 'statement' else '%s#%s' % (base, k)
-        cur = ' aria-current="page"' if k == current else ''
-        links.append('<a href="%s"%s%s>%s</a>' % (href, '' if k == 'statement' else ' data-nav="%s"' % k, cur, t))
-    return '<nav class="pm-nav" aria-label="The proof">%s</nav>' % ''.join(links)
+    """The map's navigation. `base` is '' inside the map (hash links) or the map's file name from another page."""
+    return '<nav class="pm-nav" aria-label="The proof">%s</nav>' % ''.join(
+        '<a href="%s#%s" data-nav="%s"%s>%s</a>' % (base, k, k, ' aria-current="page"' if k == current else '', t)
+        for k, t in NAV_ITEMS)
 
 
 def map_header(base, current=None):
-    """The top bar: brand, navigation, the search box (on the map itself, where the views it finds are), and the
-    link to the public site."""
-    search = ('<div class="pm-search" role="search"><input id="pm-q" type="search" placeholder="%s" autocomplete="off" '
-              'spellcheck="false" aria-label="Search the results and the Lean declarations"><div id="pm-qr" hidden>'
-              '</div></div>' % esc(SEARCH_HINT)) if base == '' else ''
-    return ('<header class="pm-top"><div class="in"><a class="pm-brand" href="%s#map"><b>The Spectre Knot</b> '
-            '<span>the proof</span></a>%s%s<a class="pm-public" href="%s">Pictures and ideas &rarr;</a></div></header>'
+    """The top bar: brand, navigation, the search box (search.js and SEARCH_JS, on every page), and the link to the
+    public site."""
+    search = ('<div class="pm-search" role="search"><input id="pm-q" type="search" placeholder="Search\u2026" '
+              'autocomplete="off" spellcheck="false" title="%s" aria-label="%s"><div id="pm-qr" hidden></div></div>'
+              % (esc(SEARCH_LABEL), esc(SEARCH_LABEL)))
+    return ('<a class="skip" href="#main">Skip to the content</a>'
+            '<header class="pm-top"><div class="in"><a class="pm-brand" href="%s#map"><b>The Spectre Knot</b> '
+            '<span>the proof</span></a>%s%s<a class="pm-public" href="%s">Pictures<span class="lg"> and ideas</span> '
+            '&rarr;</a></div></header>'
             % (base, map_nav(base, current), search, PUBLIC_BASE))
 
 
-def write_site(page, www, guide_html):
-    """The proof site: index.html (the map) and statement.html (the guide), MathJax served from the site, the
-    figures, and the paper and code as downloads."""
+def proof_code_zip():
+    """The proof's programs and logs as code/..., and the Lean formalisation as lean/..., from the files git knows
+    about; fixed dates, so the zip only changes when they do."""
+    files = subprocess.run(['git', 'ls-files', '--cached', 'paper/code', 'lean'], cwd=ROOT, capture_output=True,
+                           text=True, check=True).stdout.split()
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(files):
+            info = zipfile.ZipInfo(f[len('paper/'):] if f.startswith('paper/code/') else f, (2026, 1, 1, 0, 0, 0))
+            info.external_attr = (0o755 if f.endswith('.sh') else 0o644) << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, (ROOT / f).read_bytes())
+    return buf.getvalue()
+
+
+def write_site(page, www, guide_html, readers, code_zip, search_js):
+    """The proof site: index.html (the map), statement.html (the guide) and a page for each Lean file, MathJax served
+    from the site, the figures, and the paper and code as downloads."""
     www.mkdir(parents=True, exist_ok=True)
-    html_ = page.replace('%MATHJAX%', MATHJAX_LOCAL).replace('%HEADER%', map_header('')).replace('%FOOTER%', FOOTER)
-    html_ = html_.replace('<title>Spectre Knot Proof Map</title>', '<title>The Spectre Knot: the proof</title>\n'
+    for old in www.glob('lean-*.html'):      # a file that has gone from lean/ loses its page
+        old.unlink()
+    for name, h in readers.items():
+        (www / name).write_text(h, encoding='utf8')
+    (www / 'search.js').write_text(search_js, encoding='utf8')
+    html_ = page.replace('%MATHJAX%', MATHJAX_LOCAL).replace('%HEADER%', map_header('')).replace('%FOOTER%', footer(''))
+    html_ = html_.replace('<title>The Spectre Knot: the proof</title>', '<title>The Spectre Knot: the proof</title>\n'
                           '<meta name="description" content="Every numbered result of the proof that the Spectre Knot is '
                           'one endless strand: statement, proof, what it rests on, and the Lean that formalises it.">', 1)
     (www / MAP_FILE).write_text(HEAD + html_.replace('<!--BODY-->', '</head>\n<body>') + TAIL, encoding='utf8')
@@ -842,18 +1006,9 @@ def write_site(page, www, guide_html):
         shutil.copytree(OUT / 'proofmap_figs', figs)
     dl = www / 'downloads'
     dl.mkdir(exist_ok=True)
-    shutil.copy(PDF, dl / 'The-Spectre-Knot-paper.pdf')
+    shutil.copy(PDF, www / PDF_FILE)
     shutil.copy(HERE / 'favicon.svg', www / 'favicon.svg')
-    # the proof's programs and logs as code/..., and the Lean formalisation as lean/..., from the files git knows
-    # about; fixed dates, so the zip only changes when they do
-    files = subprocess.run(['git', 'ls-files', '--cached', 'paper/code', 'lean'], cwd=ROOT, capture_output=True,
-                           text=True, check=True).stdout.split()
-    with zipfile.ZipFile(dl / 'The-Spectre-Knot-proof-code.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-        for f in sorted(files):
-            info = zipfile.ZipInfo(f[len('paper/'):] if f.startswith('paper/code/') else f, (2026, 1, 1, 0, 0, 0))
-            info.external_attr = (0o755 if f.endswith('.sh') else 0o644) << 16
-            info.compress_type = zipfile.ZIP_DEFLATED
-            z.writestr(info, (ROOT / f).read_bytes())
+    (www / ZIP_FILE).write_bytes(code_zip)
     (www / '.nojekyll').write_text('')
 
 
@@ -874,9 +1029,8 @@ def write_addresses(R, info, notes, linked):
                   'lean': i['lean'], 'lean_part': i['lean_part'], 'step': step_of.get(l)}
     out = {'_about': 'Written by proofmap/build.py in SPECTRE_KNOT_PROOF. The addresses of the proof site that the '
                      'public site may link to.',
-           'base': PROOF_BASE, 'statement': PROOF_BASE + STATEMENT_FILE,
-           'paper': PROOF_BASE + 'downloads/The-Spectre-Knot-paper.pdf',
-           'code': PROOF_BASE + 'downloads/The-Spectre-Knot-proof-code.zip',
+           'base': PROOF_BASE, 'statement': PROOF_BASE + STATEMENT_FILE, 'lean': PROOF_BASE + '#lean',
+           'paper': PROOF_BASE + PDF_FILE, 'code': PROOF_BASE + ZIP_FILE,
            'steps': {k: v for k, v in notes['prove_steps'].items() if not k.startswith('_')}, 'results': res}
     (ROOT / 'addresses.json').write_text(json.dumps(out, ensure_ascii=False, indent=1) + '\n', encoding='utf8')
 
@@ -903,12 +1057,31 @@ PM_CSS = """
 #pm-qr a .k { display: inline-block; font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: var(--mint); border-radius: 3px; padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
 #pm-qr a .k.Lean { background: var(--leanink); }
 #pm-qr a .k.route { background: var(--sky); }
+#pm-qr a .k.file { background: #5b4a00; }
+#pm-qr a .k.page { background: var(--ink); }
 #pm-qr a .s { color: var(--mut); font-size: .8rem; margin-left: 6px; }
 #pm-qr a code { background: none; padding: 0; font-size: .82rem; word-break: break-all; }
+#pm-qr a .x { display: block; color: var(--mut); font-size: .8rem; line-height: 1.4; margin-top: 2px; }
+#pm-qr a .x b { color: var(--ink); background: #fff3c4; font-weight: 600; }
 #pm-qr p { padding: 8px 10px; margin: 0; color: var(--mut); font: .85rem var(--font); }
+.skip { position: absolute; left: -9999px; top: 0; }
+.skip:focus { left: 10px; top: 10px; z-index: 60; background: var(--surf); color: var(--mint); padding: 6px 12px; border: 2px solid var(--mint); border-radius: 6px; font: 600 .95rem var(--font); }
+main:focus { outline: none; }
 .pm-foot { border-top: 1px solid var(--line); margin-top: 40px; color: var(--faint); font: .88rem/1.5 var(--font); }
 .pm-foot .in { padding-block: 22px 36px; }
 .pm-foot p { max-width: 90ch; }
+.pm-foot .in { display: block; }
+.pm-foot p + p { margin-top: 6px; }
+@media (max-width: 640px) {   /* a phone: brand and public link, then the menu scrolling sideways, then search */
+  .pm-top .in { padding: 8px 14px; gap: 6px 10px; }
+  .pm-brand { flex: 1 1 auto; }
+  .pm-public { padding: 2px 9px; }
+  .pm-public .lg { display: none; }
+  .pm-nav { order: 3; flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 0 8px; }
+  .pm-nav::-webkit-scrollbar { display: none; }
+  .pm-nav a { white-space: nowrap; padding: 4px 8px; }
+  .pm-search { order: 4; flex-basis: 100%; max-width: none; }
+}
 """
 
 # the guide in this site's colours: its own light theme, for every viewer (the site is light only)
@@ -945,6 +1118,8 @@ html { scroll-padding-top: calc(var(--pm-h) + var(--bar-h) + 12px); }
   .ln { scroll-margin-top: calc(var(--pm-h) + 40px); }
 }
 .hero h2 { font-family: var(--font-prose); font-weight: 400; }   /* quiet headings, as on the map */
+.pm-sub { border-bottom: 1px solid var(--line); background: var(--surface); font: 14px/1.45 var(--font-ui); color: var(--ink-2); }
+.pm-sub .in { max-width: 1120px; margin: 0 auto; padding: 7px 20px; }
 """
 
 
@@ -1036,7 +1211,21 @@ def thm_card(l, R, info, tex, geo):
                 meta_line(l, R, geo)))
 
 
-def front_view(R, info, tex, notes, decls, top_svg, steps, numbers):
+WAYS = [   # the overview's first choice: how to read the proof (title, what it gives, links)
+    ('#paper', 'Read the paper', 'The whole proof as the paper sets it out: the PDF, or here, result by result, each '
+     'with its statement and proof.', [(PDF_FILE, 'the PDF of %(date)s, %(pages)d pages'), ('#paper', 'contents')]),
+    ('#route', 'Follow the argument', 'Ten steps, one for each section of the paper, each with its results and a '
+     'small graph of how they depend on each other.', []),
+    ('#graph', 'See the structure', 'Every result in one graph: what rests on what, and which are argued, computed, '
+     'cited or also in Lean.', []),
+    ('#lean', 'Read the Lean', 'The statement file line by line, beside a plain reading of each piece; then every '
+     'file of the formalisation, in full.', [(STATEMENT_FILE, 'Statement.lean'), ('#lean', 'every file')]),
+    ('#code', 'Get the code', 'The programs the computations use, with their logs, and the Lean: where they are, '
+     'and how to build and run them.', [(REPO_URL, 'GitHub'), (ZIP_FILE, 'the zip')]),
+]
+
+
+def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
     a, b = R['thm:A'], R['thm:B']
     claim = lambda r, name: (
         '<div class="pm-claim"><p class="ctop"><a href="#%s"><b>Theorem %s</b> &middot; %s</a> %s</p>'
@@ -1047,18 +1236,26 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers):
     notshown = md_block(leanparse.readme_section(README, 'What it does not show'))
     nums = ''.join('<div><b>{:,}</b><span>{}</span></div>'.format(n, t) for n, t in numbers)
     claims = (lid('Statement.TheoremA_strand'), lid('Statement.TheoremB_strand'))
+    ways = ''.join('<div class="way"><h2><a href="%s">%s</a></h2><p>%s</p>%s</div>' % (
+        href, t, d, '<p class="go">%s</p>' % ' &middot; '.join(
+            '<a href="%s">%s</a>' % (h, l % {'pages': pdf['pages'], 'date': paper_date()}) for h, l in go) if go else '')
+        for href, t, d, go in WAYS)
     return '''<section class="view" id="v-map" data-view="map">
+<div class="pm-hero">
+  <h1>The Spectre Knot theorems, proved</h1>
+  <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it.</p>
+</div>
+<div class="ways">%s</div>
+<h2 class="sh">What is proved</h2>
 <div class="hero">
 <div class="hero-l">
-  <h1>The Spectre Knot theorems, proved</h1>
-  <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling: what is proved, by which route, and how the results of the paper hang together. Every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it.</p>
   %s%s
   <p class="small">In Lean 4, the two main theorems. Their claims, <a href="#%s"><code>TheoremA_strand</code></a> and <a href="#%s"><code>TheoremB_strand</code></a>, are written out in the statement file in a combinatorial form, with patches described by which edges are glued:</p>
   <pre class="lean hero-lean">%s</pre>
-  <p class="small">The build, <code>lean/build.sh</code>, runs <code>#print axioms</code> on the main theorems (<code>lean/Axioms.lean</code>) and fails unless the answer is among Lean&rsquo;s standard three, <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: no <code>sorryAx</code>, no <code>Lean.ofReduceBool</code>.</p>
+  <p class="small">The build, <code>lean/build.sh</code>, runs <code>#print axioms</code> on the main theorems (<a href="lean-Axioms.html"><code>lean/Axioms.lean</code></a>) and fails unless the answer is among Lean&rsquo;s standard three, <code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>: no <code>sorryAx</code>, no <code>Lean.ofReduceBool</code>.</p>
   <p class="small">That actual spectre tilings are glued as the formal statements assume is argued in the paper, not formalised: <a href="#notcovered">what the Lean does not cover</a>.</p>
   %%STATUS%%
-  <p class="badges"><a class="badge root" href="#%s">Theorem A&rsquo;s page &rarr;</a> <a class="badge root" href="#%s">Theorem B&rsquo;s page &rarr;</a> <a class="badge" href="#route">the route, step by step</a> <a class="badge" href="#graph">the graph</a> <a class="badge" href="downloads/The-Spectre-Knot-paper.pdf">the paper (PDF)</a> <a class="badge" href="%s">Statement.lean, line by line</a></p>
+  <p class="badges"><a class="badge root" href="#%s">Theorem A&rsquo;s page &rarr;</a> <a class="badge root" href="#%s">Theorem B&rsquo;s page &rarr;</a></p>
 </div>
 <figure class="figure topfig"><div class="figsvg">%s</div><figcaption>The top of the proof. Premises above conclusions: an arrow runs from a result to one whose proof cites it, possibly through results not drawn here. Click any card; <a href="#graph">the whole graph</a>.</figcaption></figure>
 </div>
@@ -1076,23 +1273,50 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers):
 <p class="small mut">From <code>lean/README.md</code>.</p>
 <div class="md small">%s</div></div>
 </div>
-<h2 class="sh">How to use these pages</h2>
+<h2 class="sh">Marks</h2>
 <ul class="md howto">
-<li><b>Search</b> (in the top bar) matches any part of a result&rsquo;s number or name, or of a Lean declaration&rsquo;s name.</li>
-<li>A <b>result&rsquo;s page</b> shows its statement and proof as the paper gives them, what it cites and what cites it, one shortest chain of citations up to a main theorem, the Lean declarations that formalise it, the programs that compute it, and the step of the public site&rsquo;s Prove page that explains it with pictures.</li>
-<li>The <a href="#route">route</a> takes the proof in ten steps, each with the statements of its results and a small graph; the <a href="#graph">graph</a> shows all the results at once, with a table; <a href="#results">Results</a> lists everything numbered in the paper, in its order.</li>
-<li><a href="#lean">Lean</a> lists the paper-to-Lean table and every declaration, each with its own page; <a href="%s">Statement.lean</a> reads the statement file line by line.</li>
-<li>Marks: <span class="st proved">argued</span> proved in words in the paper; <span class="st computed">computed</span> a finite check done by program; <span class="st cited">cited</span> from the spectre paper; <span class="st lean">Lean</span> also checked by the Lean proof assistant (<span class="st lean part">Lean, in part</span> where it checks part). <i>Rests on</i> counts everything below a result in the graph; <i>depth</i> is the length of a shortest chain of citations from it up to Theorem A or B.</li>
+<li><span class="st proved">argued</span> proved in words in the paper; <span class="st computed">computed</span> a finite check done by program; <span class="st cited">cited</span> from the spectre paper; <span class="st lean">Lean</span> also checked by the Lean proof assistant (<span class="st lean part">Lean, in part</span> where it checks part).</li>
+<li><i>Rests on</i> counts everything below a result in the graph; <i>depth</i> is the length of a shortest chain of citations from it up to Theorem A or B.</li>
+<li><b>Search</b>, in the top bar, finds a result by number or name, a step of the route, a Lean file or declaration, and these pages.</li>
 </ul>
-</section>''' % ((claim(a, 'the Daedalus Theorem'), claim(b, 'the Ariadne Theorem')) + claims + (
-                  lean_html(lean_st), rid('thm:A'), rid('thm:B'), STATEMENT_FILE, top_svg, PUBLIC_BASE,
+</section>''' % ((ways, claim(a, 'the Daedalus Theorem'), claim(b, 'the Ariadne Theorem')) + claims + (
+                  lean_html(lean_st), rid('thm:A'), rid('thm:B'), top_svg, PUBLIC_BASE,
                   nums, rlink_head('thm:signature', info), rlink_head('thm:A', info),
-                  rlink_head('thm:B', info), STATEMENT_FILE, notshown, STATEMENT_FILE))
+                  rlink_head('thm:B', info), STATEMENT_FILE, notshown))
+
+
 
 
 def method_tex():
     """The paper's 'The method' (in its introduction), as LaTeX."""
     return strip_body(TEX).split('\\subsection*{The method}', 1)[1].split('\\subsection*', 1)[0]
+
+
+def scope_html(R, info, tex, geo, figs_by_label):
+    """The paper's last section (what is covered) in full, as step 10 shows it: its unnumbered subsections, with its
+    remark as a card and its figure in place."""
+    body = strip_body(TEX).split('\\label{sec:scope}', 1)[1].split('\\appendix', 1)[0]
+    n = [0]
+
+    def item(m):   # the open questions are numbered straight through the section, (1), (2), ...
+        n[0] += 1
+        return '\\item[(%d)]' % n[0]
+    body = re.sub(r'\\item\b', item, body)
+    out = []
+    pieces = re.split(r'\\subsection\*\{([^}]*)\}', body)
+    for k in range(1, len(pieces), 2):
+        out.append('<h3 class="ch">%s</h3>' % tex.inline(pieces[k]))
+        text = pieces[k + 1]
+        for m in re.finditer(r'\\begin\{(remark|figure)\}.*?\\label\{([^}]*)\}.*?\\end\{\1\}|([^\\]|\\(?!begin\{(?:remark|figure)\}))+',
+                             text, flags=re.S):
+            if m.group(1) == 'remark':
+                out.append(thm_card(m.group(2), R, info, tex, geo))
+            elif m.group(1) == 'figure':
+                if m.group(2) in figs_by_label:
+                    out.append(fig_html(*figs_by_label[m.group(2)], tex))
+            elif m.group(0).strip():
+                out.append('<div class="prose method">%s</div>' % tex.block(m.group(0)))
+    return '\n'.join(out)
 
 
 def route_view(R, info, tex, notes, steps):
@@ -1118,7 +1342,7 @@ def step_nav(k, steps, notes):
     return '<p class="small stepnav">%s<span>%s</span></p>' % (prev, nxt)
 
 
-def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows):
+def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label):
     labels = notes['prove_steps'][k]
     rt = notes['route'][k]
     parts = ['<section class="view" id="v-%s" data-view="%s" hidden>' % (sanchor(k), sanchor(k)),
@@ -1134,7 +1358,11 @@ def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows):
                      '<p class="small mut gl">Solid cards are the results of this step; dashed cards are results of '
                      'neighbouring steps they connect to. Premises above conclusions; an arrow may pass through results '
                      'not drawn here. Click a card for its page.</p><div class="graphbox">%s</div>' % svg)
-    if labels:
+    if k == LABELS['sec:scope']['number']:   # the last section: what is covered, in full, its remark in place
+        parts.append('<h2 class="sh">What is covered, as the paper&rsquo;s &sect;%s states it</h2>'
+                     '<p class="small mut gl">The whole section; its one numbered item, %s, is in its place.</p>%s' % (
+                         k, rlink_head(labels[0], info) if labels else '', scope_html(R, info, tex, geo, figs_by_label)))
+    elif labels:
         parts.append('<h2 class="sh">The results of this step <span class="mut small">(%s)</span></h2>'
                      % counts(labels, R, info))
         parts += [thm_card(l, R, info, tex, geo) for l in labels]
@@ -1159,8 +1387,8 @@ def graph_view(R, info, graph, loose, off, linked, geo, notes, order):
     rows = []
     for l in sorted(linked, key=order.get):
         st = geo['step_of'].get(l)
-        rows.append('<tr><td>%s</td><td>%s</td><td class="n">%d</td><td class="n">%s</td><td>%s</td></tr>' % (
-            rlink(l, info), '<a href="#%s">%s</a>' % (sanchor(st), st) if st else '&ndash;', len(geo['below'][l]),
+        rows.append('<tr data-m="%s"><td>%s</td><td>%s</td><td class="n">%d</td><td class="n">%s</td><td>%s</td></tr>' % (
+            marks_of(R[l], info), rlink(l, info), '<a href="#%s">%s</a>' % (sanchor(st), st) if st else '&ndash;', len(geo['below'][l]),
             len(geo['up'][l]) - 1 if l in geo['up'] else '&ndash;', chips(info[l])))
     return '''<section class="view" id="v-graph" data-view="graph" hidden>
 <nav class="crumbs small"><a href="#map">Overview</a></nav>
@@ -1177,54 +1405,239 @@ def graph_view(R, info, graph, loose, off, linked, geo, notes, order):
 %s
 <h2 class="sh">The results as a table</h2>
 <p class="small mut gl"><i>Step</i>: the step of the route. <i>Rests on</i>: the results below it in the graph. <i>Depth</i>: the length of a shortest chain of citations from it up to Theorem A or B.</p>
-<div class="tablebox"><table class="lt"><thead><tr><th>result</th><th>step</th><th>rests on</th><th>depth</th><th>marks</th></tr></thead><tbody>%s</tbody></table></div>
-</section>''' % (len(linked), graph, ''.join('<p class="mut small gl">%s</p>' % t for t in below), ''.join(rows))
+%s<div class="tablebox"><table class="lt"><thead><tr><th>result</th><th>step</th><th>rests on</th><th>depth</th><th>marks</th></tr></thead><tbody id="gtable">%s</tbody></table></div>
+</section>''' % (len(linked), graph, ''.join('<p class="mut small gl">%s</p>' % t for t in below),
+                 mark_filter('gtable', [marks_of(R[l], info) for l in linked]), ''.join(rows))
 
 
-def index_view(results, info, sec_title, lean_rows, figures, tex):
-    out = ['<section class="view" id="v-results" data-view="results" hidden><div class="pm-hero">'
-           '<h1>All numbered results</h1><p class="lede">In the paper&rsquo;s order. Definitions and remarks are included; '
-           'the graph shows only the results the argument is made of.</p></div><div class="idx">']
-    cur = None
+def paper_date():
+    """The paper's date, from its LaTeX."""
+    m = re.search(r'\\date\{([^}]*)\}', strip_body(TEX))
+    return m.group(1).strip() if m else ''
+
+
+def sources_date():
+    """The date of the last commit of the sources this site is built from ('' outside git)."""
+    r = subprocess.run(['git', 'log', '-1', '--format=%cd', '--date=format:%d %B %Y'], cwd=ROOT, capture_output=True,
+                       text=True)
+    return r.stdout.strip().lstrip('0') if r.returncode == 0 else ''
+
+
+def paper_title():
+    """The paper's title, from its LaTeX (the line break taken out)."""
+    m = re.search(r'\\title(?:\[[^\]]*\])?\{(.*)\}\s*$', strip_body(TEX), flags=re.M)
+    return re.sub(r'\s*\\\\\s*', ' ', m.group(1)).strip() if m else 'The Spectre Knot'
+
+
+SYMBOLS = {'ell': 'ℓ', 'Delta': 'Δ', 'Gamma': 'Γ', 'Theta': 'Θ', 'Lambda': 'Λ', 'Xi': 'Ξ', 'Pi': 'Π', 'Sigma': 'Σ',
+           'Phi': 'Φ', 'Psi': 'Ψ', 'alpha': 'α', 'beta': 'β', 'gamma': 'γ', 'delta': 'δ', 'sigma': 'σ', 'tau': 'τ',
+           'omega': 'ω', 'rho': 'ρ', 'zeta': 'ζ', 'pm': '±', 'le': '≤', 'leq': '≤', 'ge': '≥', 'geq': '≥', 'ne': '≠',
+           'neq': '≠', 'subset': '⊂', 'in': '∈', 'to': '→', 'times': '×', 'cdot': '·', 'dots': '…', 'ldots': '…',
+           'cdots': '⋯', 'infty': '∞', 'Tile': 'Tile(1,1)', 'quad': ' ', ',': ' '}
+
+
+def search_text(t):
+    """LaTeX as plain text for the search box: the words, references by name, maths reduced to its letters."""
+    def ref(l):
+        i = LABELS.get(l.strip(), {})
+        if i.get('type') == 'result':
+            return '%s %s' % (i['name'], i['number'])
+        word = {'section': 'Section', 'figure': 'Figure', 'table': 'Table', 'equation': 'Equation'}.get(i.get('type'), '')
+        return ('%s %s' % (word, i['number'])).strip() if i else ''
+    t = re.sub(r'\\(?:begin|end)\{[^}]*\}(\[[^\]]*\])?', ' ', t)
+    t = re.sub(r'\\label\{[^}]*\}', '', t)
+    t = re.sub(r'\\[cC]ref\{([^}]*)\}', lambda m: ' and '.join(ref(l) for l in m.group(1).split(',')), t)
+    t = re.sub(r'\\cite(\[[^\]]*\])?\{[^}]*\}', '', t)
+    t = re.sub(r'\\item(\[[^\]]*\])?', ' ', t)
+    t = re.sub(r'\\([A-Za-z]+)', lambda m: SYMBOLS.get(m.group(1), ' '), t)   # maths: its letters and signs
+    t = re.sub(r'[_^]', '', t)
+    t = re.sub(r'[{}$~\\]', ' ', t).replace('``', '\u201c').replace("''", '\u201d').replace('---', '\u2014').replace('--', '\u2013')
+    return ' '.join(t.split())
+
+
+def titled(v):
+    """A view with data-title, the browser tab's title while it is shown: its heading's text (the overview keeps
+    the site's title)."""
+    if 'data-title=' in v or 'data-view="map"' in v[:200]:
+        return v
+    m = re.search(r'<h1[^>]*>(.*?)</h1>', v, flags=re.S)
+    if not m:
+        return v
+    t = ' '.join(html.unescape(re.sub(r'<[^>]+>', ' ', m.group(1))).replace('$', '').split())
+    return v.replace('class="view"', 'class="view" data-title="%s"' % esc(t), 1)
+
+
+def marks_of(r, info):
+    """What the mark filter matches an item by: argued, computed or cited, and lean; 'other' for the rest."""
+    if r['env'] not in texparse.GRAPH_ENVS:
+        return 'other'
+    i = info[r['label']]
+    return i['status'] + (' lean' if i['lean'] else '')
+
+
+def mark_filter(scope, marks):
+    """Buttons that show only the items with one mark, in the element `scope` (whose items carry data-m)."""
+    n = lambda m: sum(1 for x in marks if m in x.split())
+    btn = lambda f, label, k: ('<button type="button" data-f="%s" aria-pressed="%s">%s <span class="n">%d</span></button>'
+                               % (f, 'false' if f else 'true', label, k))
+    return ('<div class="mfilter small" role="group" aria-label="Show only" data-for="%s"><span class="mut">Show</span>'
+            '%s%s%s%s%s</div>' % (scope, btn('', 'everything', len(marks)),
+                                  btn('argued', '<span class="st proved">argued</span>', n('argued')),
+                                  btn('computed', '<span class="st computed">computed</span>', n('computed')),
+                                  btn('cited', '<span class="st cited">cited</span>', n('cited')),
+                                  btn('lean', '<span class="st lean">Lean</span>', n('lean'))))
+
+
+def cited_works(data, bib, info, tex):
+    """Every work the paper cites, in full, with the places that cite it (a result's page, or a section); the spectre
+    paper by what is cited from it (Thm. 2.2, Fig. 5.1, ...). Read from the LaTeX."""
+    body = strip_body(TEX).split('\\begin{document}', 1)[1]
+    spans = []      # a result's statement and each of its proofs: (start, end, label)
+    for r in data['results']:
+        if r['label']:
+            spans.append((r['pos'], r['end'], r['label']))
+            spans += [(pr['pos'], body.find('\\end{proof}', pr['pos']), r['label']) for pr in r['proofs']]
+    secs = sorted(data['sections'], key=lambda x: x['pos'])
+    works, count = {}, defaultdict(int)
+    for m in re.finditer(r'\\cite(?:\[([^\]]*)\])?\{([^}]*)\}', body):
+        p = m.start()
+        lab = next((l for a, b, l in spans if a <= p <= b), None)
+        sec = ([x['number'] for x in secs if x['pos'] <= p] or [''])[-1]
+        place = ('r', lab) if lab else ('s', sec)
+        for key in (k.strip() for k in m.group(2).split(',')):
+            count[key] += 1
+            places = works.setdefault(key, {}).setdefault((m.group(1) or '').strip(), [])
+            if place not in places:
+                places.append(place)
+
+    def where(pl):
+        k, v = pl
+        if k == 'r':
+            return '<a href="#%s">%s</a>' % (rid(v), esc(info[v]['head']))
+        return ('<a href="#sec-%s">%s%s</a>' % (v, '&sect;' if v[:1].isdigit() else 'Appendix&nbsp;', v)) if v \
+            else 'the abstract'
+
+    kinds = ['Thm', 'proof', 'Lemma', '\\S', 'Fig', 'App', 'p.']
+    lockey = lambda loc: (bool(loc), next((k for k, w in enumerate(kinds) if loc.startswith(w)), len(kinds)),
+                          [int(x) for x in re.findall(r'\d+', loc)])
+    out = []
+    for key in sorted(works, key=lambda k: (-count[k], bib[k]['first'] if k in bib else k, bib.get(k, {}).get('year', ''))):
+        locs = works[key]
+        ref = bib[key]['full'] if key in bib else esc(key)
+        if list(locs) == ['']:
+            body_ = '<p class="small">Cited in %s.</p>' % ', '.join(where(pl) for pl in locs[''])
+        else:
+            body_ = '<table class="lt cw small"><tbody>%s</tbody></table>' % ''.join(
+                '<tr><th>%s</th><td>%s</td></tr>' % (tex.inline(loc) if loc else 'the paper as a whole',
+                                                     ', '.join(where(pl) for pl in locs[loc]))
+                for loc in sorted(locs, key=lockey))
+        out.append('<div class="cwork"><p class="ref">%s <span class="mut small">(cited %d time%s)</span></p>%s</div>' % (
+            ref, count[key], '' if count[key] == 1 else 's', body_))
+    return '<div class="cworks">%s</div>' % ''.join(out)
+
+
+def tex_sentence(t):
+    """The first sentence of some LaTeX: up to the first full stop outside maths and braces."""
+    depth, math = 0, False
+    for i, c in enumerate(t):
+        if c == '$' and (i == 0 or t[i - 1] != '\\'):
+            math = not math
+        elif not math and c in '{}':
+            depth += 1 if c == '{' else -1
+        elif (c == '.' and not math and depth == 0 and (i + 1 == len(t) or t[i + 1].isspace())
+              and not re.search(r'(Fig|Thm|Sec|e\.g|i\.e|cf|resp)$', t[:i])):
+            return t[:i + 1]
+    return t
+
+
+def pdf_link(page, text=None):
+    """A link to a page of the PDF: 'p. 12' in a pill, or the given text as an ordinary link."""
+    if not page:
+        return ''
+    return '<a%s href="%s#page=%d" title="page %d of the PDF">%s</a>' % (
+        '' if text else ' class="pg"', PDF_FILE, page, page, text or 'p.&nbsp;%d' % page)
+
+
+def paper_view(results, info, sections, figures, tex, pdf, cites):
+    """The paper: the PDF; its own outline; its contents, every section and subsection with every numbered item in
+    it, each with its page in the PDF; and the works it cites, with where."""
+    by_sec = defaultdict(list)
     for r in results:
-        if not r['label']:
-            continue
-        sec = r['section'].split('.')[0] if r['section'] else ''
-        if sec != cur:
-            if cur is not None:
-                out.append('</ul>')
-            out.append('<h2 class="sh">&sect;%s %s</h2><ul class="rl">' % (sec, esc(plain(sec_title.get(sec, '')))))
-            cur = sec
-        i = info[r['label']]
-        tags = chips(i) if r['env'] in texparse.GRAPH_ENVS else '<span class="st other">%s</span>' % r['kind'].lower()
-        out.append('<li>%s %s</li>' % (rlink(r['label'], info), tags))
-    out.append('</ul>')
+        if r['label']:
+            by_sec[r['section'] or ''].append(r)
+    mb = pdf['size'] / 1048576
+    outline = strip_body(TEX).split('\\subsection*{Outline}', 1)[1].split('\\section', 1)[0]
+    marks = [marks_of(r, info) for r in results if r['label']]
+    out = ['<section class="view" id="v-paper" data-view="paper" hidden>',
+           '<nav class="crumbs small"><a href="#map">Overview</a></nav>',
+           '<div class="pm-hero"><h1>The paper</h1>'
+           '<p class="lede"><i>%s</i>, of %s: the proof in full, in %d pages, with an appendix listing what was computed '
+           'and by which program.</p><p class="badges"><a class="badge root" href="%s">Read the PDF (%d pages, %.1f&nbsp;MB) '
+           '&rarr;</a> <a class="badge" href="#route">the argument in ten steps</a> <a class="badge" href="#code">the '
+           'programs and the Lean</a> <a class="badge" href="#cited">the works it cites</a></p></div>' % (
+               esc(paper_title()), esc(paper_date()), pdf['pages'], PDF_FILE, pdf['pages'], mb),
+           '<h2 class="sh">Outline</h2><p class="small mut gl">As the paper&rsquo;s introduction gives it.</p>'
+           '<div class="prose method">%s</div>' % tex.block(outline),
+           '<h2 class="sh">Contents</h2><p class="small mut gl">Every section of the paper, and every numbered result, '
+           'definition and remark, in the paper&rsquo;s order. Each has a page here with its statement and proof as the '
+           'paper gives them; the page number beside it opens the PDF there. The graph shows only the results the '
+           'argument is made of.</p>%s<div class="idx contents" id="contents">' % mark_filter('contents', marks)]
+    for s_ in sections:
+        num = s_['number']
+        sec_name = ('&sect;%s' % num) if num[0].isdigit() else 'Appendix&nbsp;%s' % num
+        if s_['kind'] == 'section':
+            out.append('<h3 class="psec" id="sec-%s"><span class="sn">%s</span> <span>%s</span> %s</h3>' % (
+                num, sec_name, esc(plain(s_['title'])), pdf_link(pdf['sec'].get(num))))
+        else:
+            out.append('<h4 class="psub" id="sec-%s"><span class="sn">%s</span> <span>%s</span> %s</h4>' % (
+                num, num, esc(plain(s_['title'])), pdf_link(pdf['sec'].get(num))))
+        rs = by_sec.get(num, [])
+        if rs:
+            out.append('<ul class="rl">%s</ul>' % ''.join('<li id="in-%s" data-m="%s"><span>%s %s</span> %s</li>' % (
+                rid(r['label']), marks_of(r, info), rlink(r['label'], info),
+                chips(info[r['label']]) if r['env'] in texparse.GRAPH_ENVS else
+                '<span class="st other">%s</span>' % r['kind'].lower(), pdf_link(pdf['res'].get(r['label'])))
+                for r in rs))
     figs = [f for f in figures if f['number'] in tex.figpages]
     if figs:
-        out.append('<h2 class="sh">Figures</h2><ul class="rl">%s</ul>' % ''.join(
-            '<li><a href="#f-%d">Figure %d</a> <span class="mut">%s</span></li>' % (
-                f['number'], f['number'], esc(plain(f['caption']).split('. ')[0][:90])) for f in figs))
-    out.append('</div></section>')
+        out.append('<h3 class="psec" id="figures">Figures</h3><ul class="rl">%s</ul>' % ''.join(
+            '<li data-m="figure"><span><a href="#f-%d">Figure %d</a> <span class="mut">%s</span></span> %s</li>' % (
+                f['number'], f['number'], tex.inline(tex_sentence(f['caption'])), pdf_link(pdf['fig'].get(f['number'])))
+            for f in figs))
+    out.append('</div><h2 class="sh" id="cited">Cited works, and where</h2><p class="small mut gl">Every work the paper '
+               'cites, with the places that cite it: a result&rsquo;s page, or the section. The spectre paper is listed '
+               'by what is cited from it.</p>%s</section>' % cites)
     return '\n'.join(out)
 
 
-def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title, rfigs, geo):
+
+
+def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title, rfigs, geo, where, pdf, seq):
     l = r['label']
+    k = seq.index(l)
+    prev_, next_ = (seq[k - 1] if k else None), (seq[k + 1] if k + 1 < len(seq) else None)
     i = info[l]
     title = tex.inline(r['title']) if r['title'] else ''
     sec = r['section'] or ''
     step = geo['step_of'].get(l)
     crumbs = '<a href="#map">Overview</a> &rsaquo; ' + (
         '<a href="#route">Route</a> &rsaquo; <a href="#%s">%s</a>' % (sanchor(step), esc(sname(step, notes)))
-        if step else '<a href="#results">Results</a>')
-    parts = ['<section class="view" id="v-%s" data-view="%s" hidden>' % (rid(l), rid(l)),
-             '<nav class="crumbs small">%s</nav>' % crumbs,
+        if step else '<a href="#paper">Paper</a>')
+    pn = '<span class="pn">%s%s</span>' % (
+        '<a href="#%s" title="the previous item of the paper">&larr; %s</a>' % (rid(prev_), esc(info[prev_]['head']))
+        if prev_ else '', '<a href="#%s" title="the next item of the paper">%s &rarr;</a>' % (
+            rid(next_), esc(info[next_]['head'])) if next_ else '')
+    parts = ['<section class="view" id="v-%s" data-view="%s" data-title="%s" hidden>' % (rid(l), rid(l),
+                                                                                         esc(i['plain'])),
+             '<nav class="crumbs small pnrow"><span>%s</span>%s</nav>' % (crumbs, pn),
              '<div class="rhead"><h1><span class="num">%s %s</span>%s</h1>%s</div>' % (
                  r['kind'], r['number'], (' <span class="ttl">%s</span>' % title) if title else '',
                  chips(i) if r['env'] in texparse.GRAPH_ENVS else ''),
-             '<p class="small mut src">Paper &sect;%s %s, line %d of <code>spectre_knot.tex</code> &middot; %s</p>' % (
-                 esc(sec), esc(plain(sec_title.get(sec, sec_title.get(sec.split('.')[0], '')))), r['line'],
-                 meta_line(l, R, geo))]
+             '<p class="small mut src">Paper <a href="#in-%s" title="its place in the contents">&sect;%s %s</a>%s, line '
+             '<a href="%s/blob/main/paper/tex/spectre_knot.tex#L%d">%d</a> of <code>spectre_knot.tex</code> &middot; %s</p>' % (
+                 rid(l), esc(sec), esc(plain(sec_title.get(sec, sec_title.get(sec.split('.')[0], '')))),
+                 (', ' + pdf_link(pdf['res'].get(l), 'page %d of the PDF' % pdf['res'][l])) if pdf['res'].get(l) else '',
+                 REPO_URL, r['line'], r['line'], meta_line(l, R, geo))]
     if l in geo['up'] and len(geo['up'][l]) > 1:
         chain = list(reversed(geo['up'][l]))
         parts.append('<nav class="path small" aria-label="Up to a main theorem">%s</nav>' % (
@@ -1236,11 +1649,17 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
     if step:
         parts.append('<p class="small pub"><a href="%sprove.html#%s">Explained with pictures: %s &rarr;</a></p>' % (
             PUBLIC_BASE, panchor(step), 'step %s of the Prove page' % step))
-    if l in notes['notes']:
-        parts.append('<aside class="ainote"><p class="kick">Reading aid, written by the AI</p><p>%s</p>'
-                     '<p class="small mut">The paper&rsquo;s statement and proof below are the text of record.</p>'
-                     '</aside>' % tex.inline(notes['notes'][l]))
-    parts.append('<h2 class="sh">Statement</h2><div class="stmt">%s</div>' % tex.block(r['statement']))
+    if l == 'thm:smkgs':
+        parts.append('<p class="small">Everything the paper cites from the spectre paper, and where: '
+                     '<a href="#cited">the works it cites</a>.</p>')
+    statement = '<div class="stblock"><h2 class="sh">Statement</h2><div class="stmt">%s</div></div>' % tex.block(
+        r['statement'])
+    if l in notes['notes']:   # the reading aid, then the statement (on a phone the other way round, CSS)
+        parts.append('<div class="aidst"><aside class="ainote"><p class="kick">Reading aid, written by the AI</p><p>%s</p>'
+                     '<p class="small mut">The paper&rsquo;s statement and proof are the text of record.</p>'
+                     '</aside>%s</div>' % (tex.inline(notes['notes'][l]), statement))
+    else:
+        parts.append(statement)
     for p in r['proofs']:
         ptitle = tex.inline(p['title']) if p['title'] else 'Proof'
         parts.append('<h2 class="sh">%s</h2><div class="proof">%s<span class="qed">&#8718;</span></div>' % (
@@ -1265,7 +1684,7 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
     if lean_rows.get(l):
         rows_html = []
         for row in lean_rows[l]:
-            ds = ''.join(lean_card(n, decls) for n in row['decls'] if n in decls)
+            ds = ''.join(lean_card(n, decls, where) for n in row['decls'] if n in decls)
             rows_html.append('<div class="leanrow"><p class="small"><b>%s</b> &middot; %s</p><p>%s</p>%s</div>' % (
                 md_inline(row['paper']), md_inline(row['kind']), md_inline(row['what']), ds))
         part = ('<p class="small mut">What the Lean covers here: %s</p>' % tex.inline(notes['lean_part'][l])) \
@@ -1278,10 +1697,14 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
                                                                                'prop:nestwell', 'prop:nesttiling',
                                                                                'con:nest') else ''))
     if comp_rows.get(l):
-        lis = ''.join('<li><p>%s</p><p class="small mut">%s</p></li>' % (c['what'], c['scripts']) for c in comp_rows[l])
+        lis = ''.join('<li><p>%s</p><p class="small mut">%s</p></li>' % (c['what'], script_links(c['scripts'])[0])
+                      for c in comp_rows[l])
         parts.append('<h2 class="sh">Computed by</h2><p class="small mut">From the paper&rsquo;s table '
-                     '&ldquo;What was computed&rdquo;. Scripts are in <code>paper/code/</code>, their logs in '
-                     '<code>paper/code/logs/</code>.</p><ul class="comp">%s</ul>' % lis)
+                     '&ldquo;What was computed&rdquo;. The programs are in <code>paper/code/</code>, their logs in '
+                     '<code>paper/code/logs/</code>: <a href="#code">the code</a>.</p><ul class="comp">%s</ul>' % lis)
+    parts.append('<p class="small stepnav">%s<a href="#in-%s">In the contents</a>%s</p>' % (
+        '<a href="#%s">&larr; %s</a>' % (rid(prev_), esc(info[prev_]['plain'])) if prev_ else '<span></span>', rid(l),
+        '<a href="#%s">%s &rarr;</a>' % (rid(next_), esc(info[next_]['plain'])) if next_ else '<span></span>'))
     parts.append('</section>')
     return '\n'.join(parts)
 
@@ -1295,54 +1718,77 @@ def fig_html(f, img, tex, big=False):
 
 def figure_view(f, img, tex, users, info):
     return ('<section class="view" id="v-f-%d" data-view="f-%d" hidden>'
-            '<nav class="crumbs small"><a href="#map">Overview</a> &rsaquo; <a href="#results">Results</a></nav>'
+            '<nav class="crumbs small"><a href="#map">Overview</a> &rsaquo; <a href="#paper">Paper</a></nav>'
             '<div class="rhead"><h1><span class="num">Figure %d</span></h1></div>'
-            '<p class="small mut src">Paper, page %d; cut from the built PDF</p>%s'
+            '<p class="small mut src">Paper, %s; cut from the built PDF</p>%s'
             '<h2 class="sh">Shown with</h2><ul class="ll">%s</ul></section>' % (
-                f['number'], f['number'], f['number'], img['page'], fig_html(f, img, tex, True),
+                f['number'], f['number'], f['number'], pdf_link(img['page'], 'page %d' % img['page']),
+                fig_html(f, img, tex, True),
                 ''.join('<li>%s</li>' % rlink(l, info) for l in users) or '<li class="mut">no numbered result</li>'))
 
 
-def lean_card(n, decls):
+def at_line(d, where, text=None):
+    """'lean/…/X.lean, line 12', linked to that line of the file's page."""
+    t = text or '%s, line %d' % (esc(d['file']), d['line'])
+    return '<a href="%s#L%d">%s</a>' % (where[d['file']], d['line'], t) if d['file'] in where else t
+
+
+def lean_card(n, decls, where):
     d = decls[n]
     st, _ = leanparse.split_statement(d['text'], d['kw'])
     lines = st.split('\n')
     if len(lines) > 14:
         st = '\n'.join(lines[:14]) + '\n  …'
-    return ('<div class="lcard"><p class="small"><a href="#%s"><code>%s</code></a> <span class="mut">%s, line %d</span></p>'
-            '<pre class="lean">%s</pre>%s</div>' % (lid(n), esc(n), esc(d['file']), d['line'], lean_html(st),
-                                                    claim_html(d, decls)))
+    return ('<div class="lcard"><p class="small"><a href="#%s"><code>%s</code></a> <span class="mut">%s</span></p>'
+            '<pre class="lean">%s</pre>%s</div>' % (lid(n), esc(n), at_line(d, where), lean_html(st),
+                                                    claim_html(d, decls, where)))
 
 
-def claim_html(d, decls):
+def claim_html(d, decls, where):
     """For `theorem foo : Claim`, the claim itself, from the statement file."""
     c = d.get('claim')
     if not c:
         return ''
     cd = decls[c]
     return ('<details class="claimdef"><summary>The claim <code>%s</code> (%s, line %d)</summary>'
-            '<pre class="lean">%s</pre></details>' % (esc(c), esc(cd['file']), cd['line'], lean_html(cd['text'])))
+            '<pre class="lean">%s</pre><p class="small">%s</p></details>' % (
+                esc(c), esc(cd['file']), cd['line'], lean_html(cd['text']),
+                at_line(cd, where, 'Read it in the statement file')))
 
 
-def lean_index_view(rows, decls, R, info, lean_all, rests, guide):
-    out = ['<section class="view" id="v-lean" data-view="lean" hidden><div class="pm-hero">'
-           '<h1>The Lean formalisation</h1><p class="lede">%d declarations in %d files, each with its own page. First the '
-           'rows of the paper-to-Lean table in <code>lean/README.md</code>, then every declaration, file by file.</p>'
-           '</div><div class="card guidecard"><h2 class="ch">Statement.lean, line by line</h2><p>The statement file holds every '
-           'definition the main theorems use, and the theorems themselves as claims: whether the right thing has been '
-           'proved comes down to reading it. <a href="%s">The line-by-line reading</a> shows all %d lines beside a plain '
-           'reading of each piece, in %d pieces.</p></div><h2 class="sh">By result of the paper</h2><div class="tablebox"><table class="lt"><thead>'
+def lean_index_view(rows, decls, R, info, lean_all, rests, guide, files, where):
+    groups = []
+    for group, fs in LEAN_GROUPS:
+        lis = ''.join('<li><a href="%s"><code>%s</code></a> <span class="n">%s&nbsp;lines</span><span class="d">%s</span>'
+                      '</li>' % (f['page'], esc(f['rel'].replace('SpectreKnot/', '')), '{:,}'.format(f['n']),
+                                 md_inline(f['line1'])) for f in files if f['group'] == group)
+        groups.append('<div class="lgroup"><h3>%s</h3><ul class="lfiles">%s</ul></div>' % (esc(group), lis))
+    out = ['<section class="view" id="v-lean" data-view="lean" hidden>'
+           '<nav class="crumbs small"><a href="#map">Overview</a></nav><div class="pm-hero">'
+           '<h1>The Lean formalisation</h1><p class="lede">%d files of Lean 4, with the core library only. Start with '
+           'the statement file: it holds every definition the main theorems use, and the theorems themselves as '
+           'claims. Every file can be read here in full, and every declaration has its own page.</p></div>'
+           '<div class="grid2"><div class="card"><h2 class="ch"><a href="%s">Statement.lean, line by line</a></h2><p>'
+           'Whether the right thing has been proved comes down to reading the statement file. The line-by-line '
+           'reading shows all %d lines beside a plain reading of each piece, in %d pieces, with a short introduction '
+           'to Lean.</p></div><div class="card"><h2 class="ch"><a href="%s">Every file, in full</a></h2><p>All %d '
+           'files in reading order: the statements, the six files that prove them, then what those rest on in the '
+           'paper&rsquo;s order. Each name links to where it is declared; a note marks the declarations that '
+           'formalise a numbered result of the paper.</p></div></div>'
+           '<h2 class="sh">The files, in reading order</h2><div class="lgroups">%s</div>'
+           '<h2 class="sh">By result of the paper</h2><div class="tablebox"><table class="lt"><thead>'
            '<tr><th>paper</th><th>Lean</th><th>kind</th></tr></thead><tbody>' % (
-               len(lean_all), len({decls[n]['file'] for n in lean_all}), STATEMENT_FILE, guide['n_lines'],
-               len(guide['guide']['items']))]
+               len(files), STATEMENT_FILE, guide['n_lines'], len(guide['guide']['items']), files[0]['page'],
+               len(files), ''.join(groups))]
     for row in rows:
         names = ', '.join('<a href="#%s"><code>%s</code></a>' % (lid(n), esc(n)) if n in decls else
                           '<code>%s</code>' % esc(n) for n in row['decls'])
         out.append('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (md_inline(row['paper']), names,
                                                                    md_inline(row['kind'])))
-    out.append('</tbody></table></div><h2 class="sh">By file</h2><p class="small mut">In file order. The figure after '
-               'each name counts the paper results that rest on it (see a declaration&rsquo;s page). '
-               '<span class="kw">thm</span> marks theorems and lemmas.</p><div class="files">')
+    out.append('</tbody></table></div><h2 class="sh">Every declaration, by file</h2><p class="small mut">%d '
+               'declarations, each with its own page. The figure after a name counts the paper results that rest on '
+               'it (see its page). <span class="kw">thm</span> marks theorems and lemmas.</p><div class="files">'
+               % len(lean_all))
     by_file = defaultdict(list)
     for n in lean_all:
         by_file[decls[n]['file']].append(n)
@@ -1353,12 +1799,15 @@ def lean_index_view(rows, decls, R, info, lean_all, rests, guide):
             ' <span class="cnt" title="paper results resting on it">%d</span>' % len(rests[n]) if rests.get(n) else '')
             for n in ns)
         out.append('<details class="file"><summary><code>%s</code> <span class="mut small">%d</span></summary>'
-                   '<ul class="ll">%s</ul></details>' % (esc(f), len(ns), lis))
+                   '<p class="small"><a href="%s">Read the file</a></p><ul class="ll">%s</ul></details>' % (
+                       esc(f), len(ns), where[f], lis))
     out.append('</div></section>')
     return '\n'.join(out)
 
 
-def lean_view(n, decls, cites, cited_by, pages, paper_of, info, rests, guide):
+
+
+def lean_view(n, decls, cites, cited_by, pages, paper_of, info, rests, guide, where):
     d = decls[n]
     st, body = leanparse.split_statement(d['text'], d['kw'])
     link = lambda k: ('<a href="#%s"><code>%s</code></a>' % (lid(k), esc(k)) if k in pages else
@@ -1371,7 +1820,8 @@ def lean_view(n, decls, cites, cited_by, pages, paper_of, info, rests, guide):
     parts = ['<section class="view" id="v-%s" data-view="%s" hidden>' % (lid(n), lid(n)),
              '<nav class="crumbs small"><a href="#map">Overview</a> &rsaquo; <a href="#lean">Lean</a></nav>',
              '<div class="rhead"><h1><code class="lname">%s</code></h1></div>' % esc(n),
-             '<p class="small mut src">%s in <code>%s</code>, line %d</p>' % (d['kw'], esc(d['file']), d['line'])]
+             '<p class="small mut src">%s in <code>%s</code>, line %d &middot; %s</p>' % (
+                 d['kw'], esc(d['file']), d['line'], at_line(d, where, 'read it in its file'))]
     if paper_of.get(n):
         parts.append('<p>Formalises %s.</p>' % ', '.join(rlink(l, info) for l in paper_of[n]))
     under = [l for l in rests.get(n, []) if l not in paper_of.get(n, [])]
@@ -1402,27 +1852,617 @@ def lean_view(n, decls, cites, cited_by, pages, paper_of, info, rests, guide):
     return '\n'.join(parts)
 
 
-def about_view(data, decls, lean_all, rows, notes):
+# ---------------------------------------------------------------- the Lean reader: every file, in full
+
+# The files in reading order: what is claimed and the axiom check; the four files that prove the claims; what those
+# rest on, in the paper's order (each group in the order its files import each other); then the checks beside the
+# proof, and the generated data. The build fails if a file of lean/ is missing here.
+LEAN_GROUPS = [
+    ('Start here', ['SpectreKnot/Statement.lean', 'Axioms.lean']),
+    ('The main theorems', ['SpectreKnot/ProofA.lean', 'SpectreKnot/ProofB.lean', 'SpectreKnot/ProofStrand.lean',
+                           'SpectreKnot/ProofChain.lean', 'SpectreKnot/ProofExact.lean',
+                           'SpectreKnot/ProofGrand.lean']),
+    ('Strands, boxes and gluing (§§3–5)', ['SpectreKnot/Basic.lean', 'SpectreKnot/Strands.lean', 'SpectreKnot/Box.lean',
+                                           'SpectreKnot/Gluing.lean', 'SpectreKnot/Zigzag.lean',
+                                           'SpectreKnot/Prop54.lean']),
+    ('Side lengths (§6)', ['SpectreKnot/Lengths.lean']),
+    ('Compositions and lengthening (§7)', ['SpectreKnot/Compose.lean', 'SpectreKnot/CompFull.lean',
+                                           'SpectreKnot/Subdivide.lean', 'SpectreKnot/Lens.lean', 'SpectreKnot/Move.lean',
+                                           'SpectreKnot/Signature.lean', 'SpectreKnot/SigCheck.lean',
+                                           'SpectreKnot/Parity.lean']),
+    ('Supertiles and Theorem A (§7)', ['SpectreKnot/PatchSig.lean', 'SpectreKnot/ComposeTiles.lean',
+                                       'SpectreKnot/ParentRim.lean', 'SpectreKnot/Reverse.lean', 'SpectreKnot/Bridge.lean',
+                                       'SpectreKnot/ParentSig.lean']),
+    ('The nest and Theorem B (§§8–9)', ['SpectreKnot/NewWalk.lean', 'SpectreKnot/StepMap.lean', 'SpectreKnot/Linked.lean',
+                                        'SpectreKnot/NestStep.lean', 'SpectreKnot/Turn.lean']),
+    ('Corroboration and tests', ['SpectreKnot/Skeleton.lean', 'SpectreKnot/SkeletonWalks.lean', 'Tests.lean',
+                                 'TestsSlow.lean']),
+    ('Generated data, and the root file', ['SpectreKnot/Data/Pattern.lean', 'SpectreKnot/Data/Clusters.lean',
+                                           'SpectreKnot/Data/Skeletons.lean', 'SpectreKnot/Data/Level2.lean',
+                                           'SpectreKnot.lean']),
+]
+ROOT_FILE_NOTE = 'The root of the library: it imports the files of the formalisation.'   # SpectreKnot.lean has no header
+
+
+def file_intro(text):
+    """The header comment of a Lean file: its heading (a line '# …'), if any, and its first paragraph, as Markdown."""
+    m = re.match(r'\s*/-(?![-!])(.*?)-/', text, flags=re.S)
+    if not m:
+        return None, None
+    paras = [p.strip() for p in re.split(r'\n\s*\n', m.group(1).strip()) if p.strip()]
+    heading = paras.pop(0)[2:].strip() if paras and paras[0].startswith('# ') else None
+    return heading, (paras[0] if paras else None)
+
+
+def first_sentence(md):
+    """The first sentence of some Markdown: up to a full stop (or a full stop closing bold) and a capital."""
+    return re.split(r'(?:(?<=\.)|(?<=\.\*\*))\s+(?=[A-Z`*(])', ' '.join(md.split()), maxsplit=1)[0]
+
+
+def lean_files():
+    """The Lean files in reading order, each with its page, its group, its text and line count, and what its header
+    comment says it is. Fails unless LEAN_GROUPS lists every file of lean/ (outside the build's own .lake and tools/)
+    exactly once."""
+    have = sorted(p.relative_to(LEAN).as_posix() for p in LEAN.rglob('*.lean')
+                  if not {'.lake', 'tools'} & set(p.relative_to(LEAN).parts))
+    listed = [f for _, fs in LEAN_GROUPS for f in fs]
+    if sorted(listed) != have:
+        raise SystemExit('LEAN_GROUPS in proofmap/build.py does not list the Lean files: missing %s; not in lean/ or '
+                         'listed twice %s' % (sorted(set(have) - set(listed)),
+                                              sorted({f for f in listed if f not in have or listed.count(f) > 1})))
+    files = []
+    for group, fs in LEAN_GROUPS:
+        for rel in fs:
+            text = (LEAN / rel).read_text(encoding='utf8')
+            heading, para = file_intro(text)
+            files.append({'rel': rel, 'repo': 'lean/' + rel, 'group': group, 'text': text,
+                          'page': 'lean-%s.html' % re.sub(r'^SpectreKnot/', '', rel)[:-len('.lean')].replace('/', '-'),
+                          'n': len(text.rstrip('\n').split('\n')), 'heading': heading, 'para': para or ROOT_FILE_NOTE,
+                          'line1': heading or first_sentence(para or ROOT_FILE_NOTE), 'data': '/Data/' in rel})
+    assert len({f['page'] for f in files}) == len(files)
+    return files
+
+
+# Lean, coloured as in the guide to Statement.lean: keywords, tactics, types, values, numbers, strings, comments; a
+# name of the formalisation links to the line where it is declared. Names are resolved as leanparse.cites reads them
+# (in full, relative to the enclosing namespaces, or to an `open`), except that a name bound in the declaration
+# (binders, `fun`, ∀/∃, `intro`, `obtain`, `have`, match arms) or by a `variable` is left alone: a guide, not Lean's
+# own name resolution.
+LEAN_KWS = set('''theorem lemma def abbrev structure inductive instance class where deriving extends namespace section
+end open import variable universe noncomputable partial private protected unsafe mutual set_option attribute local
+scoped example axiom opaque macro syntax notation infix infixl infixr prefix postfix termination_by decreasing_by fun λ
+let have show from by at with match if then else do for in return suffices calc obtain'''.split())
+LEAN_TACS = set('''intro intros rintro exact apply refine rfl simp simp_all simpa omega decide cases rcases induction rw
+rwa constructor use exists unfold assumption contradiction exfalso trivial ext funext congr split by_cases by_contra
+specialize generalize revert clear subst rename_i next all_goals any_goals first repeat iterate try case focus
+exact_mod_cast norm_num nofun nomatch injection left right change dsimp'''.split())
+LEAN_TYS = set('''Prop Type Sort Nat Int Bool List Option Fin Array String Char Unit Prod Sum True False Eq Ne Iff And Or
+Not Exists Subtype Decidable DecidableEq ℕ'''.split())
+LEAN_VALS = {'true', 'false', 'some', 'none'}
+LEAN_ID = re.compile(r"[^\W\d][\w']*[!?]?(?:\.(?:[^\W\d][\w']*[!?]?|\d+))*")
+LEAN_BOUND = [re.compile(p) for p in (
+    r'[(\{\[⦃]\s*([^()\[\]{}⦃⦄:=,|]+?)\s*:(?!=)',                     # (x y : T)  {m : Nat}
+    r'(?:\bfun\b|λ)\s+(.+?)\s*(?:=>|↦)',                               # fun x ⟨a, b⟩ =>
+    r'[∀∃]\s*([^,:∈<>≤≥=]+)',                                           # ∀ x y, …  ∃ t i, …
+    r'\b(?:intro|intros|rintro|rename_i|obtain|rcases|generalize)\b([^:=\n]*)',
+    r'\b(?:have|let|set|suffices)\s+([^\s:=(⟨]+)',                     # have h : …
+    r'\|\s*([^|\n]+?)\s*=>')]                                           # | n + 1, x =>  (match arms, cases)
+
+
+def lean_tokens(lines):
+    """Each line as a list of (kind, text): com, str, num, hash, id, ws, sym. Block comments nest and run across lines."""
+    out, depth = [], 0
+    for line in lines:
+        toks, i, n = [], 0, len(line)
+        while i < n:
+            if depth or line.startswith('/-', i):
+                j = i
+                if not depth:
+                    depth, j = 1, i + 2
+                while j < n and depth:
+                    if line.startswith('/-', j):
+                        depth, j = depth + 1, j + 2
+                    elif line.startswith('-/', j):
+                        depth, j = depth - 1, j + 2
+                    else:
+                        j += 1
+                toks.append(('com', line[i:j]))
+                i = j
+                continue
+            rest = line[i:]
+            if rest.startswith('--'):
+                toks.append(('com', rest))
+                break
+            for kind, rx in (('ws', r'\s+'), ('str', r'"(?:[^"\\]|\\.)*"'), ('num', r'\d+'), ('hash', r'#[A-Za-z_]+'),
+                             ('id', LEAN_ID)):
+                m = re.match(rx, rest)
+                if m:
+                    toks.append((kind, m.group(0)))
+                    i += len(m.group(0))
+                    break
+            else:
+                toks.append(('sym', rest[0]))
+                i += 1
+        out.append(toks)
+    return out
+
+
+def bound_names(text):
+    text = re.sub(r'/-.*?-/', ' ', text, flags=re.S)
+    text = re.sub(r'--[^\n]*', ' ', text)
+    names = set()
+    for rx in LEAN_BOUND:
+        for g in rx.findall(text):
+            names.update(re.findall(r"(?<![.\w'])([^\W\d][\w']*)(?![\w'.])", g))
+    return names - LEAN_KWS - LEAN_TACS - LEAN_TYS - LEAN_VALS
+
+
+def strip_sk(name):
+    return name[len('SpectreKnot.'):] if name.startswith('SpectreKnot.') else ('' if name == 'SpectreKnot' else name)
+
+
+def lean_scopes(lines, starts):
+    """For each line: the prefixes to try a name with (enclosing namespaces innermost first, the root, then what has
+    been opened so far), and the names bound there (by the enclosing declaration, which runs from its line in
+    `starts` to the next, or by a `variable` above)."""
+    ns, opens, var, out = [], [], set(), []
+    block = {}
+    for k, a in enumerate(starts):
+        b = starts[k + 1] if k + 1 < len(starts) else len(lines) + 1
+        names = bound_names('\n'.join(lines[a - 1:b - 1]))
+        for ln in range(a, b):
+            block[ln] = names
+    in_var = False
+    for n, line in enumerate(lines, 1):
+        m = re.match(r'^namespace\s+(\S+)', line)
+        if m:
+            ns.append(m.group(1))
+        m = re.match(r'^end\s+(\S+)\s*$', line)
+        if m and ns and ns[-1] == m.group(1):
+            ns.pop()
+        m = re.match(r'^open\s+(.*)$', line)
+        if m:
+            opens.extend(strip_sk(x) for x in m.group(1).split() if re.match(r'^[A-Z][\w.]*$', x))
+        in_var = bool(re.match(r'^variable\b', line)) or (in_var and line.startswith(' '))
+        if in_var:
+            var |= bound_names(line)
+        segs = '.'.join(ns).split('.') if ns else []
+        pre = []
+        for k in range(len(segs), -1, -1):
+            p = strip_sk('.'.join(segs[:k]))
+            if p not in pre:
+                pre.append(p)
+        pre += [o for o in opens if o not in pre]
+        out.append((pre, var | block.get(n, set())))
+    return out
+
+
+def lean_lines_html(f, decls, where, lean_pages, paper_of, info):
+    """The file's lines as HTML rows, with a note above each declaration that formalises a numbered result."""
+    lines = f['text'].rstrip('\n').split('\n')
+    mine = sorted((d for d in decls.values() if d['file'] == f['repo']), key=lambda d: d['line'])
+    starts = [d['line'] for d in mine]
+    scopes = lean_scopes(lines, starts)
+    at_line = {d['line']: d for d in mine}
+    notes = {}     # line -> the note to put above it (above a declaration's doc comment and attributes)
+    for d in mine:
+        labs = paper_of.get(d['name'], [])
+        if not labs:
+            continue
+        a = d['line']
+        while a > 1 and lines[a - 2].startswith('@['):          # attributes just above
+            a -= 1
+        if a > 1 and lines[a - 2].rstrip().endswith('-/'):      # and the doc comment above them
+            e = a - 1
+            while e >= 1 and '/-' not in lines[e - 1]:
+                e -= 1
+            if e >= 1 and '/--' in lines[e - 1]:
+                a = e
+        notes[a] = ('<div class="ann"><span class="ann-k">In the paper</span> %s</div>' % ', '.join(
+            '<a href="%s#%s">%s</a>%s' % (MAP_FILE, rid(l), esc(info[l]['head']),
+                                          (' <span class="mut">%s</span>' % esc(info[l]['short'])) if info[l]['short']
+                                          else '') for l in labs))
+
+    def link(name, text):
+        target = where.get(decls[name]['file'])
+        if target is None:
+            return esc(text)
+        href = '#L%d' % decls[name]['line'] if target == f['page'] else '%s#L%d' % (target, decls[name]['line'])
+        return '<a class="d" href="%s" title="%s">%s</a>' % (href, esc(name), esc(text))
+
+    def ident(tok, pre, bound, names=True):
+        if tok in LEAN_KWS:
+            return '<span class="kw">%s</span>' % esc(tok)
+        if tok in LEAN_TACS:
+            return '<span class="tac">%s</span>' % esc(tok)
+        if tok in LEAN_TYS:
+            return '<span class="ty">%s</span>' % esc(tok)
+        if tok in LEAN_VALS:
+            return '<span class="val">%s</span>' % esc(tok)
+        parts = tok.split('.') if names else []
+        for m in range(len(parts), 0, -1):
+            head = '.'.join(parts[:m])
+            if m == 1 and head in bound:
+                break
+            name = strip_sk(head)
+            for p in pre:
+                full = (p + '.' + name) if p else name
+                if full in decls:
+                    return link(full, head) + esc(tok[len(head):])
+        return esc(tok)
+
+    rows = []
+    toks_all = lean_tokens(lines)
+    for n, (line, toks) in enumerate(zip(lines, toks_all), 1):
+        pre, bound = scopes[n - 1]
+        d = at_line.get(n)
+        decl_name = None
+        if d:
+            m = leanparse.DECL_RE.match(line)
+            decl_name = m.group('name') if m else None
+        out = []
+        for kind, s in toks:
+            if kind == 'com':
+                out.append('<span class="com">%s</span>' % esc(s))
+            elif kind == 'ws':
+                out.append(s)
+            elif kind == 'str':
+                out.append('<span class="str">%s</span>' % esc(s))
+            elif kind == 'num':
+                out.append(s if f['data'] else '<span class="num">%s</span>' % s)
+            elif kind == 'hash':
+                out.append('<span class="kw">%s</span>' % esc(s))
+            elif kind == 'id' and line.startswith('import ') and s != 'import':    # a module: its file's page
+                page = where.get('lean/%s.lean' % s.replace('.', '/'))
+                out.append('<a class="d" href="%s">%s</a>' % (page, esc(s)) if page else esc(s))
+            elif kind == 'id' and decl_name is not None and s == decl_name:
+                out.append('<a class="dn" href="%s#%s" title="%s: its own page">%s</a>' % (
+                    MAP_FILE, lid(d['name']), esc(d['name']), esc(s)) if d['name'] in lean_pages
+                    else '<span class="dn">%s</span>' % esc(s))
+                decl_name = None
+            elif kind == 'id':     # on namespace, end, open and section lines a name is a namespace: not linked
+                out.append(ident(s, pre, bound, not re.match(r'(namespace|end|open|section)\b', line)))
+            else:
+                out.append(esc(s))
+        com_only = bool(toks) and all(k in ('com', 'ws') for k, _ in toks)
+        if n in notes:
+            rows.append(notes[n])
+        rows.append('<div class="ln%s%s" id="L%d"><a class="no" href="#L%d">%d</a><span class="tx">%s</span></div>' % (
+            ' cl' if com_only else '', ' dl' if d else '', n, n, n, ''.join(out) or ' '))
+    return '\n'.join(rows), mine
+
+
+def lean_rail(files, cur, outline):
+    """The list of files by group, the current one marked, with its declarations under it."""
+    out = []
+    for group, fs in LEAN_GROUPS:
+        out.append('<h2>%s</h2><ol>' % esc(group))
+        for f in files:
+            if f['group'] != group:
+                continue
+            here = f['page'] == cur['page']
+            out.append('<li><a href="%s"%s><span>%s</span><span class="n">%d</span></a>%s</li>' % (
+                f['page'], ' aria-current="page"' if here else '', esc(f['rel'].replace('SpectreKnot/', '')), f['n'],
+                outline if here else ''))
+        out.append('</ol>')
+    return ''.join(out)
+
+
+def lean_reader_page(f, files, decls, where, lean_pages, paper_of, info, guide):
+    """One Lean file, in full: lines numbered and linkable (#L12), names linked to their declarations, each declaration's
+    name linked to its page on the map, and a note above each declaration that formalises a numbered result."""
+    body, mine = lean_lines_html(f, decls, where, lean_pages, paper_of, info)
+    k = files.index(f)
+    prev_ = files[k - 1] if k else None
+    next_ = files[k + 1] if k + 1 < len(files) else None
+    common = []   # the namespace every declaration of the file shares, left off in the outline
+    if mine:
+        segs = [d['name'].split('.')[:-1] for d in mine]
+        for parts in zip(*segs):
+            if len(set(parts)) != 1:
+                break
+            common.append(parts[0])
+    cut = len('.'.join(common)) + 1 if common else 0
+    outline = ('<ol class="outline">%s</ol>' % ''.join(
+        '<li><a href="#L%d" title="%s %s, line %d">%s</a></li>' % (d['line'], d['kw'], esc(d['name']), d['line'],
+                                                                   esc(d['name'][cut:])) for d in mine)) if mine else ''
+    rail = lean_rail(files, f, outline)
+    nav = ('<p class="small stepnav">%s<span>%s</span></p>' % (
+        '<a href="%s">&larr; %s</a>' % (prev_['page'], esc(prev_['rel'])) if prev_ else
+        '<a href="%s#lean">&larr; The Lean formalisation</a>' % MAP_FILE,
+        '<a href="%s">%s &rarr;</a>' % (next_['page'], esc(next_['rel'])) if next_ else
+        '<a href="%s#lean">The Lean formalisation &rarr;</a>' % MAP_FILE))
+    n_pages = sum(1 for d in mine if d['name'] in lean_pages)
+    guide_note = ('<aside class="card guidecard"><p><b>A guided reading.</b> <a href="%s">Statement.lean, line by '
+                  'line</a> shows this file beside a plain reading of each piece, with a short introduction to Lean.'
+                  '</p></aside>' % STATEMENT_FILE) if f['rel'] == 'SpectreKnot/Statement.lean' else ''
+    intro = ('<p class="fh">%s</p>' % md_inline(f['heading']) if f['heading'] else
+             '<div class="md fsum">%s</div>' % md_block(f['para']))
+    main = '''<nav class="crumbs small"><a href="%s#map">Overview</a> &rsaquo; <a href="%s#lean">Lean</a> &rsaquo; %s</nav>
+<div class="rhead"><h1><code class="lname"><span class="mut">lean/</span>%s</code></h1></div>
+<p class="small mut src">%s line%s &middot; %s &middot; <a href="%s/blob/main/%s">on GitHub</a> &middot; <label class="nocom-l"><input type="checkbox" id="nocom"> hide comments</label></p>
+%s%s%s
+<details class="rail-m"><summary>All %d files, and the declarations of this one</summary><nav aria-label="The Lean files">%s</nav></details>
+<div class="src-code" id="code">%s</div>
+%s''' % (MAP_FILE, MAP_FILE, esc(f['group']), esc(f['rel']), '{:,}'.format(f['n']), '' if f['n'] == 1 else 's',
+         ('%d declaration%s, each with its own page' % (n_pages, '' if n_pages == 1 else 's')) if n_pages else
+         'generated data' if f['data'] else 'no declarations', REPO_URL, f['repo'], intro, guide_note, nav, len(files),
+         rail, body, nav)
+    title = '%s · The Spectre Knot: the proof' % f['rel']
+    return (HEAD + '<title>%s</title>\n<meta name="description" content="%s">\n%s\n<style>%s%s</style>\n</head>\n<body>\n'
+            '%s%s\n<div class="lr"><nav class="rail" aria-label="The Lean files">%s</nav>\n<main class="lr-main" id="main" tabindex="-1">'
+            '%s</main></div>\n%s\n%s' % (
+                esc(title), esc('%s, in full: %s' % (f['repo'], first_sentence(f['para']))), FONTS, BASE_CSS(),
+                READER_CSS, map_header(MAP_FILE, current='lean'), PM_H_SCRIPT, rail, main, footer(MAP_FILE),
+                READER_JS + '\n<script src="search.js"></script>\n' + SEARCH_JS) + TAIL)
+
+
+def BASE_CSS():
+    """The map's own styles (from TEMPLATE), for the pages beside it."""
+    return TEMPLATE.split('<style>', 1)[1].split('</style>', 1)[0].replace('%PMCSS%', PM_CSS)
+
+
+READER_CSS = """
+.pm-top .in, .pm-foot .in { max-width: 1340px; }
+.lr { max-width: 1340px; margin: 0 auto; padding: 0 20px 40px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 30px; align-items: start; }
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--pm-h, 50px)); max-height: calc(100vh - var(--pm-h, 50px)); overflow: auto; padding: 22px 4px 24px 0; font: .86rem/1.4 var(--font); overscroll-behavior: contain; }
+.rail h2, .rail-m h2 { font: 700 .7rem/1.3 var(--font); letter-spacing: .1em; text-transform: uppercase; color: var(--mint); margin: 16px 0 4px 8px; }
+.rail h2:first-child, .rail-m nav h2:first-child { margin-top: 0; }
+.rail ol, .rail-m ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.rail a, .rail-m a { display: flex; justify-content: space-between; gap: 8px; padding: 2px 8px; border-radius: 5px; color: var(--ink); text-decoration: none; }
+.rail a:hover, .rail-m a:hover { background: var(--surf2); }
+.rail a[aria-current], .rail-m a[aria-current] { background: var(--surf2); color: var(--mint); font-weight: 600; }
+.rail .n, .rail-m .n { color: var(--faint); font-size: .76rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+ol.outline { margin: 3px 0 8px 12px !important; padding-left: 6px !important; border-left: 2px solid var(--line); font: .76rem/1.3 var(--mono); }
+ol.outline a { padding: 1px 6px; display: block; overflow-wrap: anywhere; color: var(--mut); }
+.rail-m { display: none; background: var(--surf); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; font: .9rem/1.4 var(--font); }
+.rail-m summary { padding: 2px 0; }
+.rail-m nav { padding: 10px 0 4px; max-height: 70vh; overflow: auto; }
+.lr-main { min-width: 0; max-width: none; margin: 0; padding: 30px 0 0; display: grid; gap: 16px; }
+.lr-main .crumbs, .lr-main .rhead, .lr-main .src, .lr-main .stepnav { max-width: none; }
+.fh { font: 600 1.05rem/1.4 var(--serif); }
+.fsum { max-width: var(--read); font-size: 1rem; }
+.nocom-l { cursor: pointer; white-space: nowrap; }
+.nocom-l input { vertical-align: -1px; margin: 0 3px 0 0; }
+.src-code { background: var(--surf); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 0; font: 12.5px/1.6 var(--mono); font-variant-ligatures: none; min-width: 0; }
+.ln { display: grid; grid-template-columns: 5ch minmax(0, 1fr); gap: 0 14px; padding-right: 14px; scroll-margin-top: calc(var(--pm-h, 50px) + 20px); }
+.ln:target { background: #fff3c4; }
+.ln.dl { box-shadow: inset 3px 0 0 var(--mint); }
+.ln .no { color: var(--faint); text-align: right; text-decoration: none; user-select: none; font-variant-numeric: tabular-nums; opacity: .8; }
+.ln .no:hover { color: var(--mint); opacity: 1; }
+.ln .tx { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 4ch; text-indent: -4ch; color: var(--ink); }
+.src-code .com { color: #66736e; font-style: italic; }
+.src-code .kw { color: #9b3a70; font-weight: 600; font-size: inherit; }
+.src-code .tac { color: #9b3a70; }
+.src-code .ty { color: #00698f; }
+.src-code .val, .src-code .str { color: #7a4f00; }
+.src-code .num { color: #9a4a00; }
+.src-code a.d { color: #0b5ea8; text-decoration: none; }
+.src-code a.d:hover { text-decoration: underline; }
+.src-code .dn { color: #0b5ea8; font-weight: 600; text-decoration: none; }
+.src-code a.dn:hover { text-decoration: underline; }
+.nocom .com, .nocom .ln.cl { display: none; }
+.ann { margin: 10px 0 2px; padding: 4px 14px 4px calc(5ch + 14px); background: var(--bg2); border-block: 1px solid var(--line); font: .82rem/1.45 var(--font); }
+.ann-k { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--mint); margin-right: 6px; }
+@media (max-width: 860px) {
+  .lr { grid-template-columns: minmax(0, 1fr); }
+  .rail { display: none; }
+  .rail-m { display: block; }
+  .lr-main { padding-top: 22px; }
+}
+@media (max-width: 560px) {
+  .src-code { font-size: 11.5px; border-radius: 0; border-inline: 0; margin-inline: -20px; }
+  .ln { grid-template-columns: 4ch minmax(0, 1fr); gap: 0 8px; padding-right: 8px; }
+  .ann { padding-left: calc(4ch + 8px); }
+}
+"""
+
+SEARCH_JS = """<script>(function () {   // the search box (every page): search.js lists what it finds
+  var q = document.getElementById('pm-q'), box = document.getElementById('pm-qr'), INDEX = window.PM_SEARCH || [], act = -1;
+  if (!q || !box) return;
+  var onMap = !!document.querySelector('.view');          // on the pages beside the map, its views are index.html#...
+  function to(h) { return h.charAt(0) === '#' && !onMap ? 'index.html' + h : h; }
+  // a match in a name or title comes first; then in the text (a statement, a proof, a summary), shown with its words
+  function hits() {
+    var t = q.value.trim().toLowerCase();
+    if (!t) return null;
+    var out = [];
+    INDEX.forEach(function (e) {
+      var named = e[1] === 'Lean' || e[1] === 'file';     // a Lean file or declaration matches by its name
+      var k = (named ? e[2] : e[2] + ' ' + e[3]).toLowerCase().indexOf(t);
+      if (k >= 0) { out.push([e[1] === 'Lean' ? 2 : e[1] === 'file' ? 1 : 0, k, out.length, e, 0, 0]); return; }
+      for (var f = 4; f < e.length; f++) {
+        var j = e[f] ? e[f].toLowerCase().indexOf(t) : -1;
+        if (j >= 0) { out.push([f, 0, out.length, e, f, j]); return; }
+      }
+    });
+    out.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; });
+    return out;
+  }
+  function snippet(text, j, n) {
+    var a = Math.max(0, text.lastIndexOf(' ', Math.max(0, j - 50)) + 1), b = text.indexOf(' ', Math.min(text.length, j + n + 60));
+    if (b < 0) b = text.length;
+    var s = document.createElement('span'), m = document.createElement('b');
+    s.className = 'x';
+    m.textContent = text.slice(j, j + n);
+    s.appendChild(document.createTextNode((a ? '\u2026' : '') + text.slice(a, j)));
+    s.appendChild(m);
+    s.appendChild(document.createTextNode(text.slice(j + n, b) + (b < text.length ? '\u2026' : '')));
+    return s;
+  }
+  var IN = { paper: ['', '', '', '', 'statement', 'proof'], route: ['', '', '', '', 'summary'], file: ['', '', '', '', 'header'] };
+  function render() {
+    var hs = hits(), t = q.value.trim();
+    act = -1;
+    box.textContent = '';
+    if (!hs) { box.hidden = true; return; }
+    hs.slice(0, 40).forEach(function (x) {
+      var e = x[3], a = document.createElement('a'), k = document.createElement('span');
+      a.href = to(e[0]);
+      k.className = 'k ' + e[1]; k.textContent = e[1];
+      a.appendChild(k);
+      if (e[1] === 'Lean' || e[1] === 'file') { var c = document.createElement('code'); c.textContent = e[2]; a.appendChild(c); }
+      else a.appendChild(document.createTextNode(e[2]));
+      if (e[3]) { var s = document.createElement('span'); s.className = 's'; s.textContent = e[3]; a.appendChild(s); }
+      if (x[4]) {
+        var w = (IN[e[1]] || [])[x[4]], sn = snippet(e[x[4]], x[5], t.length);
+        if (w) sn.insertBefore(document.createTextNode('in its ' + w + ': '), sn.firstChild);
+        a.appendChild(sn);
+      }
+      a.addEventListener('click', close);
+      box.appendChild(a);
+    });
+    if (!hs.length) { var p = document.createElement('p'); p.textContent = 'Nothing matches.'; box.appendChild(p); }
+    else if (hs.length > 40) { var m = document.createElement('p'); m.textContent = (hs.length - 40) + ' more: type more.'; box.appendChild(m); }
+    box.hidden = false;
+  }
+  function close() { box.hidden = true; q.value = ''; q.blur(); }
+  function mark(d) {
+    var as = box.querySelectorAll('a');
+    if (!as.length) return;
+    act = (act + d + as.length) % as.length;
+    as.forEach(function (a, i) { a.classList.toggle('on', i === act); });
+    as[act].scrollIntoView({ block: 'nearest' });
+  }
+  q.addEventListener('input', render);
+  q.addEventListener('focus', render);
+  q.addEventListener('keydown', function (ev) {
+    if (ev.key === 'ArrowDown') { mark(1); ev.preventDefault(); }
+    else if (ev.key === 'ArrowUp') { mark(-1); ev.preventDefault(); }
+    else if (ev.key === 'Escape') close();
+    else if (ev.key === 'Enter') {
+      var as = box.querySelectorAll('a');
+      if (as.length) {
+        var href = as[Math.max(act, 0)].getAttribute('href');
+        close();
+        if (href.charAt(0) === '#') location.hash = href; else location.href = href;
+      }
+    }
+  });
+  document.addEventListener('click', function (ev) { if (!ev.target.closest('.pm-search')) box.hidden = true; });
+})();</script>"""
+
+READER_JS = """<script>(function () {   // hide or show the comments; the choice is kept for the other files
+  var box = document.getElementById('nocom'), code = document.getElementById('code');
+  function set(on) { code.classList.toggle('nocom', on); box.checked = on; }
+  try { set(localStorage.getItem('pm-nocom') === '1'); } catch (e) { }
+  box.addEventListener('change', function () {
+    set(box.checked);
+    try { localStorage.setItem('pm-nocom', box.checked ? '1' : '0'); } catch (e) { }
+  });
+})();</script>"""
+
+
+def run_steps():
+    """The steps of paper/code/run_all.sh, in order: (stage, log, command), the command as run from paper/code/ with
+    the script's variables filled in."""
+    text = (ROOT / 'paper/code/run_all.sh').read_text(encoding='utf8')
+    var = dict(re.findall(r'^(\w+)="?([^"\n]*)"?$', text, flags=re.M))
+    steps, stage = [], ''
+    for line in text.split('\n'):
+        if re.match(r'^if \[ \$A = 1 \]', line):
+            stage = 'A'
+        elif re.match(r'^if \[ \$B = 1 \]', line):
+            stage = 'B'
+        elif 'SMKGS_PDF:-' in line and line.strip().startswith('if'):
+            stage = 'A, given the spectre paper'
+        elif line.strip() == 'else' and stage.startswith('A,'):
+            stage = 'A'
+        m = re.match(r'^\s*run\s+(\S+\.log)\s+(.*)$', line)
+        if m:
+            cmd = re.sub(r'\$(\w+)|\$\{(\w+)\}', lambda v: var.get(v.group(1) or v.group(2), v.group(0)), m.group(2))
+            steps.append((stage, m.group(1), cmd.strip()))
+    return steps
+
+
+def code_view(comp_ordered, files, pdf, zip_size):
+    logs = run_logs()
+    rows = []
+    for c in comp_ordered:
+        scripts, paths = script_links(c['scripts'])
+        ls = []
+        for p in paths:
+            for log in logs.get(p, []):
+                if log not in ls:
+                    ls.append(log)
+        rows.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+            c['for'], c['what'], scripts, ', '.join(
+                '<a href="%s/blob/main/paper/code/logs/%s" title="%s">%s</a>' % (REPO_URL, log, log, log.split('_')[0])
+                for log in sorted(ls)) or '&ndash;'))
+    toolchain = (LEAN / 'lean-toolchain').read_text(encoding='utf8').strip()
+    tree = lambda p: '<a href="%s/tree/main/%s"><code>%s</code></a>' % (REPO_URL, p.rstrip('/'), p)
+    return '''<section class="view" id="v-code" data-view="code" hidden>
+<nav class="crumbs small"><a href="#map">Overview</a></nav>
+<div class="pm-hero"><h1>The code</h1>
+<p class="lede">The paper, every program its proof uses with the logs of a full run, the Lean formalisation and the generator of this site are in one public repository.</p>
+<p class="badges"><a class="badge root" href="%s">The repository on GitHub &rarr;</a> <a class="badge" href="%s">the programs and the Lean, as a zip%s</a> <a class="badge" href="%s">the paper (PDF)</a></p></div>
+<div class="tablebox"><table class="lt"><thead><tr><th>folder</th><th>what is in it</th></tr></thead><tbody>
+<tr><td>%s</td><td>the paper: its LaTeX in <code>tex/</code>, the figures drawn by <code>figures/make_figs.py</code>, and the built PDF</td></tr>
+<tr><td>%s</td><td>every program the proof uses, with the logs of a full run in <code>logs/</code>; its <a href="%s/blob/main/paper/code/README.md">README</a> says which program computes what</td></tr>
+<tr><td>%s</td><td>the Lean formalisation, %d files: <a href="#lean">read it here</a>; its <a href="%s/blob/main/lean/README.md">README</a> maps the paper to the Lean</td></tr>
+<tr><td>%s</td><td>the generator of this site (<a href="#about">how it works</a>)</td></tr>
+</tbody></table></div>
+<p class="small mut gl">The zip holds the programs and their logs as <code>code/</code> and the Lean as <code>lean/</code>. Licences: the code is under the MIT licence (<code>LICENSE</code>); the paper, the text and the pictures under CC&nbsp;BY&nbsp;4.0 (<code>LICENSE-CONTENT.md</code>).</p>
+<h2 class="sh">The Lean</h2>
+<div class="prose gl">
+<p>Lean 4, <code>%s</code> (pinned in <code>lean/lean-toolchain</code>), with the core library only: no Mathlib. With <a href="https://github.com/leanprover/elan">elan</a> installed:</p>
+<pre class="cmd">cd lean
+./build.sh            # about 6 minutes from clean
+./build.sh --slow     # with the slower tests: 2 minutes more</pre>
+<p class="small"><code>build.sh</code> fails if any source uses <code>sorry</code>, <code>admit</code> or <code>native_decide</code>, if a theorem or a <code>have</code> has no comment, if the build or a test fails, or if a main theorem depends on an axiom other than Lean&rsquo;s standard three (<a href="lean-Axioms.html"><code>Axioms.lean</code></a>).</p>
+<p class="small">GitHub builds it in the public repository whenever <code>lean/</code> changes: <a href="%s/actions/workflows/lean.yml">the Lean builds, with their logs</a>.</p>
+</div>
+<h2 class="sh">The computations</h2>
+<div class="prose gl">
+<p>The programs are in JavaScript (node 18 or later) and Python 3 (with numpy, scipy, sympy, matplotlib and pillow). <code>run_all.sh</code> runs the computations the proof depends on, with quick corroboration (about 12 minutes on 4 cores); with <code>--all</code> it adds the corroboration up to level 9 (about 1 hour). Each step writes its log into <code>logs/</code>.</p>
+<pre class="cmd">cd paper/code
+./run_all.sh
+./run_all.sh --all</pre>
+<p class="small">Two steps, A17 and A18, compare the level-1 supertiles and the composition pattern with figures of the spectre paper, and run only when given its PDF, which is not included (see the README).</p>
+<p>The paper&rsquo;s table <i>What was computed</i>, with each program and the logs of its steps:</p>
+</div>
+<div class="tablebox"><table class="lt comptab"><thead><tr><th>for</th><th>computation</th><th>programs</th><th>logs</th></tr></thead><tbody>%s</tbody></table></div>
+<h2 class="sh">Every step of the run</h2>
+<p class="small mut gl">As <code>run_all.sh</code> runs them, from <code>paper/code/</code>: stage A always, stage B with <code>--all</code>; A17 and A18 only when <code>SMKGS_PDF</code> names the spectre paper&rsquo;s PDF. Each command can be run on its own.</p>
+<div class="tablebox"><table class="lt steps"><thead><tr><th>step</th><th>command</th><th>log</th></tr></thead><tbody>%s</tbody></table></div>
+<h2 class="sh">The paper, and this site</h2>
+<div class="prose gl">
+<p>The paper&rsquo;s figures and PDF need TeX Live and Python 3 with matplotlib; this site, Python 3 with pymupdf, and poppler. It is written into <code>out/site/</code>.</p>
+<pre class="cmd">cd paper && ./build.sh
+python3 proofmap/build.py</pre>
+</div>
+</section>''' % (REPO_URL, ZIP_FILE, ' (%d&nbsp;KB)' % (zip_size // 1024), PDF_FILE, tree('paper/'),
+                 tree('paper/code/'), REPO_URL, tree('lean/'), len(files), REPO_URL, tree('proofmap/'), esc(toolchain),
+                 REPO_URL, ''.join(rows), ''.join(
+                     '<tr><td>%s<span class="mut small"> &middot; %s</span></td><td><code>%s</code></td><td><a href="%s/blob/main/'
+                     'paper/code/logs/%s">%s</a></td></tr>' % (log.split('_')[0], esc(stage), esc(cmd), REPO_URL, log, log)
+                     for stage, log, cmd in run_steps()))
+
+
+def about_view(data, decls, lean_all, rows, notes, files):
     n_thm = sum(1 for v in decls.values() if v['kw'] in ('theorem', 'lemma'))
     return '''<section class="view" id="v-about" data-view="about" hidden><div class="pm-hero">
-<h1>About this map</h1></div><div class="prose">
+<h1>About this site</h1></div><div class="prose">
 <p>This site is generated by <code>proofmap/build.py</code> from the sources, so it changes when they change:</p>
 <ul class="md">
 <li>statements and proofs: the paper&rsquo;s LaTeX, <code>paper/tex/spectre_knot.tex</code>, converted for the web; the numbers are checked against the built PDF, and the build stops if they differ;</li>
 <li>what a result cites: the references by number (<code>\\cref</code>) in its statement and proof;</li>
 <li>the Lean declarations of a result: the paper-to-Lean table in <code>lean/README.md</code> (%d rows); the Lean statements are quoted from the Lean files (%d declarations read, %d of them theorems);</li>
-<li>the computations: the paper&rsquo;s table &ldquo;What was computed&rdquo;;</li>
+<li>the computations: the paper&rsquo;s table &ldquo;What was computed&rdquo;, each program linked to its file, with the logs of its steps as <code>paper/code/run_all.sh</code> names them;</li>
+<li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
+<li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
 <li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX;</li>
 <li>written by hand, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries were written by the AI and are labelled where they appear.</li>
 <li>the numbers on the overview, the depths and the chains of citations up to a main theorem: counted from the above when the site is built.</li>
 </ul>
-<p>The layout follows the reader&rsquo;s guide to the Lean proof of Fermat&rsquo;s Last Theorem (tianyipeng.github.io/fermats-last-theorem): an overview with the statement and the top of the proof, the route step by step, the graph with a table, a page for every result and every declaration, and a search box.</p>
+<p>The layout follows the reader&rsquo;s guide to the Lean proof of Fermat&rsquo;s Last Theorem (tianyipeng.github.io/fermats-last-theorem): an overview with the statement and the top of the proof, the route step by step, the graph with a table, a page for every result, every declaration and every Lean file, and a search box.</p>
 <p>Lean dependencies are read from the text, not from Lean itself: a declaration counts as named in a proof when its name is written there, in full, relative to the enclosing namespace or to an <code>open</code>, or as field notation <code>x.foo</code> when <code>foo</code> names exactly one declaration. Names used only through notation, instances or tactics are missed. No Lean was run to make this page.</p>
 <p>Mathematics is typeset in the browser by MathJax.</p>
-</div></section>''' % (len(rows), len(decls), n_thm, len(notes['labels']), len(notes['lean_part']), len(notes['notes']))
+</div></section>''' % (len(rows), len(decls), n_thm, len(files), len(notes['labels']), len(notes['lean_part']),
+                         len(notes['notes']))
 
 
-TEMPLATE = r'''<title>Spectre Knot Proof Map</title>
+TEMPLATE = r'''<title>The Spectre Knot: the proof</title>
 %FONTS%
 <style>
 /* Layout: a reading room, after the reader's guide to the Lean proof of Fermat's Last Theorem: a quiet top bar,
@@ -1491,6 +2531,56 @@ pre.hero-lean { border: 1.5px solid var(--mint); background: var(--surf); font-s
 .numbers-grid b { font: 400 1.45rem var(--serif); color: var(--mint); }
 .numbers-grid span { font: .8rem/1.4 var(--font); color: var(--mut); }
 ul.howto { max-width: 90ch; }
+.ways { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
+.way { background: var(--surf); border: 1px solid var(--line); border-top: 3px solid var(--mint); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-family: var(--font); }
+.way h2 { font: 600 1.08rem/1.25 var(--serif); }
+.way h2 a { color: var(--ink); text-decoration: none; }
+.way h2 a:hover { color: var(--mint); text-decoration: underline; }
+.way p { font-size: .88rem; line-height: 1.45; color: var(--mut); }
+.way .go { margin-top: auto; padding-top: 2px; font-size: .86rem; }
+@media (max-width: 560px) { .ways { gap: 8px; } .way { padding: 10px 12px; } }
+.contents { max-width: 820px; }
+.crumbs.pnrow { display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; }
+.crumbs .pn { display: flex; gap: 14px; margin-left: auto; }
+.crumbs .pn a { text-decoration: none; }
+.crumbs .pn a:hover { text-decoration: underline; }
+.mfilter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 820px; }
+.mfilter button { font: inherit; background: var(--surf); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px 2px 4px; cursor: pointer; color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
+.mfilter button:first-of-type { padding-left: 10px; }
+.mfilter button[aria-pressed="true"] { border-color: var(--mint); box-shadow: 0 0 0 1.5px var(--mint) inset; background: var(--surf2); }
+.mfilter .n { color: var(--mut); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.cworks { display: grid; gap: 14px; max-width: 900px; }
+.cwork { display: grid; gap: 6px; }
+.cwork .ref { font-size: .97rem; }
+table.lt.cw th { width: 13em; font-weight: 400; color: var(--ink); }
+table.lt.cw th, table.lt.cw td { padding: 4px 10px; }
+.aidst, .stblock { display: grid; gap: 18px; }
+@media (max-width: 640px) { .aidst { display: flex; flex-direction: column-reverse; gap: 18px; } }
+.contents .psec { font-size: 1.12rem; margin: 18px 0 2px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; column-gap: 10px; }
+.contents .psub { font: 600 .98rem/1.35 var(--serif); margin: 10px 0 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; column-gap: 10px; }
+.contents .sn { color: var(--amber); font-variant-numeric: tabular-nums; }
+.contents ul.rl { margin: 6px 0 0 0; padding-left: 1.1em; }
+.contents ul.rl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 12px; }
+a.pg { font: .78rem var(--font); color: var(--mut); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; white-space: nowrap; background: var(--surf); }
+a.pg:hover { color: var(--mint); border-color: var(--mint); }
+.lgroups { columns: 2 420px; column-gap: 40px; }
+.lgroup { break-inside: avoid; margin-bottom: 18px; }
+.lgroup h3 { font: 700 .74rem/1.3 var(--font); letter-spacing: .1em; text-transform: uppercase; color: var(--mint); margin-bottom: 4px; }
+ul.lfiles { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-family: var(--font); font-size: .9rem; }
+ul.lfiles li { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: baseline; }
+ul.lfiles .n { color: var(--faint); font-size: .78rem; text-align: right; }
+ul.lfiles .d { grid-column: 1 / -1; color: var(--mut); font-size: .84rem; line-height: 1.4; }
+ul.lfiles .d code { font-size: .8rem; }
+pre.cmd { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; overflow-x: auto; margin: 0; line-height: 1.55; }
+table.comptab { table-layout: fixed; min-width: 640px; }
+table.lt.steps td { padding: 5px 10px; }
+table.steps td:first-child { white-space: nowrap; }
+table.steps td:nth-child(2) code { background: none; padding: 0; font-size: .8rem; overflow-wrap: anywhere; }
+table.steps td:nth-child(3) { font-size: .84rem; }
+@media (max-width: 700px) { table.steps td:nth-child(3) { overflow-wrap: anywhere; } }
+table.comptab th:nth-child(1) { width: 20%; } table.comptab th:nth-child(2) { width: 44%; }
+table.comptab th:nth-child(3) { width: 27%; } table.comptab th:nth-child(4) { width: 9%; }
+table.comptab td:nth-child(3), table.comptab td:nth-child(4) { font-size: .84rem; overflow-wrap: anywhere; }
 .thm-card { background: var(--surf); border: 1px solid var(--line); border-left: 4px solid var(--mint); border-radius: 0 var(--r) var(--r) 0; padding: 10px 16px; display: grid; gap: 8px; max-width: var(--read); }
 .tc-head { font-family: var(--font); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .tc-head a { text-decoration: none; }
@@ -1616,31 +2706,67 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
 <script src="%MATHJAX%" defer></script>
 <!--BODY-->
 %HEADER%
-<main id="main">
+<main id="main" tabindex="-1">
 %VIEWS%
 </main>
 %FOOTER%
+<script src="search.js"></script>
+%SEARCHJS%
 <script>
 (function () {
   var views = {};
   document.querySelectorAll('.view').forEach(function (v) { views[v.dataset.view] = v; });
   var done = new WeakSet();
   function typeset(v) {
-    if (done.has(v) || !window.MathJax || !MathJax.typesetPromise) return;
+    if (done.has(v) || !window.MathJax || !MathJax.typesetPromise) return Promise.resolve();
     done.add(v);
-    MathJax.typesetPromise([v]).catch(function () { done.delete(v); });
+    return MathJax.typesetPromise([v]).catch(function () { done.delete(v); });
   }
+  var cur = null, TITLE = document.title, top = document.querySelector('.pm-top');
+  // what the address names: a view, or an element inside one (the view is shown and the element scrolled to)
+  function target() {
+    var h = decodeURIComponent((location.hash || '#map').slice(1));
+    if (h === 'results') h = 'paper';     // the contents' old name
+    if (views[h]) return [h, null];
+    var el = h ? document.getElementById(h) : null, v = el && el.closest('.view');
+    if (el) return [v ? v.dataset.view : (cur || 'map'), el];
+    return ['map', null];
+  }
+  // the reader's place: Back, Forward and reload return to where they were on the page
+  function place(el) {
+    var st = history.state;
+    if (st && typeof st.y === 'number') window.scrollTo(0, st.y);
+    else if (el) {
+      el.scrollIntoView();
+      window.scrollBy(0, -(top ? top.offsetHeight : 0) - 12);
+      if (el.id === 'main') el.focus({ preventScroll: true });
+    } else window.scrollTo(0, 0);
+  }
+  function save() {
+    try { history.replaceState(Object.assign({}, history.state || {}, { y: window.scrollY }), ''); } catch (e) { }
+  }
+  var saving = 0;
+  window.addEventListener('scroll', function () { clearTimeout(saving); saving = setTimeout(save, 120); },
+                          { passive: true });
+  document.addEventListener('click', function (ev) {   // before a link takes the reader elsewhere
+    if (ev.target.closest && ev.target.closest('a[href]')) { clearTimeout(saving); save(); }
+  }, true);
   function show() {
-    var h = (location.hash || '#map').slice(1);
-    if (!views[h]) h = 'map';
+    var t = target(), h = t[0], el = t[1];
     Object.keys(views).forEach(function (k) { views[k].hidden = (k !== h); });
-    var sec = (h.indexOf('r-') === 0 || h.indexOf('f-') === 0) ? 'results' : h.indexOf('lean') === 0 ? 'lean' :
+    var sec = (h.indexOf('r-') === 0 || h.indexOf('f-') === 0) ? 'paper' : h.indexOf('lean') === 0 ? 'lean' :
       /^s[0-9]+$/.test(h) ? 'route' : h;
     document.querySelectorAll('[data-nav]').forEach(function (a) {
       if (a.dataset.nav === sec) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
-    typeset(views[h]);
-    window.scrollTo(0, 0);
+    document.title = views[h].dataset.title ? views[h].dataset.title + ' \u00b7 ' + TITLE : TITLE;
+    var again = cur !== h || !done.has(views[h]);
+    cur = h;
+    place(el);
+    var y = window.scrollY;
+    if (again) typeset(views[h]).then(function () {   // the maths changes heights: place again unless the reader moved
+      if (cur === h && Math.abs(window.scrollY - y) < 2) place(el);
+    });
   }
   window.addEventListener('hashchange', show);
   show();
@@ -1650,6 +2776,30 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
     }, 100);
   });
   if (document.readyState !== 'loading') document.dispatchEvent(new Event('DOMContentLoaded'));
+  // the mark filter: only the items with one mark (data-m), and only the headings with something shown under them
+  document.querySelectorAll('.mfilter').forEach(function (bar) {
+    var scope = document.getElementById(bar.dataset.for);
+    bar.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button');
+      if (!b) return;
+      var f = b.dataset.f;
+      bar.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      scope.querySelectorAll('[data-m]').forEach(function (e) {
+        e.hidden = !!f && (' ' + e.dataset.m + ' ').indexOf(' ' + f + ' ') < 0;
+      });
+      var kids = [].slice.call(scope.children);
+      kids.forEach(function (el, i) {
+        if (!/^H[34]$/.test(el.tagName)) return;
+        var any = false;
+        for (var j = i + 1; j < kids.length; j++) {
+          var k = kids[j];
+          if (k.tagName === 'H3' || (el.tagName === 'H4' && k.tagName === 'H4')) break;
+          if (k.tagName === 'UL' && k.querySelector('li:not([hidden])')) { any = true; break; }
+        }
+        el.hidden = !!f && !any;
+      });
+    });
+  });
   // graph: highlight a result's arrows on hover or focus
   document.querySelectorAll('svg.graph').forEach(function (g) {
     var edges = g.querySelectorAll('.edges path');
@@ -1671,61 +2821,6 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
       a.addEventListener('blur', off);
     });
   });
-  // search: every numbered item of the paper, the steps of the route, and the Lean declarations, by name
-  var q = document.getElementById('pm-q'), box = document.getElementById('pm-qr'), INDEX = %SEARCH%, act = -1;
-  function hits() {
-    var t = q.value.trim().toLowerCase();
-    if (!t) return null;
-    var out = [];
-    INDEX.forEach(function (e) {
-      var k = (e[1] === 'Lean' ? e[2] : e[2] + ' ' + e[3]).toLowerCase().indexOf(t);
-      if (k >= 0) out.push([e[1] === 'Lean' ? 1 : 0, k, out.length, e]);
-    });
-    out.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; });
-    return out.map(function (x) { return x[3]; });
-  }
-  function render() {
-    var hs = hits();
-    act = -1;
-    box.textContent = '';
-    if (!hs) { box.hidden = true; return; }
-    hs.slice(0, 40).forEach(function (e) {
-      var a = document.createElement('a'), k = document.createElement('span');
-      a.href = e[0];
-      k.className = 'k ' + e[1]; k.textContent = e[1];
-      a.appendChild(k);
-      if (e[1] === 'Lean') { var c = document.createElement('code'); c.textContent = e[2]; a.appendChild(c); }
-      else a.appendChild(document.createTextNode(e[2]));
-      if (e[3]) { var s = document.createElement('span'); s.className = 's'; s.textContent = e[3]; a.appendChild(s); }
-      a.addEventListener('click', close);
-      box.appendChild(a);
-    });
-    if (!hs.length) { var p = document.createElement('p'); p.textContent = 'Nothing matches.'; box.appendChild(p); }
-    else if (hs.length > 40) { var m = document.createElement('p'); m.textContent = (hs.length - 40) + ' more: type more of the name.'; box.appendChild(m); }
-    box.hidden = false;
-  }
-  function close() { box.hidden = true; q.value = ''; q.blur(); }
-  function mark(d) {
-    var as = box.querySelectorAll('a');
-    if (!as.length) return;
-    act = (act + d + as.length) % as.length;
-    as.forEach(function (a, i) { a.classList.toggle('on', i === act); });
-    as[act].scrollIntoView({ block: 'nearest' });
-  }
-  if (q) {
-    q.addEventListener('input', render);
-    q.addEventListener('focus', render);
-    q.addEventListener('keydown', function (ev) {
-      if (ev.key === 'ArrowDown') { mark(1); ev.preventDefault(); }
-      else if (ev.key === 'ArrowUp') { mark(-1); ev.preventDefault(); }
-      else if (ev.key === 'Escape') close();
-      else if (ev.key === 'Enter') {
-        var as = box.querySelectorAll('a');
-        if (as.length) { location.hash = as[Math.max(act, 0)].getAttribute('href'); close(); }
-      }
-    });
-    document.addEventListener('click', function (ev) { if (!ev.target.closest('.pm-search')) box.hidden = true; });
-  }
 })();
 </script>'''
 

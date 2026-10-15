@@ -84,6 +84,20 @@ inductive Linked (p : Port) : Port → Prop
   | piece {q : Port} : Linked p q → Linked p (pieceEnd q)
   | edge {q q' : Port} : Linked p q → P.across q = some q' → Linked p q'
 
+/-- **Turning about a point.** Corner `(t, i)` is vertex `v_i` of tile `t`. If edge `e_{i-1}` (which ends at `v_i`)
+is glued to edge `e_j` of tile `t'`, the same point is `v_j` of `t'`, the next corner about it (the two tiles run along
+the edge in opposite directions); `none` if the edge is on the rim. -/
+def turn (c : Nat × Nat) : Option (Nat × Nat) := P.glue c.1 ((c.2 + 13) % 14)
+
+/-- Turning `n` times about a point, across glued edges only. -/
+def turns : Nat → Nat × Nat → Option (Nat × Nat)
+  | 0, c => some c
+  | n + 1, c => (P.turn c).bind (turns n)
+
+/-- Vertex `v_i` of tile `t` is **surrounded**: turning about it, across glued edges only, comes back to where it
+started. (A vertex on the rim is not: turning about it reaches the rim.) -/
+def Surrounded (t i : Nat) : Prop := ∃ n, 0 < n ∧ P.turns n (t, i) = some (t, i)
+
 /-- **Side `j` of a supertile**: its rim edges from vertex `j` to vertex `j+1`. -/
 def side (j : Nat) : List (Nat × Nat) :=
   (P.rim.drop (P.vtx.getD j 0)).take (P.vtx.getD (j + 1) 0 - P.vtx.getD j 0)
@@ -183,6 +197,24 @@ def TheoremB_sharp : Prop :=
   ∀ b p q, 1 ≤ b → (N b).IsPort p → (N b).IsPort q →
     (N (b + 4)).Linked (upPort b 4 p) (upPort b 4 q) ∧
     (b % 2 = 0 → (N (b + 3)).Linked (upPort b 3 p) (upPort b 3 q))
+
+/-- `k` levels up, the ports of `N_b` lie on exactly two strands of `N_{b+k}`: there are two ports `p`, `q` of `N_b`
+that are not on one strand there, and every port of `N_b` is on the strand of one of them. -/
+def TwoStrands (b k : Nat) : Prop :=
+  ∃ p q, (N b).IsPort p ∧ (N b).IsPort q ∧ ¬ (N (b + k)).Linked (upPort b k p) (upPort b k q) ∧
+    ∀ x, (N b).IsPort x →
+      (N (b + k)).Linked (upPort b k x) (upPort b k p) ∨ (N (b + k)).Linked (upPort b k x) (upPort b k q)
+
+/-- **The bound is exact** (the last two rows of the paper's Table 5): for `b ≥ 1`, the ports of `N_b` lie on two
+strands of `N_{b+2}`, and, if `b` is odd, on two strands of `N_{b+3}`. With `TheoremB_sharp`: on 2, 1, 1 strands of
+`N_{b+2}`, `N_{b+3}`, `N_{b+4}` if `b` is even, and on 2, 2, 1 if `b` is odd. (Proved in `ProofExact.lean`.) -/
+def TheoremB_exact : Prop := ∀ b, 1 ≤ b → TwoStrands b 2 ∧ (b % 2 = 1 → TwoStrands b 3)
+
+/-- **The Grandparent Lemma** (the paper's Lemma 8.3(a), at the vertices of tiles): for `b ≥ 1`, every vertex of every
+tile of `N_b` is surrounded by tiles of `N_{b+2}`. So `N_b` does not meet the rim of `N_{b+2}`. (Proved in
+`ProofGrand.lean`.) -/
+def Grandparent : Prop :=
+  ∀ b, 1 ≤ b → ∀ t i, t < (N b).tiles → i < 14 → (N (b + 2)).Surrounded (up b 2 t) i
 
 /-! ## 6. The nest tiling as one patch, and its single strand -/
 

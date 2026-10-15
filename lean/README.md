@@ -8,8 +8,10 @@ Stage 4 linked these abstract gluings to the supertiles of the statement file an
 combinatorial form (`Statement.theoremA`). Stage 5 proved **Theorem B** in the same form (`Statement.theoremB`,
 `Statement.theoremB_sharp`), and then its final form by Lemma 3.4: the ribbons of the nest tiling form one two-way
 infinite strand (`Statement.theoremB_strand`). Stage 6 proved Theorem A in the same final form for any chain of
-supertiles: every strand of their union is a two-way infinite path (`Statement.theoremA_strand`). Written by the AI
-system (Claude), working with the owner, like everything else in this repository.
+supertiles: every strand of their union is a two-way infinite path (`Statement.theoremA_strand`). Stage 7 proved that
+the bound of Theorem B is exact, the last two rows of the paper's Table 5 (`Statement.theoremB_exact`), and the
+Grandparent Lemma's part (a) at the vertices of tiles (`Statement.grandparent`). Written by the AI system (Claude),
+working with the owner, like everything else in this repository.
 
 The paper was revised on 11 October 2026 so that its proofs of the signature (§7) and of the merging (§9.1) take the
 routes this formalisation takes; see *How the formal proof relates to the paper* below.
@@ -17,8 +19,8 @@ routes this formalisation takes; see *How the formal proof relates to the paper*
 ## The statement file: start here
 
 **`SpectreKnot/Statement.lean` is the file to read.** It holds every definition the main theorems use, and the
-theorems themselves as claims, with short comments in plain English where they help (shortened on 13 Oct 2026; the
-code is unchanged). The proof map's page `statement.html` (written by `python3 proofmap/build.py`, and on the website)
+theorems themselves as claims, with short comments in plain English where they help (shortened on 13 Oct 2026; on
+15 Oct 2026 `turn`, `turns`, `Surrounded`, `TwoStrands`, `TheoremB_exact` and `Grandparent` were added). The proof map's page `statement.html` (written by `python3 proofmap/build.py`, and on the website)
 is the guided reading: a short introduction to Lean for this file, a suggested reading order, and then the whole file,
 piece by piece, beside a plain reading of each piece, with how the Lean syntax says it (folded away), checks against
 the paper, Lean's own output on examples, figures of the ports and the gluing, what each piece uses and where it is
@@ -27,8 +29,9 @@ used, and a glossary. The reading is in
 cover every line. The file holds:
 
 - §5: `TheoremA` (no supertile contains a closed strand), `TheoremB` (the nest has no boundary, no closed strand, and
-  any two ports of a block lie on one strand of a larger block) and `TheoremB_sharp` (the paper's bound: three levels
-  up for even b, four for odd b);
+  any two ports of a block lie on one strand of a larger block), `TheoremB_sharp` (the paper's bound: three levels
+  up for even b, four for odd b), `TheoremB_exact` (the bound is exact: two strands two levels up, and three levels up
+  for odd b) and `Grandparent` (every vertex of every tile of N_b is surrounded by tiles of N_{b+2});
 - §6: the nest tiling as one patch (`nestTiling`), `NestModel` (it is a tiling, and it contains every block) and
   `TheoremB_strand` (its ribbons form one two-way infinite strand through every port);
 - §7: any chain of supertiles X₁ ⊂ X₂ ⊂ ⋯, each a child of the next (`Chain`); `ChainModel` (the union of the chain is
@@ -40,7 +43,8 @@ one assumption, (M), written out at the top of the file and not formalised: real
 the file builds. Every claim is proved, and Lean's kernel has checked each proof against exactly this statement:
 `theoremA` in `SpectreKnot/ProofA.lean`; `theoremB` and `theoremB_sharp` in `SpectreKnot/ProofB.lean`; `nestModel`
 and `theoremB_strand` in `SpectreKnot/ProofStrand.lean`; `chainModel` and `theoremA_strand` in
-`SpectreKnot/ProofChain.lean`.
+`SpectreKnot/ProofChain.lean`; `theoremB_exact` in `SpectreKnot/ProofExact.lean`; `grandparent` in
+`SpectreKnot/ProofGrand.lean`.
 
 How the statement's definitions are tested (`Tests.lean`; `TestsSlow.lean` with `./build.sh --slow`):
 
@@ -54,7 +58,10 @@ How the statement's definitions are tested (`Tests.lean`; `TestsSlow.lean` with 
 - negative control: along the chain of the paper's Remark 10.1 the same definitions give 32, 3, 3 (and 3 in X₅,
   slow) strands, not one. So "one strand" is not built into the definitions;
 - negative control for Theorem A (a theorem, `loopPatch_closed`): a one-tile patch with a made-up gluing that traps a
-  ribbon fails `NoClosedStrand`. So "no closed strand" is not built into the definitions either.
+  ribbon fails `NoClosedStrand`. So "no closed strand" is not built into the definitions either;
+- the Grandparent Lemma on instances: every vertex of every tile of N₁ is surrounded in N₃, and of N₂ in N₄, but not
+  one level up (side 2 of N_b lies on the rim of N_{b+1}); and a theorem (`rim_not_surrounded`): in a patch with the
+  signature, no vertex on the rim is surrounded. So "surrounded" is not built into the definitions.
 
 `Tests.lean` also checks the 18 compositions of Computation 7.3 at levels 1 and 2: they are well formed; the full and
 the reduced walk agree from every port; at level 1 the runs number 52 (45 for Γ); the rims of the level-2 Γ and Δ have
@@ -83,13 +90,18 @@ detail:
 - **Lemma 7.2** (reachability) is the induction `Compose.adm_sig` (and `adm_induct` for any property), backwards on
   the excess over the level-1 lengths, with the same choice of move as the paper's proof.
 - **Lemma 8.3** is used in form (b), that every edge of N_b is glued in N_{b+2} (`no_boundary`), proved from the tables
-  as the paper notes; form (a), about points of the plane, is not formalised.
+  as the paper notes. Form (a) is proved for the vertices of tiles (`grandparent`): every vertex of every tile of N_b is
+  surrounded by tiles of N_{b+2}. The proof needs a fact the paper takes from the geometry: every supertile is a disc
+  at its rim, that is, turning about each rim vertex runs from the tile beside one rim edge to the tile beside the
+  other (`RimChains`, proved level by level from the nine level-1 clusters). The step from tile vertices to points of
+  the plane is part of (M).
 - **Lemma 9.4** is proved with "at least two edges from the ends", which is what the proof needs; the paper states
   five.
 - **Theorem A** is proved for any chain of supertiles whose union has every edge eventually glued (`TheoremA_strand`);
   that a tiling whose hierarchy covers the plane is such a union is part of (M).
-- **Thm 9.1** is proved as the bound (`TheoremB_sharp`); the exact counts in the last two rows of Table 5 are not
-  formalised.
+- **Thm 9.1** is proved as the bound (`TheoremB_sharp`), and the last two rows of Table 5, which its proof gives, as
+  `TheoremB_exact`: the paper's "distinct hooks are distinct arcs" is `hooks_apart`, by the ends of a strand
+  (`Linked.ends`).
 
 ## Building
 
@@ -147,9 +159,10 @@ Numbering as in the paper (revised 11 October 2026).
 | Comp 9.2 | `Statement.step_base` | kernel computation | In C_Δ(ℓ₁, d₁, ±1), the walk from every port of child 1 outside its side 2 ends at a port of the parent hook at the junction that `tgt` names (the paper's Table 6). |
 | Lemma 9.3 | `Statement.step_level`, `Statement.StepOK.move`, `Statement.step_tile`, `Statement.stretch_eq` | proof | The same at the level-m lengths, every m ≥ 1, both signs: carried from ℓ₁ by the moves of Lemma 7.2 (`adm_induct`), with cuts on child 1 kept two edges from the ends of its sides; a cut adds two vertices whose strands are those of the old vertices next to it (`NewWalk.lean`). At tile level: a rim port of N_m lies, in N_{m+1}, on the strand of the hook at that junction; strictly inside N_m's side 2 the rim port is a hook of N_{m+1} itself. |
 | Lemma 9.4 | `Statement.inside_9`, `inside_12`, `inside_16`, `inside_17`, `inside_21`, `inside_stp` | proof | The junctions 9, 12, 16, 17, 21 lie inside sides 2, 3, 4, 4, 5 of N_{m+1}, and the inside of N_m's side 2 inside side 4, at least two vertices from the ends. |
-| Lemma 8.3(b) (part of the Grandparent Lemma) | `Statement.no_boundary` | proof | Every edge of N_b (b ≥ 1) is glued in N_{b+2}. |
+| Lemma 8.3 (the Grandparent Lemma), in combinatorial form | `Statement.no_boundary`, `Statement.grandparent`, `Statement.chains_super`, `Statement.Patch.surrounded_or_chain`, `Statement.delta_cycles` | proof + kernel computation + table check | (b) Every edge of N_b (b ≥ 1) is glued in N_{b+2} (`no_boundary`). (a) Every vertex of every tile of N_b is surrounded by tiles of N_{b+2}: turning about it (`turn`, crossing the edge that ends there) comes back to it (`Grandparent`). Every supertile is a disc at its rim (`RimChains`: turning about each rim vertex runs from the tile beside one rim edge to the tile beside the other; the nine level-1 clusters by the kernel, then level by level, `Kids.rimChains`); every vertex is surrounded or on such a chain (`surrounded_or_chain`, by counting); in the Δ composition, turning about a vertex of child 1 off its side 2 comes round (two steps inside a side, three at a vertex by Table 2, `delta_cycles`), and so does turning about a vertex inside child 1's side 4, glued to child 3; child 1's side 2 lies inside side 4 of the parent. |
 | — | `Statement.super_glueSymm`, `Statement.linked_symm`, `Statement.super_noSelf` | proof + kernel computation | Every supertile's gluing is symmetric, and glues no tile to itself (the level-1 data checked by the kernel); so "same strand" (`Linked`) is symmetric there. |
 | Thm 9.1, then **Theorem B** (combinatorial form) | `Statement.chain_even`, `Statement.chain_odd`, `Statement.theoremB_sharp`, `Statement.theoremB` | proof | Every port of N_b lies, in N_{b+3} (b even) or N_{b+4} (b odd), on the strand of the hook at junction 12; with symmetry, any two ports of N_b are on one strand there (`TheoremB_sharp`). With `no_boundary` and Theorem A, `TheoremB`. |
+| Thm 9.1: the bound is exact (Table 5, last two rows) | `Statement.Patch.Linked.ends`, `Statement.hooks_apart`, `Statement.theoremB_exact` | proof | For b ≥ 1 the ports of N_b lie on exactly two strands of N_{b+2}, and for odd b of N_{b+3} (`TheoremB_exact`): every port reaches one of two hooks (junction 16 and the hook at junction 9 of N_{b+1} for even b; junctions 12 and 9 for odd b, then junction 16 and the hook at junction 9 of N_{b+2}), each is reached from a hook well inside a chosen side of N_b, and hooks at different rim vertices lie on different strands, since along a strand its two ends stay the same (`Linked.ends`). |
 | **Theorem B** (the Ariadne Theorem), final form | `Statement.nestModel`, `Statement.theoremB_strand` | proof + kernel computation | The nest tiling as one patch (`nestTiling`): its tiles numbered so that every block keeps its own numbering, and a gluing that contains every block's and glues every edge, to an edge of another tile, which is glued back (`NestModel`). Its ports form a `StrandSystem`. No strand is closed, since a closed strand would stay in one block, which has none (Theorem A); any two ports lie on one strand, since they do in a large enough block (`TheoremB_sharp`). So by Lemma 3.4 the strand through R(v₀) of the original tile is two-way infinite, never meets a port or a piece twice, and runs through every port (`TheoremB_strand`). |
 | Remark 7.8 (corroboration) | `Skeletons.skeleton_walks`, `Skeletons.agrees_with_js` | kernel computation | The pilot's check: the reduced walk on the 18 skeletons exported from `synth.js` gives the signature, and finds the same non-hooks as `core/reduce.js`. Not used by the main results. |
 | — | `Skeletons.negative_control`, `Compose.negative_control`, `Statement.loopPatch_closed` | kernel computation / proof | Corrupted inputs are rejected, so the checks and the definitions are not vacuous. |
@@ -163,9 +176,9 @@ also done, separately, by `paper/code/hierarchy/compositions.py`.
 
 ## What the main results use
 
-`tools/unused.lean` (run `lake env lean tools/unused.lean`) lists every declaration that the seven main results
-(`theoremA`, `theoremB`, `theoremB_sharp`, `nestModel`, `theoremB_strand`, `chainModel`, `theoremA_strand`) do not
-use. Everything else in `SpectreKnot/` is used by them, including Prop 5.4 (b), (c) and the zigzag lemma's core. What
+`tools/unused.lean` (run `lake env lean tools/unused.lean`) lists every declaration that the nine main results
+(`theoremA`, `theoremB`, `theoremB_sharp`, `nestModel`, `theoremB_strand`, `chainModel`, `theoremA_strand`,
+`theoremB_exact`, `grandparent`) do not use. Everything else in `SpectreKnot/` is used by them, including Prop 5.4 (b), (c) and the zigzag lemma's core. What
 they do not use is kept on purpose:
 
 | not used by the main results | why it is kept |
@@ -173,7 +186,7 @@ they do not use is kept on purpose:
 | `Box.lean` (`tilePiece`, `tileBox`, `tile_signature`, …) | The pilot's model of the tile (Def 3.1, Lemma 4.4); the statement file has its own decoration. |
 | `Skeleton.lean`, `SkeletonWalks.lean`, `Data/Skeletons.lean` | The pilot's run of the skeleton walks (Remark 7.8) on skeletons exported from JavaScript, and its agreement with `core/reduce.js`: corroboration. |
 | `Zigzag.zigzag`, `Gluing.prop_5_4_a` (with `smooth_corner`), `Gluing.fullReach_unique`, `sideLen_parity`, `Compose.parity_lemma_adj` (with `sig_adj`, `ofLens_B'`), `Compose.compositions_level1_signature` | Results of the paper, formalised as stated there; the main proofs use other forms of them (`walk_core`, `letterLen_parity`, `parity_lemma`, `compositions_level1`). |
-| `Skeletons.negative_control`, `Compose.negative_control` (with `spreadCorners`), `Statement.loopPatch_closed` | Negative controls: the checks and the definitions are not vacuous. |
+| `Skeletons.negative_control`, `Compose.negative_control` (with `spreadCorners`), `Statement.loopPatch_closed`, `Statement.rim_not_surrounded` | Negative controls: the checks and the definitions are not vacuous. |
 | `Compose.allKinds`, `Gluing.redWalk`, `Gluing.redWalk_sound` | Used by the tests. |
 
 The tool has one blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace in the proofs that use it. It lists
@@ -191,15 +204,16 @@ The tool has one blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace i
   eventually glued. That a tiling whose hierarchy covers the plane is such a union (the first half of the proof in
   §7.4, about points of the plane) is part of (M).
 - **Theorem B for the nest tiling of the plane.** `TheoremB_strand` is about `nestTiling`, the union of the blocks
-  `super b .Delta`. That this is the nest tiling of the paper, and that it covers the plane, is Prop 8.2, Lemma 8.3(a)
-  and Prop 8.4, which are geometric and not formalised.
+  `super b .Delta`. That this is the nest tiling of the paper, and that it covers the plane, is Prop 8.2 and Prop 8.4,
+  which are geometric and not formalised. Lemma 8.3(a), which Prop 8.4 uses, is formalised for the vertices of tiles
+  (`Grandparent`); the step from those to points of the plane is part of (M).
 - **Level 0 of the hierarchy.** The Lean starts from the nine level-1 supertiles as data. The Mystic (the level-0 Γ,
   Lemma 4.4) is inside them and is not treated separately.
 - **The skeleton route.** Def 5.3 (skeletons and their equality), Cor 5.5 (where a hook goes) and the skeleton argument
   of Remark 7.8 (3) are not formalised (the pilot's skeleton walks are computed, not used). Nor are the label states
   and certificates of Remark 9.5 (3).
-- **Exact counts.** Thm 9.1 is formalised as the bound; the numbers of Table 5 are computed by the tests for small b,
-  not proved for every b.
+- **Exact counts.** The last two rows of Table 5 are proved (`TheoremB_exact`); the rows for each b (such as 10, 37,
+  146, 613 strands one level up) are computed by the tests for small b, not proved for every b.
 - **Remarks and the drawing.** Remark 3.5 (no single strand in a periodic tiling), Remark 3.6 (over and under), the
   drawing itself, Remark 10.1 (three strands along another chain; the tests compute its first counts) and §10 (faults).
 - **Data are input.** Tables 1–4 come from `combin.js` (the composition pattern computed from the geometry, and checked
@@ -290,9 +304,24 @@ The tool has one blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace i
     many tiles of a closed strand have all their edges glued in one common block (`all_glued_at`, a finite maximum).
     Theorem A then needs only Theorem A for supertiles, not the junction map.
 
+15. **The bound is exact (stage 7).** The paper's last step, "distinct hooks are distinct arcs", needed one new fact:
+    along a strand its two ends on the rim stay the same (`Linked.ends`; every move along a strand can be undone, by the
+    symmetry of the gluing), and the ends of a hook's strand are the hook's own two ports. The rest is the junction map
+    of finding 11, read off once more: `first` now also says that a strand reaching side 2 of N_{b+1} does so at
+    junction 9.
+16. **The Grandparent Lemma at tile vertices (stage 7).** Turning about a tile vertex (`turn`) needs no new data: it is
+    `glue` read at the edge that ends at the vertex. The proof needed one fact the paper takes from the geometry: every
+    supertile is a disc at its rim (`RimChains`). It goes up level by level like the signature: a chain of the parent is
+    made of the children's chains, joined as the abstract gluing turns about a child vertex (`Rot`, or backwards `RotB`,
+    as the children are oriented), which `own_rot` already provides. Every other vertex is surrounded or on a chain, by
+    counting (a pigeonhole argument, `surrounded_or_chain`). The paper's argument then runs on the tables: off its side 2,
+    N_b is inside N_{b+1} (two steps of turning inside a side, three at a vertex of child 1, `delta_cycles`); its side 2
+    lies inside side 4 of N_{b+1}, which is glued to a sibling in N_{b+2}. The kernel check of the nine level-1 clusters
+    takes about a second.
+
 ## Size and time
 
-About 11,800 hand-written lines of Lean, with the tests and the statement file; about a quarter of them are comments.
+About 13,000 hand-written lines of Lean, with the tests and the statement file; about a quarter of them are comments.
 There are also 490 generated lines. By stage, in today's files:
 
 - Stage 1, the pilot: `Basic` 40, `Box` 64, `Strands` 157, `Zigzag` 133, `Lengths` 288, `Skeleton` 167,
@@ -307,11 +336,12 @@ There are also 490 generated lines. By stage, in today's files:
   Lemma 3.4), `ProofB` 541 (the chain of sides, no boundary, the theorems), `NestStep` 273 (one level up at tile
   level), `NewWalk` 227, `Linked` 218 (symmetry).
 - Stage 6, Theorem A for chains: `ProofChain` 706.
-- The statement file 607; tests 226; `Axioms.lean` 79.
+- Stage 7, the exact counts and the Grandparent Lemma: `ProofExact` 420, `Turn` 525, `ProofGrand` 438.
+- The statement file 379; tests 236; `Axioms.lean` 93.
 
 ## Assessment
 
-Stages 4 to 6 prove Theorems A and B in the combinatorial form of the statement file, checked by Lean's kernel
-against `TheoremA`, `TheoremB`, `TheoremB_sharp`, `NestModel`, `TheoremB_strand`, `ChainModel` and `TheoremA_strand`
-as written there. What stands between them and the paper's theorems is assumption (M), with the geometric facts about
+Stages 4 to 7 prove Theorems A and B in the combinatorial form of the statement file, with the exact merging counts
+and the Grandparent Lemma, checked by Lean's kernel against `TheoremA`, `TheoremB`, `TheoremB_sharp`, `NestModel`,
+`TheoremB_strand`, `ChainModel`, `TheoremA_strand`, `TheoremB_exact` and `Grandparent` as written there. What stands between them and the paper's theorems is assumption (M), with the geometric facts about
 the plane listed above, all stated in `Statement.lean`.

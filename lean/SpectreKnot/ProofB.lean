@@ -245,10 +245,12 @@ theorem tgt_vals_f {f : Nat → Nat} {u : Nat} {s : Bool} {q : Nat} (tgt_eq : tg
     simp only [Option.some.injEq, reduceCtorEq] at tgt_eq <;> omega
 
 /-- **The first step**: one level up, every port of `N_b` reaches a hook inside side 2, 3 or 4 of `N_{b+1}` (if
-`ω_b = true`, that is `b` even) or inside side 4 or 5 (if `ω_b = false`). -/
+`ω_b = true`, that is `b` even) or inside side 4 or 5 (if `ω_b = false`). Inside side 2, the hook is the one at
+junction 9. -/
 theorem first {b : Nat} (b_pos : 1 ≤ b) {x : Port} (x_port : (N b).IsPort x) :
     ∃ J, Reach (b + 1) J (upPort b 1 x) ∧ (ori b = true → J = 2 ∨ J = 3 ∨ J = 4) ∧
-      (ori b = false → J = 4 ∨ J = 5) := by
+      (ori b = false → J = 4 ∨ J = 5) ∧
+      (J = 2 → (N (b + 1)).Linked (upPort b 1 x) ((N (b + 1)).bport (ori (b + 1)) (jpos (Lk b .Delta) 9, true))) := by
   -- `N_b` has the signature
   have good_b := good b .Delta b_pos
   -- following the ribbon from `x` leaves `N_b` at a port `r`
@@ -269,7 +271,7 @@ theorem first {b : Nat} (b_pos : 1 ≤ b) {x : Port} (x_port : (N b).IsPort x) :
     -- strictly inside child 1's side 2: the rim port is a hook of `N_{b+1}`, inside its side 4
     obtain ⟨after_two, before_three⟩ := tgt_none tgt_eq
     refine ⟨4, ⟨x_up_port, _, inside_stp b_pos after_two before_three, lifted.trans ?_⟩, fun _ => by omega,
-      fun _ => by omega⟩
+      fun _ => by omega, fun wrong => absurd wrong (by decide)⟩
     -- the rim port of `N_b`, one level up, is a rim port of `N_{b+1}`
     have same_port := stretch_eq b_pos after_two before_three s
     rw [show N b = super b .Delta from rfl] at same_port
@@ -285,15 +287,22 @@ theorem first {b : Nat} (b_pos : 1 ≤ b) {x : Port} (x_port : (N b).IsPort x) :
     cases orient : ori b
     · rw [orient] at tgt_eq
       rcases tgt_vals_f tgt_eq with rfl | rfl | rfl
-      · exact ⟨5, reach_of x_up_port (inside_21 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega⟩
-      · exact ⟨4, reach_of x_up_port (inside_16 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega⟩
-      · exact ⟨4, reach_of x_up_port (inside_17 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega⟩
+      · exact ⟨5, reach_of x_up_port (inside_21 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega,
+          fun wrong => absurd wrong (by decide)⟩
+      · exact ⟨4, reach_of x_up_port (inside_16 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega,
+          fun wrong => absurd wrong (by decide)⟩
+      · exact ⟨4, reach_of x_up_port (inside_17 b_pos) to_junction, fun wrong => by simp at wrong, fun _ => by omega,
+          fun wrong => absurd wrong (by decide)⟩
     · rw [orient] at tgt_eq
       rcases tgt_vals_t tgt_eq with rfl | rfl | rfl | rfl
-      · exact ⟨4, reach_of x_up_port (inside_17 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong⟩
-      · exact ⟨2, reach_of x_up_port (inside_9 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong⟩
-      · exact ⟨4, reach_of x_up_port (inside_16 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong⟩
-      · exact ⟨3, reach_of x_up_port (inside_12 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong⟩
+      · exact ⟨4, reach_of x_up_port (inside_17 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong,
+          fun wrong => absurd wrong (by decide)⟩
+      · exact ⟨2, reach_of x_up_port (inside_9 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong,
+          fun _ => to_junction⟩
+      · exact ⟨4, reach_of x_up_port (inside_16 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong,
+          fun wrong => absurd wrong (by decide)⟩
+      · exact ⟨3, reach_of x_up_port (inside_12 b_pos) to_junction, fun _ => by omega, fun wrong => by simp at wrong,
+          fun wrong => absurd wrong (by decide)⟩
 
 /-! ### The chain -/
 
@@ -315,7 +324,7 @@ theorem chain_even {b : Nat} (b_pos : 1 ≤ b) (even : b % 2 = 0) {x : Port} (x_
   -- and level `b + 2` even
   have ori_b2 : ori (b + 2) = true := ori_even (by omega)
   -- one level up: inside side 2, 3 or 4
-  obtain ⟨J, reach_J, sides_even, _⟩ := first b_pos x_port
+  obtain ⟨J, reach_J, sides_even, _, _⟩ := first b_pos x_port
   -- two levels up: inside side 4
   have reach_four : Reach (b + 2) 4 (upPort (b + 1) 1 (upPort b 1 x)) := by
     -- the port, one level up, is a port of `N_{b+1}`
@@ -339,7 +348,7 @@ theorem chain_odd {b : Nat} (b_pos : 1 ≤ b) (odd : b % 2 = 1) {x : Port} (x_po
   -- and level `b + 3` even
   have ori_b3 : ori (b + 3) = true := ori_even (by omega)
   -- one level up: inside side 4 or 5
-  obtain ⟨J, reach_J, _, sides_odd⟩ := first b_pos x_port
+  obtain ⟨J, reach_J, _, sides_odd, _⟩ := first b_pos x_port
   -- the port, one level up, is a port of `N_{b+1}`
   have up_port := isPort_up (show 1 ≤ b + 1 by omega) reach_J.1
   -- three levels up: inside side 4
