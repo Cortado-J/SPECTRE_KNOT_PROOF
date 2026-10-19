@@ -233,9 +233,14 @@ function sectionItemHtml(it) {
 function basicHtml() {
   const bl = D.basic.split('\n'), bt = tokenize(bl), off = D.basicStart - 1;
   const toks = new Array(off).fill([]).concat(bt), lines = new Array(off).fill('').concat(bl);
-  return `<div class="basic"><div class="lbl">From <code>SpectreKnot/Basic.lean</code>, lines ${D.basicStart}–${D.basicStart + bl.length - 1}: the two definitions this file uses</div>` +
+  const bl2 = D.basic2.split('\n'), bt2 = tokenize(bl2), off2 = D.basic2Start - 1;
+  const toks2 = new Array(off2).fill([]).concat(bt2), lines2 = new Array(off2).fill('').concat(bl2);
+  return `<div class="basic"><div class="lbl">From <code>SpectreKnot/Basic.lean</code>, lines ${D.basicStart}–${D.basicStart + bl.length - 1}: two of the definitions this file uses</div>` +
     codeBlock(D.basicStart, D.basicStart + bl.length - 1, 'B', toks, lines, 'B') +
-    `<p class="basic-note">${mark(`<code>Kind</code> has nine values, one per supertile kind; <code>deriving DecidableEq, Repr</code> lets Lean compare and print them. <code>Letter</code> is not used here. <code>iter f n x</code> applies <code>f</code> to <code>x</code>, <code>n</code> times, defined by recursion on <code>n</code>; it is used only in [[TheoremB_strand|TheoremB_strand]] and [[TheoremA_strand|TheoremA_strand]]. The two theorems after it in <code>Basic.lean</code> are facts about <code>iter</code>, not definitions.`)}</p></div>`;
+    `<p class="basic-note">${mark(`<code>Kind</code> has nine values, one per supertile kind; <code>deriving DecidableEq, Repr</code> lets Lean compare and print them. <code>Letter</code> is not used here. <code>iter f n x</code> applies <code>f</code> to <code>x</code>, <code>n</code> times, defined by recursion on <code>n</code>; it is used only in [[TheoremB_strand|TheoremB_strand]] and [[TheoremA_strand|TheoremA_strand]]. The theorems after it in <code>Basic.lean</code> are facts about <code>iter</code>, not definitions.`)}</p>` +
+    `<div class="lbl">Lines ${D.basic2Start}–${D.basic2Start + bl2.length - 1}: the other three</div>` +
+    codeBlock(D.basic2Start, D.basic2Start + bl2.length - 1, 'B', toks2, lines2, 'B') +
+    `<p class="basic-note">${mark(`<code>nxt</code> and <code>prv</code> step one place forwards or backwards round 0 … E − 1, wrapping round at the ends; they are used by [[bport]] and [[cornerB]]. <code>fib</code> is the Fibonacci sequence, with F₁ = F₂ = 1; it is used by [[cornerA]].`)}</p></div>`;
 }
 
 /* ---------- coverage (build_guide.py checks this too) ---------- */

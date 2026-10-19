@@ -7,18 +7,25 @@ checks each of them against the claim written here. So "has the right thing been
 definitions below say what the paper means? A guided reading, with a short introduction to Lean, is the proof site's
 page `statement.html`.
 
-Besides `Kind` and `iter` (from `Basic.lean`), the file uses two generated data files: `Data/Pattern.lean`, the paper's
-Tables 1–3, and `Data/Clusters.lean`, the nine level-1 supertiles, computed in exact arithmetic.
+Besides `Kind`, `iter`, `nxt`, `prv` and `fib` (from `Basic.lean`), the file uses two generated data files:
+`Data/Pattern.lean`, the paper's Tables 1–3 (with Table 4 and the level-1 lengths ℓ₁ and d₁, which only the proofs
+use, and check against the clusters), and `Data/Clusters.lean`, the nine level-1 supertiles, computed in exact
+arithmetic.
 
 There is no geometry here: a patch of tiles is described only by which edge of which tile is glued to which edge of
 which other tile. The link with real tilings is an assumption, (M), in three parts, each argued in the paper and
 none proved in Lean:
 
-  (M1) In every homochiral tiling by Tile(1,1), every level-m supertile of kind K is glued exactly like `super m K`
-       (with its tiles suitably numbered). Argued in the paper's §2: Thm 2.1 (the hierarchy, from the spectre paper),
-       Prop 2.4 (the composition pattern holds at every level; cross-checked in Remark 2.5) and Lemma 2.6 (rigidity).
+  (M1) In every homochiral tiling by Tile(1,1), every level-m supertile of kind K, m ≥ 1, is glued exactly like
+       `super m K`, with its tiles numbered as `super` numbers them (child by child in the order of Table 1, down to
+       the order of the level-1 data) and its rim listed from vertex 0 in its own orientation. Argued in the paper's
+       §2: Thm 2.1 (the hierarchy, from the spectre paper), Prop 2.4 (the composition pattern holds at every level;
+       cross-checked in Remark 2.5) and Lemma 2.6 (rigidity, which makes the numbering the same at every level).
+       Level 0 is not part of it: `super 0 K` is one tile for every K, while the paper's level-0 Γ is the Mystic.
   (M2) So a tiling whose hierarchy covers the plane is the union of a chain of supertiles as in §7, and the chain
-       covers (`Chain.Covers`). Argued in the first half of the proof of Theorem A (§7.4), about points of the plane.
+       covers (`Chain.Covers`). Argued in the first half of the proof of Theorem A (§7.4), about points of the plane:
+       every tile lies in a supertile of the chain, and each edge, shared with exactly one other tile (Lemma 3.4),
+       lies inside a supertile that holds both.
   (M3) The nest tiling of the paper is the union of the blocks `N b`, as `nestTiling` (§6), and covers the plane.
        Argued in Props 8.2 and 8.4. Lemma 8.3(a), which Prop 8.4 uses, is proved here at the vertices of tiles
        (`Grandparent`); the step from those to the points of the plane is part of (M3).
@@ -111,7 +118,58 @@ def Surrounded (t i : Nat) : Prop := ∃ n, 0 < n ∧ P.turns n (t, i) = some (t
 def side (j : Nat) : List (Nat × Nat) :=
   (P.rim.drop (P.vtx.getD j 0)).take (P.vtx.getD (j + 1) 0 - P.vtx.getD j 0)
 
+/-- The number of rim edges, which is also the number of rim vertices. -/
+abbrev E : Nat := P.rim.length
+
+/-- Rim edge number `k`. -/
+def edgeAt (k : Nat) : Nat × Nat := P.rim.getD k (0, 0)
+
+/-- **The rim ports** (the paper's §4.1). The rim is listed in the orientation `o`: `true` is counter-clockwise, the
+way each tile's own edges run, `false` clockwise. Rim vertex `k` is where rim edge `k` begins. `(k, true)` is its port
+`R(u_k)`, on rim edge `k` near the vertex; `(k, false)` is `L(u_k)`, on rim edge `k - 1` near the vertex. -/
+def bport (o : Bool) : Nat × Bool → Port
+  | (k, true) =>
+    if o then ((P.edgeAt k).1, (P.edgeAt k).2, true) else ((P.edgeAt k).1, ((P.edgeAt k).2 + 1) % 14, false)
+  | (k, false) =>
+    if o then ((P.edgeAt (prv P.E k)).1, ((P.edgeAt (prv P.E k)).2 + 1) % 14, false)
+    else ((P.edgeAt (prv P.E k)).1, (P.edgeAt (prv P.E k)).2, true)
+
+/-- The corner `(t, i)` of a port `(t, i, s)`: vertex `v_i` of tile `t`, which the port is beside. -/
+def corner (p : Port) : Nat × Nat := (p.1, p.2.1)
+
+/-- The corner where turning about rim vertex `k` starts: beside its rim port `(k, o)`. -/
+def sC (o : Bool) (k : Nat) : Nat × Nat := corner (P.bport o (k, o))
+
+/-- The corner where turning about rim vertex `k` ends: beside its other rim port. -/
+def fC (o : Bool) (k : Nat) : Nat × Nat := corner (P.bport o (k, !o))
+
+/-- **The patch is a disc at its rim**: turning about each rim vertex, from the corner beside one of its rim ports,
+reaches the corner beside the other. So consecutive rim edges meet at the rim vertex between them. -/
+def RimChains (o : Bool) : Prop := ∀ k, k < P.E → ∃ n, P.turns n (P.sC o k) = some (P.fC o k)
+
 end Patch
+
+/-- **Def 4.3, the signature's pairing** of the rim ports, with corners `A` and `B`: a hook at every other rim vertex
+(`L(u_k) ↔ R(u_k)`), and the crossover `R(A) ↔ R(B)`, `L(A) ↔ L(B)`. -/
+def btau (A B : Nat) : Nat × Bool → Nat × Bool
+  | (k, s) => if k = A then (B, s) else if k = B then (A, s) else (k, !s)
+
+/-- **Def 4.3, a patch with the signature** at rim vertices `A`, `B`, its rim listed in the orientation `o`: the rim
+list holds exactly the unglued edges, each once; no strand is closed; and following the ribbon from each rim port
+leads to the port that `btau` pairs it with. -/
+structure Patch.HasSig (P : Patch) (o : Bool) (A B : Nat) : Prop where
+  tiles_pos : 0 < P.tiles
+  /-- the rim edges are edges of actual tiles, and are not glued -/
+  rim_ok : ∀ k, k < P.E → (P.edgeAt k).1 < P.tiles ∧ (P.edgeAt k).2 < 14 ∧ P.glue (P.edgeAt k).1 (P.edgeAt k).2 = none
+  /-- no edge is listed twice -/
+  rim_inj : ∀ k k', k < P.E → k' < P.E → P.edgeAt k = P.edgeAt k' → k = k'
+  /-- every unglued edge is listed -/
+  rim_all : ∀ t i, t < P.tiles → i < 14 → P.glue t i = none → ∃ k, k < P.E ∧ P.edgeAt k = (t, i)
+  /-- glued edges are edges of actual tiles -/
+  glue_ok : ∀ t i t' j, t < P.tiles → i < 14 → P.glue t i = some (t', j) → t' < P.tiles ∧ j < 14
+  noClosed : P.NoClosedStrand
+  /-- following the ribbon from a rim port leads to the port the signature pairs it with -/
+  sig : ∀ k s, k < P.E → P.Follow (P.bport o (k, s)) (P.bport o (btau A B (k, s)))
 
 /-! ## 3. Supertiles (the paper's §2.2–2.4) -/
 
@@ -163,8 +221,9 @@ def tile : Patch := ⟨1, fun _ _ => none, (List.range 14).map fun i => (0, i), 
 def level1 (K : Kind) : Patch :=
   ⟨Clusters.tiles K, fun t i => ((Clusters.glue K).getD t []).getD i none, Clusters.rim K, Clusters.vtx K⟩
 
-/-- **`super m K`: the supertile of level `m` and kind `K`.** Level 0 is a single tile and level 1 the data; level
-`m + 2` is composed from children of level `m + 1`, of the kinds Table 1 lists. -/
+/-- **`super m K`: the supertile of level `m` and kind `K`.** Level 0 is a single tile, for every kind (the paper's
+level-0 Γ, the Mystic, is not used), and level 1 the data; level `m + 2` is composed from children of level `m + 1`, of
+the kinds Table 1 lists. -/
 def super : Nat → Kind → Patch
   | 0, _ => tile
   | 1, K => level1 K
@@ -188,7 +247,26 @@ def upPort (b k : Nat) (p : Port) : Port := (up b k p.1, p.2.1, p.2.2)
 
 /-! ## 5. The theorems (claims; their proofs are in other files) -/
 
-/-- **Theorem A** (combinatorial form): no supertile contains a closed strand. (Proved in `ProofA.lean`.) -/
+/-- The crossover corner `A` of `super m K` (`m ≥ 1`), as a rim vertex: vertex 0, or for Σ the point `2 F_{3m+1}`
+along side 5 from vertex 5 (the paper's Lemma 6.4). -/
+def cornerA (m : Nat) (K : Kind) : Nat := if K = .Sigma then (super m K).vtx.getD 5 0 + 2 * fib (3 * m + 1) else 0
+
+/-- The other crossover corner, `B = A + ω_m` in the supertile's own order: the next rim vertex at even levels, the
+previous one at odd levels. -/
+def cornerB (m : Nat) (K : Kind) : Nat :=
+  if m % 2 = 0 then nxt (super m K).E (cornerA m K) else prv (super m K).E (cornerA m K)
+
+/-- **The Signature Theorem** (the paper's Thm 7.6, for every level `m ≥ 1`). With its rim listed in its own
+orientation (counter-clockwise at even levels, clockwise at odd ones), every supertile `super m K` is a disc at its
+rim, and has the signature at its crossover corners: `A` (`cornerA`, a rim vertex) and `B = A + ω_m` (`cornerB`).
+(Proved in `ProofGrand.lean`.) -/
+def SignatureTheorem : Prop :=
+  ∀ m K, 1 ≤ m → cornerA m K < (super m K).E ∧ (super m K).RimChains (m % 2 == 0) ∧
+    (super m K).HasSig (m % 2 == 0) (cornerA m K) (cornerB m K)
+
+/-- **No supertile contains a closed strand**: the last sentence of the paper's Thm 7.6, at every level, level 0
+included (Theorem A for supertiles, in combinatorial form). The paper's Theorem A itself, for tilings, is
+`TheoremA_strand` (§7). (Proved in `ProofA.lean`.) -/
 def TheoremA : Prop := ∀ m K, (super m K).NoClosedStrand
 
 /-- **Theorem B** (combinatorial form), three claims about the nest:

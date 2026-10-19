@@ -2,11 +2,12 @@
 The signature of a patch of tiles (Def 4.3 at tile level), for the proof of Theorem A.
 
 A supertile is a *box*: its rim is a cycle of tile edges, and at each rim vertex there are two ports, `R` (on the rim
-edge that starts there) and `L` (on the rim edge that ends there). `Patch.HasSig P o A B` says: the rim list is the
-set of unglued edges, without repeats; no strand of `P` is closed; and following the ribbon from any rim port leads
-to the port the signature pairs it with: the other port at the same vertex (a hook), except at the corners `A` and `B`,
-where `R(A) ↔ R(B)` and `L(A) ↔ L(B)`. The rim runs in the patch's own orientation `o` (`true`: counter-clockwise, as
-the tiles' own; `false`: clockwise), which decides which end of a tile edge is "near the start".
+edge that starts there) and `L` (on the rim edge that ends there). `Patch.HasSig P o A B`, defined in `Statement.lean`,
+says: the rim list is the set of unglued edges, without repeats; no strand of `P` is closed; and following the ribbon
+from any rim port leads to the port the signature pairs it with: the other port at the same vertex (a hook), except at
+the corners `A` and `B`, where `R(A) ↔ R(B)` and `L(A) ↔ L(B)`. The rim runs in the patch's own orientation `o`
+(`true`: counter-clockwise, as the tiles' own; `false`: clockwise), which decides which end of a tile edge is "near the
+start".
 
 The base cases: a single tile, and the nine level-1 supertiles (checked by the kernel).
 -/
@@ -19,47 +20,8 @@ namespace SpectreKnot.Statement
 
 open Pattern
 
-namespace Patch
-
-variable (P : Patch)
-
-/-- The number of rim edges. -/
-abbrev E : Nat := P.rim.length
-
-/-- Rim edge number `k`. -/
-def edgeAt (k : Nat) : Nat × Nat := P.rim.getD k (0, 0)
-
-/-- The ports at rim vertex `k`, the vertex where rim edge `k` begins (in the orientation `o`): `(k, true)` is `R(k)`,
-on rim edge `k` near the vertex; `(k, false)` is `L(k)`, on rim edge `k - 1` near the vertex. Rim edge `(t, i)` is
-edge `e_i` of tile `t`, from `v_i` to `v_{i+1}`; it is traversed that way if `o`, the other way if not. -/
-def bport (o : Bool) : Nat × Bool → Port
-  | (k, true) =>
-    if o then ((P.edgeAt k).1, (P.edgeAt k).2, true) else ((P.edgeAt k).1, ((P.edgeAt k).2 + 1) % 14, false)
-  | (k, false) =>
-    if o then ((P.edgeAt (prv P.E k)).1, ((P.edgeAt (prv P.E k)).2 + 1) % 14, false)
-    else ((P.edgeAt (prv P.E k)).1, (P.edgeAt (prv P.E k)).2, true)
-
-end Patch
-
-/-- The signature's pairing of the rim ports of a box with corners `A`, `B` (Def 4.3): a hook at every other vertex
-(`L(k) ↔ R(k)`), and `R(A) ↔ R(B)`, `L(A) ↔ L(B)`. -/
-def btau (A B : Nat) : Nat × Bool → Nat × Bool
-  | (k, s) => if k = A then (B, s) else if k = B then (A, s) else (k, !s)
-
-/-- **A patch with the signature.** -/
-structure Patch.HasSig (P : Patch) (o : Bool) (A B : Nat) : Prop where
-  tiles_pos : 0 < P.tiles
-  /-- the rim edges are edges of actual tiles, and are not glued -/
-  rim_ok : ∀ k, k < P.E → (P.edgeAt k).1 < P.tiles ∧ (P.edgeAt k).2 < 14 ∧ P.glue (P.edgeAt k).1 (P.edgeAt k).2 = none
-  /-- no edge is listed twice -/
-  rim_inj : ∀ k k', k < P.E → k' < P.E → P.edgeAt k = P.edgeAt k' → k = k'
-  /-- every unglued edge is listed -/
-  rim_all : ∀ t i, t < P.tiles → i < 14 → P.glue t i = none → ∃ k, k < P.E ∧ P.edgeAt k = (t, i)
-  /-- glued edges are edges of actual tiles -/
-  glue_ok : ∀ t i t' j, t < P.tiles → i < 14 → P.glue t i = some (t', j) → t' < P.tiles ∧ j < 14
-  noClosed : P.NoClosedStrand
-  /-- following the ribbon from a rim port leads to the port the signature pairs it with -/
-  sig : ∀ k s, k < P.E → P.Follow (P.bport o (k, s)) (P.bport o (btau A B (k, s)))
+-- The rim ports (`Patch.E`, `edgeAt`, `bport`), the signature's pairing `btau` and `Patch.HasSig` itself are in
+-- `Statement.lean`, where the claim `SignatureTheorem` uses them.
 
 /-! ### Following a ribbon, as a computation -/
 

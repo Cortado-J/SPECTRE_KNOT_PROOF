@@ -155,6 +155,56 @@ theorem inside_stp {n : Nat} (n_pos : 1 ≤ n) {u : Nat} (after_two : pos (Lk n 
     show jpos (Lk n .Delta) 16 + (pos (Lk n .Delta 1) 3 - u) + 2 ≤ jpos (Lk n .Delta) 19
     omega
 
+/-- `v` lies inside side `J` of `N_n`, at least five edges from either end: the paper's form of Lemma 9.4. (The
+proofs use `Inside`, two edges, which is what they need.) -/
+def Inside5 (n J v : Nat) : Prop := pos (Lk n .Delta 1) J + 5 ≤ v ∧ v + 5 ≤ pos (Lk n .Delta 1) (J + 1)
+
+/-- A junction `q` at least one piece after the start of side `J` and one piece before its end lies at least five
+edges inside side `J` of `N_{n+1}`. -/
+theorem inside5_of {n J q k₁ k₂ : Nat} (n_pos : 1 ≤ n) (hJ : J < 6) (after_start : sJ J + k₁ = q)
+    (before_end : q + k₂ = sJ (J + 1)) (k₁_pos : 1 ≤ k₁) (k₂_pos : 1 ≤ k₂) :
+    Inside5 (n + 1) J (jpos (Lk n .Delta) q) := by
+  -- the side ends within the rim's 22 pieces
+  have end_le := sJ_le (J + 1) (by omega)
+  -- `k₁` pieces from the side's start to `q`, each of at least 5 edges
+  have from_start := jpos_le_add (Lk n .Delta) (len5 n_pos) (sJ J) k₁ (by omega)
+  -- and `k₂` pieces from `q` to the side's end
+  have to_end := jpos_le_add (Lk n .Delta) (len5 n_pos) q k₂ (by omega)
+  rw [after_start] at from_start
+  rw [before_end] at to_end
+  refine ⟨?_, ?_⟩
+  · rw [pos_up n_pos (by omega)]; omega
+  · rw [pos_up n_pos (by omega)]; omega
+
+/-- **Lemma 9.4, as the paper states it**: the junctions 9, 12, 16, 17 and 21 of `N_{n+1}` lie on its sides 2, 3, 4,
+4 and 5, at least five edges from both ends of the side; and every rim vertex strictly inside side 2 of `N_n` lies on
+side 4 of `N_{n+1}`, at least five edges from both ends. -/
+theorem lemma_9_4 {n : Nat} (n_pos : 1 ≤ n) :
+    Inside5 (n + 1) 2 (jpos (Lk n .Delta) 9) ∧ Inside5 (n + 1) 3 (jpos (Lk n .Delta) 12) ∧
+    Inside5 (n + 1) 4 (jpos (Lk n .Delta) 16) ∧ Inside5 (n + 1) 4 (jpos (Lk n .Delta) 17) ∧
+    Inside5 (n + 1) 5 (jpos (Lk n .Delta) 21) ∧
+    ∀ u, pos (Lk n .Delta 1) 2 < u → u < pos (Lk n .Delta 1) 3 → Inside5 (n + 1) 4 (stp (Lk n .Delta) u) := by
+  refine ⟨inside5_of n_pos (k₁ := 2) (k₂ := 2) (by omega) rfl rfl (by omega) (by omega),
+    inside5_of n_pos (k₁ := 1) (k₂ := 2) (by omega) rfl rfl (by omega) (by omega),
+    inside5_of n_pos (k₁ := 2) (k₂ := 3) (by omega) rfl rfl (by omega) (by omega),
+    inside5_of n_pos (k₁ := 3) (k₂ := 2) (by omega) rfl rfl (by omega) (by omega),
+    inside5_of n_pos (k₁ := 2) (k₂ := 1) (by omega) rfl rfl (by omega) (by omega), fun u after_two before_three => ?_⟩
+  -- child 1's side 2 ends `L 1 2` edges after it starts
+  have side_two_len : pos (Lk n .Delta 1) 3 = pos (Lk n .Delta 1) 2 + Lk n .Delta 1 2 := pos_succ _ 2
+  -- piece 17 starts where piece 16 ends
+  have piece17 := jpos17 (Lk n .Delta)
+  -- side 4 starts (at piece 14) at least 10 edges before piece 16
+  have side4_start := jpos_le (Lk n .Delta) (len5 n_pos) (q := 14) (q' := 16) (by omega) (by omega)
+  -- and ends (at piece 19) at least 10 edges after piece 17
+  have side4_end := jpos_le (Lk n .Delta) (len5 n_pos) (q := 17) (q' := 19) (by omega) (by omega)
+  refine ⟨?_, ?_⟩
+  · rw [pos_up n_pos (by omega)]
+    show jpos (Lk n .Delta) 14 + 5 ≤ jpos (Lk n .Delta) 16 + (pos (Lk n .Delta 1) 3 - u)
+    omega
+  · rw [pos_up n_pos (by omega)]
+    show jpos (Lk n .Delta) 16 + (pos (Lk n .Delta 1) 3 - u) + 5 ≤ jpos (Lk n .Delta) 19
+    omega
+
 /-- A vertex inside a side is at least two vertices from both ends of the rim. -/
 theorem inside_bounds {n J v : Nat} (hJ : J < 6) (inside : Inside n J v) :
     2 ≤ v ∧ v + 2 ≤ pos (Lk n .Delta 1) 6 := by

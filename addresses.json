@@ -281,7 +281,7 @@
    "name": "Reduced composition",
    "status": "argued",
    "lean": true,
-   "lean_part": false,
+   "lean_part": true,
    "step": 5
   },
   "cor:placement": {
@@ -421,7 +421,7 @@
    "name": "Other checks of the signature",
    "status": null,
    "lean": true,
-   "lean_part": false,
+   "lean_part": true,
    "step": null
   },
   "con:nest": {

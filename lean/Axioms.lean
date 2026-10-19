@@ -62,6 +62,7 @@ open SpectreKnot
 #print axioms Statement.linked_symm
 #print axioms Statement.step_tile
 #print axioms Statement.stretch_eq
+#print axioms Statement.lemma_9_4
 #print axioms Statement.chain_even
 #print axioms Statement.chain_odd
 #print axioms Statement.no_boundary
@@ -81,6 +82,9 @@ open SpectreKnot
 #print axioms Statement.delta_cycles
 #print axioms Statement.grandparent
 #print axioms Statement.rim_not_surrounded
+-- The Signature Theorem (the statement file's `SignatureTheorem`, Thm 7.6): the conclusion of the induction, with the
+-- corners written out, and every supertile a disc at its rim
+#print axioms Statement.signatureTheorem
 -- Theorem B, final form (the statement file's `NestModel`, `TheoremB_strand`): the nest tiling as one patch, and
 -- Lemma 3.4 applied to it
 #print axioms Statement.super_noSelf
@@ -98,6 +102,7 @@ open SpectreKnot
 
 /-! The main theorems prove exactly the claims of `Statement.lean`: each `example` states one claim, as written there,
 and gives the main theorem as its proof, so this file fails to build if a main theorem's statement is changed. -/
+example : SpectreKnot.Statement.SignatureTheorem := SpectreKnot.Statement.signatureTheorem
 example : SpectreKnot.Statement.TheoremA := SpectreKnot.Statement.theoremA
 example : SpectreKnot.Statement.TheoremB := SpectreKnot.Statement.theoremB
 example : SpectreKnot.Statement.TheoremB_sharp := SpectreKnot.Statement.theoremB_sharp

@@ -57,7 +57,8 @@ def letters : Kind → List Letter
   | .Phi => [.gamma, .beta, .epsilon, .epsilon, .eta, .beta]
   | .Psi => [.alpha, .epsilon, .epsilon, .epsilon, .eta, .beta]
 
-/-- The side lengths of the level-1 supertiles, counted on the actual tiles (paper §6, `exact/exact.py`). -/
+/-- The side lengths of the level-1 supertiles, counted on the actual tiles by `hierarchy/combin.js` (paper §6);
+the kernel checks them against the clusters of `Data/Clusters.lean` (`level1Check`). -/
 def len1 : Kind → List Nat
   | .Gamma => [7, 7, 10, 10, 5, 5]
   | .Delta => [10, 5, 8, 7, 10, 6]

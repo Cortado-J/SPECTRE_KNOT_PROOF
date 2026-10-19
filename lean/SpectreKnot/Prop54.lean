@@ -1,9 +1,10 @@
 /-
 **Prop 5.4 (reduced composition)**, for every well-formed gluing.
 
-(b) is proved in a stronger form than the paper states: from *every* port (not only the parent ports at marks), the
-full walk of Lemma 4.2 and the reduced walk end at the same rim port. The proof follows the paper: along a run, the
-full walk is forced through the zigzag of Lemma 5.1 (`Zigzag.walk_core`), and arrives where `σ_red` jumps to.
+(b) is proved in a stronger form than the paper states: from *every* port of a child (the paper states it for the
+reduced ports, those at marks), the full walk of Lemma 4.2 and the reduced walk end at the same rim port. The proof
+follows the paper: along a run, the full walk is forced through the zigzag of Lemma 5.1 (`Zigzag.walk_core`), and
+arrives where `σ_red` jumps to.
 -/
 import SpectreKnot.Gluing
 import SpectreKnot.Zigzag

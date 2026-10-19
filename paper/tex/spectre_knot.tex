@@ -59,7 +59,7 @@
 \author{Justin Roughley}
 \address{Independent researcher}
 \email{justin.e.roughley@gmail.com}
-\date{15 October 2026}
+\date{19 October 2026}
 \subjclass[2020]{Primary 52C20; Secondary 05B45, 52C23, 57K10}
 \keywords{aperiodic monotile, Spectre, substitution tiling, Celtic knot, knot tile, computer-assisted proof}
 
@@ -243,9 +243,11 @@ glued, every strand is a two-way infinite path (\cref{thm:A}), and the nest is s
 as the union of the blocks $N_b$, the pieces form one two-way infinite strand (\cref{thm:B}), with the bounds of
 \cref{thm:merge}, which are exact (the last two rows of \cref{tab:merge}); and every vertex of every tile of $N_b$ is
 surrounded by tiles of $N_{b+2}$ (\cref{lem:gap}(a), at the vertices of tiles). The kernel also re-runs the finite
-computations that these use (\cref{comp:compose,comp:base,comp:junction}). The inputs are
-\cref{tab:children,tab:sides,tab:psides,tab:letters}, as computed from the geometry, and the nine level-$1$ supertiles as
-glued patches of tiles, computed in exact arithmetic by the program of \cref{app:computations}. The link with tilings
+computations that these use (\cref{comp:compose,comp:base}, and the second part of \cref{comp:junction}). The
+formal statements rest on \cref{tab:children,tab:sides,tab:psides}, as computed from the geometry, and on the nine
+level-$1$ supertiles as glued patches of tiles, computed in exact arithmetic by the program of
+\cref{app:computations}; \cref{tab:letters} (read from~\cite[Fig.~4.2]{SMKGS-spectre}) and the level-$1$ lengths
+$\ell_1$, $d_1$ enter only the proofs, which check them against these. The link with tilings
 of the plane is not formalised; it is a stated assumption of the formal statements, in three parts: that the
 supertiles of an actual tiling are glued as these tables say, which rests on~\cite{SMKGS-spectre} and
 \cref{sec:spectre} (\cref{thm:smkgs}, \cref{prop:pattern,lem:rigid}); the first step of the proof of \cref{thm:A}, that
@@ -253,14 +255,23 @@ a tiling whose hierarchy covers the plane is the union of such a chain; and the 
 \cref{prop:nestwell,prop:nesttiling}, with the step of \cref{lem:gap}(a) from the vertices of tiles to the points of the
 plane. The Mystic
 (\cref{lem:tilesig}) is not treated separately: the formalisation starts from the level-$1$ supertiles. The formal proofs follow
-\cref{sec:decoration,sec:boxes,sec:reduce,sec:lengths,sec:induction,sec:nest,sec:strand}, with these differences of detail: strands
-are modelled by two involutions on ports (\cref{lem:degree2}); the formal proof of \cref{lem:lengthen} shows that a move creates
-no closed strand through \cref{prop:reduce}(b),(c), rather than directly; \cref{prop:reduce}(c) is proved in the form used, that if every
-reduced walk reaches the rim there is no closed strand; in \cref{comp:junction} the kernel computes the second part,
-and the first is proved for every level from the signature of child~$1$; \cref{lem:junctions} is proved with two
-edges from the ends of a side, which is what its use needs; \cref{lem:gap}(b) is proved from the tables, as its proof
-notes; and the proof of \cref{lem:gap}(a) at the vertices of tiles uses that every supertile is a disc at its rim,
-which the paper takes from the geometry and the formalisation proves level by level. The proofs use only
+\cref{sec:decoration,sec:boxes,sec:reduce,sec:lengths,sec:induction,sec:nest,sec:strand}, with these differences of
+detail. The strands of a tiling are modelled by two fixed-point-free involutions on ports (\cref{lem:degree2}).
+\Cref{prop:reduce} is proved for any gluing of boxes, with marks defined at the vertices of each child, so that the
+facts \cref{sec:skeleton} reads off the angles at a vertex are proved from the gluing; (c) is proved in the form used,
+that if every reduced walk reaches the rim there is no closed strand. The formal proof of \cref{lem:lengthen} follows
+the ribbon along the new path directly, and shows that a move creates no closed strand through
+\cref{prop:reduce}(b),(c). The induction of \cref{prop:compose} carries the signature in a form that finds each parent
+rim vertex by turning about a vertex of a child, and reads the adjacency of $A$ and $B$ off \cref{tab:psides}. In
+\cref{comp:junction} the kernel computes the second part; the first is proved for every level, at the level of tiles,
+from the signature of $N_{m+1}$; and in the proof of \cref{lem:junctionmap} the new vertices are followed port by port
+rather than by the last part of \cref{lem:zigzag}. \Cref{lem:gap}(b) is proved from the tables, as its proof notes; the
+proof of \cref{lem:gap}(a) at the vertices of tiles uses that every supertile is a disc at its rim, which the paper
+takes from the geometry and the formalisation proves level by level, and it carries the table argument of (b) to
+vertices in place of the disjointness of sides $2$ and $4$ of $N_{b+1}$. The formalisation also proves facts the paper
+takes from the geometry: the gluing of every supertile is symmetric and glues no tile to itself, and
+\cref{tab:sides,tab:psides} agree with each other. \Cref{def:skeleton}, \cref{cor:placement} and the second routes of
+\cref{rem:skeleton,rem:labels} are not formalised. The proofs use only
 Lean's standard axioms. The formalisation was written by the AI system as well; its statement file
 (\code{lean/SpectreKnot/Statement.lean}) contains every definition that the formal theorems depend on, with comments in
 plain English.
@@ -715,8 +726,8 @@ infinite path.
 
 \begin{proof}
 A piece has two ends, each a port of its tile on some edge $e$. In a tiling of the plane, $e$ is shared by exactly one
-other tile, so each end is joined to exactly one port, an end of a piece of that neighbour. Joins always link pieces of
-different tiles, so $\G(\T)$ has no loops, and every vertex has degree exactly $2$. A connected, locally finite
+other tile, so each end is joined to exactly one port, an end of a piece of that neighbour. So every vertex has degree exactly $2$;
+joins always link pieces of different tiles, so $\G(\T)$ has no loops. A connected, locally finite
 multigraph with all degrees $2$ is a finite cycle (possibly of length $2$) or a two-way infinite path.
 \end{proof}
 
@@ -923,9 +934,10 @@ to $\Lp_{c'}(u_1)$, the port of $X_{c'}$ on $u_1u_2$ near $u_1$. Crossing $u_1u_
 $u_1u_2$ near $u_2$, which is $\Lp_c(u_2)$. If $n=2$ we stop. Otherwise the hook of $X_c$ at $u_2$ leads to $\Rp_c(u_2)$,
 and the pattern repeats with all indices shifted by two. So the path visits the hooks of $X_{c'}$ at odd $k$ and the
 hooks of $X_c$ at even $k$. It ends at $\Lp_c(u_n)$ if $n$ is even and at $\Rp_{c'}(u_n)$ if $n$ is odd. The same
-argument from the other end, starting at $\Rp_{c'}(u_n)$ for even $n$ and at $\Lp_c(u_n)$ for odd $n$, gives the
-second connection; it visits the remaining hooks. Each connection crosses each of the $n$ edges once, using two of its
-four ports, so together they use all of them.
+argument from the other end, with $X_c$ and $X_{c'}$ exchanged (and, for odd $n$, $\Lp$ and $\Rp$), starting at
+$\Rp_{c'}(u_n)$ for even $n$ and at $\Lp_c(u_n)$ for odd $n$, gives the second connection; it visits the remaining
+hooks. Each connection crosses each of the $n$ edges once, using two of its four ports, and the two connections use
+different ports, so together they use all of them.
 \end{proof}
 
 \subsection{Marks, runs and the skeleton}\label{sec:skeleton}
@@ -936,8 +948,7 @@ A \emph{mark} is a point that is a rim vertex of some child and is either
 where a neighbour is a sibling or ``outside $P$''; or
 \item one of the crossover corners $A_c$, $B_c$ of some child.
 \end{enumerate}
-A \emph{run} of $X_c$ is a path along the rim of $X_c$ between two consecutive marks lying on that rim. (In every
-composition below each child has at least four marks on its rim, so runs are arcs with distinct ends.)
+A \emph{run} of $X_c$ is a path along the rim of $X_c$ between two consecutive marks lying on that rim. (The corners $A_c\neq B_c$ are marks on the rim of $X_c$, so runs are arcs with distinct ends.)
 \end{definition}
 
 Along a run the neighbour of $X_c$ does not change. So a run either lies on the rim of $P$ (a \emph{rim run}) or is
@@ -980,7 +991,8 @@ Let $P=\bigcup X_c$, with every child having the signature. Then:
 \item for every reduced port $p$, the ribbon of $P$ followed from $p$ (first through its child) reaches the rim of
 $P$ at the first parent port among $\tau(p),\ \tau\sigma\tau(p),\ \tau\sigma\tau\sigma\tau(p),\dots$, if there
 is one (the ports $\sigma\tau(p),\dots$ in between lie on interior runs); for a parent port $p$ this is $\pi_P(p)$;
-\item $\kappa(P)$ is the number of cycles of the alternation of $\sigma$ and $\tau$ that contain no parent port.
+\item $\kappa(P)$ is the number of cycles of the alternation of $\sigma$ and $\tau$ (none contains a parent port,
+since $\sigma$ is not defined there).
 \end{enumerate}
 In particular, $\pi_P$ at the parent marks and $\kappa(P)$ are determined by the skeleton.
 \end{proposition}
@@ -1026,7 +1038,8 @@ This is the last part of \cref{lem:zigzag}, together with \cref{prop:reduce}(a).
 Every side of a level-$m$ supertile ($m\ge1$) carries one of the edge labels of~\cite[Fig.~4.2]{SMKGS-spectre}
 (\cref{tab:letters}). Ignoring the signs, there are eight \emph{letters}, $\alpha,\beta,\gamma,\delta,\epsilon,\zeta,\eta,\theta$.
 Two sides that are glued to each other carry labels $x^+$ and $x^-$ (or $\eta$ and $\eta$), and so the same letter; this is the
-matching rule of~\cite[\S4]{SMKGS-spectre}, and it can be read off \cref{tab:children,tab:sides,tab:letters}.
+matching rule of~\cite[\S4]{SMKGS-spectre}, and for sides glued inside a supertile it can be read off
+\cref{tab:children,tab:sides,tab:letters}.
 
 \begin{table}[t]
 \centering\small
@@ -1154,13 +1167,16 @@ $V_c(j)=\sum_{i<j}L(c,i)$ to vertex $V_c(j+1)$. Its crossover corner $A_c$ is ve
 vertex at distance $d$ from vertex $5$ along side $5$, and $B_c=A_c+\omega$. Each child is a box with the signature at
 $(A_c,B_c)$ (\cref{def:signature}). Sides are glued in pairs as in \cref{tab:sides}, reversing direction: the $o$-th
 edge of side $j$ of $c$ is the $o$-th edge from the end of side $j'$ of $c'$. The sides marked $\rim$ form the rim of
-the composition, in the order of \cref{tab:psides}; a rim vertex of the composition is the point between two
+the composition, in the order of \cref{tab:psides} read backwards (the table lists them in the parent's own order); a rim vertex of the composition is the point between two
 consecutive rim edges, and its ports $\Rp$ and $\Lp$ are the ports, on these two edges, of the children they belong
 to. Ribbons are followed as in \cref{lem:gluing}: alternately through
 a child, by its signature, and straight across a glued edge, until the rim is reached. This defines the box of the
 composition: the pairing of its rim ports and its closed strands. \Cref{lem:zigzag,prop:reduce,cor:placement} and their
 proofs apply unchanged to compositions (with marks, runs and skeletons defined as in \cref{def:marks,def:skeleton}),
-since they use only the signatures of the children and the straight-through rule. We say that $C_T(L,d,\omega)$ \emph{has the
+since they use only the signatures of the children and the straight-through rule. The two facts that
+\cref{sec:skeleton} reads off the angles at a vertex hold here by construction: the edges of glued sides are glued in
+reverse order, so a run of one child is a run of its partner; and the two sides of a child at one of its six vertices
+face different siblings, or the rim (\cref{tab:sides}), so no third child meets the inside of a run. We say that $C_T(L,d,\omega)$ \emph{has the
 signature} if it has no closed strand, and every rim vertex is a hook except the crossover corners $A_\Gamma,B_\Gamma$
 of its $\Gamma$ child, which are adjacent rim vertices ($B_\Gamma$ following $A_\Gamma$ in the children's order if
 $\omega=+1$, and preceding it if $\omega=-1$) and carry the crossover.
@@ -1245,7 +1261,8 @@ third from the end in the partner); before the move the side has length at least
 $\Sigma$ child (and the side glued to it, which belongs to another child), measuring positions along side $5$ from its
 vertex $5$. If $d\ge d_1+2$, take $d_0=d-2$ and the move whose edge is the second edge of the side, before
 $A_\Sigma$; it does not touch $A_\Sigma$, since $d_0\ge6$. If $d=d_1$, take $d_0=d$ and the second edge after
-$A_\Sigma$; it is not the last edge of the side, since $L(c_\Sigma,5)-d\ge\ell_1(c_\Sigma,5)+2-d_1=6$. In each case $(L_0,d_0)$ is admissible, and $\sum L_0=\sum L-2$ or $\sum L-4$.
+$A_\Sigma$: before the move the side has $L(c_\Sigma,5)-2-d\ge\ell_1(c_\Sigma,5)-d_1=4$ edges after $A_\Sigma$, so
+this edge is at least two edges from the end of the side. In each case $(L_0,d_0)$ is admissible, and $\sum L_0=\sum L-2$ or $\sum L-4$.
 \end{proof}
 
 \begin{computation}[The compositions at the level-$1$ lengths]\label{comp:compose}
@@ -1257,7 +1274,7 @@ and the lengths alone, follows the ribbon from every one of their ports and chec
 (\cref{app:computations}), and in the kernel of the Lean proof assistant (\cref{sec:intro}, \emph{Formal
 verification}). Each composition has $8$ children ($7$ for $\Gamma$), $732$ ports ($640$) and a rim of $182$ edges
 ($160$). As a negative control, with each child's corner $B_c$ placed two vertices from $A_c$ instead of one, all
-$18$ checks fail.
+$18$ checks fail, in both programs.
 
 \begin{proposition}[Compositions at every level]\label{prop:compose}
 For every $m\ge1$, every kind $T$ and both signs $\omega$, the composition $C_T(\ell_m,d_m,\omega)$ has the signature.
@@ -1278,7 +1295,8 @@ This was computed from the tiles, using \cref{lem:gluing}, in exact arithmetic; 
 worded: the two non-hooks are the crossover corners of the $\Gamma$ child (the Mystic), they are adjacent,
 $B=A+\omega_1$, they carry the crossover, and there is no closed strand. A second, separate program, in floating
 point, confirms it (\cref{app:computations}). The level-$1$ supertiles, as glued patches of tiles, are also the input
-of the Lean formalisation, whose kernel checks this computation again. The rims have $E_1=44$ edges for $\Gamma$ and
+of the Lean formalisation, whose kernel checks the statement again, with $A$ placed as in \cref{lem:Apos} (the
+formalisation does not single out the Mystic). The rims have $E_1=44$ edges for $\Gamma$ and
 $46$ for the other kinds.
 
 \begin{theorem}[Signature Theorem]\label{thm:signature}
@@ -1331,7 +1349,8 @@ $X_0(t)\subset X_1(t)\subset\cdots$ containing $t$ have union $\RR^2$. Every til
 point $x$ of the interior of $t'$ lies in $X_m(t)$ for some $m$, hence in some tile $s$ of $X_m(t)$. Every neighbourhood
 of $x$ meets the interior of $s$, so the interiors of $s$ and $t'$ meet, and $s=t'$. A closed strand consists of finitely many pieces in finitely many tiles, so it lies in a single $X_m(t)$, and
 all its joins are across interior edges of $X_m(t)$. It is then a closed strand of $X_m(t)$, contradicting
-\cref{thm:signature}. By \cref{lem:degree2}, every strand is a two-way infinite path.
+\cref{thm:signature}. (Equally, each edge of a tile is shared with exactly one other tile, and the two lie in some
+$X_m(t)$, inside which the edge is interior. This is the form the formalisation uses.) By \cref{lem:degree2}, every strand is a two-way infinite path.
 \end{proof}
 
 % ---------------------------------------------------------------------------------------------------------
@@ -1472,7 +1491,8 @@ by the moves of \cref{sec:induction}.
 
 \subsubsection*{Junctions}
 Let $m\ge1$. The rim of $N_{m+1}$, in its own order from its corner $A$, is the concatenation of the $22$ children's
-sides listed in the $\Delta$ row of \cref{tab:psides}, at positions $q=0,\dots,21$. The \emph{junction} $q$ is the rim
+sides listed in \cref{tab:psides} for eight children, at positions $q=0,\dots,21$, with its sides starting where the
+$\Delta$ row says. The \emph{junction} $q$ is the rim
 vertex of $N_{m+1}$ at which the side at position $q$ starts (not to be confused with the junctions of
 \cref{def:marks}(i)). The junctions $9,12,16,17,21$ lie inside sides of
 $N_{m+1}$ (\cref{lem:junctions} below), so they are hooks of $N_{m+1}$ (\cref{thm:signature}); we write $H_q$ for the
@@ -1510,9 +1530,9 @@ where $q$ is given by \cref{tab:junction} with $\omega_m=\omega$.
 \end{computation}
 
 This was computed twice, like \cref{comp:compose}: by the program of \cref{app:computations}, and in the kernel of the
-Lean proof assistant (its second part; the formalisation proves the first for every level, from the signature of
-child~$1$). As a negative control, exchanging the junctions $12$ and $16$ in \cref{tab:junction} makes the
-check fail for both signs.
+Lean proof assistant (its second part; the formalisation proves the first for every level, at the level of tiles).
+As a negative control, exchanging the junctions $12$ and $16$ in \cref{tab:junction} makes the check fail for both
+signs, in both programs.
 
 \begin{lemma}[The junction map]\label{lem:junctionmap}
 Let $m\ge1$. In $N_{m+1}$, every hook of $N_m$ at a rim vertex strictly inside side $2$ of $N_m$ is a hook of
@@ -1589,7 +1609,7 @@ $N_{b+2}$: $H_{16}$, and the hook at junction $9$ of $N_{b+1}$, which lies insid
 junction $16$ of $N_{b+2}$ (an end of that side). For odd $b$ they lie on $H_{12}$ and $H_9$ of $N_{b+2}$, and on
 $H_{16}$ of $N_{b+3}$ and the hook at junction $9$ of $N_{b+2}$, which for the same reason is not junction $16$ of
 $N_{b+3}$. Both arcs are reached in each case (for instance from
-vertices well inside sides $4$ and $5$ of $N_b$, or sides $3$ and $0$), and distinct hooks are distinct arcs.
+vertices well inside sides $4$ and $5$ of $N_b$, or sides $4$ and $0$), and distinct hooks are distinct arcs.
 \end{proof}
 
 \begin{remark}[Other checks of \cref{thm:merge}]\label{rem:labels}
@@ -1729,7 +1749,7 @@ All programs and their logs are in the ancillary files of this paper, folder \co
 minutes on a four-core machine; \code{./run\_all.sh -{}-all} adds the corroborating computations to level~$9$, and
 takes about an hour in all (with the memory of the JavaScript programs capped at $6.5$\,GB). The file
 \code{code/README.md} maps every statement of this paper to the script that checks it. The Lean formalisation is in the
-folder \code{lean/}; its \code{build.sh} builds and checks it in about six minutes, and its \code{README.md} maps the
+folder \code{lean/}; its \code{build.sh} builds and checks it in about ten minutes, and its \code{README.md} maps the
 statements of this paper to the formal ones.
 
 \subsection*{What the proof computes, and how}
@@ -1743,8 +1763,8 @@ $z\mapsto\rho^kz+t$ (or $\rho^k\bar z+t$ in reflected frames). Floating point is
 area of a polygon whose area exceeds $8$ in absolute value. The computations on compositions
 (\cref{comp:compose,comp:junction}) use only \cref{tab:children,tab:sides,tab:psides} and the integers $\ell_1$, $d_1$.
 The program \code{hierarchy/compositions.py} builds each composition, follows the ribbon from every port, and checks
-the statement as worded. The Lean formalisation repeats both computations in its kernel, from the same tables, and
-re-checks \cref{comp:base} on the level-$1$ supertiles exported by \code{exact.py} (in the table below, the Lean files
+the statement as worded. The Lean formalisation repeats \cref{comp:compose} and the second part of \cref{comp:junction}
+in its kernel, from the same tables, runs both negative controls as tests, and re-checks \cref{comp:base} on the level-$1$ supertiles exported by \code{exact.py} (in the table below, the Lean files
 named are in \code{lean/SpectreKnot/}).
 
 The JavaScript programs in \code{core/} and most of \code{hierarchy/} repeat the geometric computations independently

@@ -8,9 +8,11 @@ at distance `d` from vertex 5) and `B_c = A_c + ω`; sides are glued in pairs by
 parent's rim is listed by Table 3. Every child is given the signature box (Def 4.3). `Comp.toGluing` makes it a
 `Gluing`, whose full walk computes the parent's box exactly as Lemma 4.2 says.
 
-`Comp.check` tests the conclusion of the induction step, and `check_sound` says what a `true` means: the parent has no
-closed strand and has the signature at the Γ child's corners. Run at `(ℓ₁, d₁, ±1)` for the nine kinds, this is
-Computation 7.3, from the tables alone and without the reduced walk or the exported skeletons.
+`Comp.check` tests the signature of the composition as §7.1 words it, and `check_sound` says what a `true` means: the
+parent has no closed strand and has the signature at the Γ child's corners. (The induction of Prop 7.4 carries another
+form of it, `Gluing.Sig`, which finds each parent rim vertex by turning about a child's vertex; `SigCheck.lean`.) Run at
+`(ℓ₁, d₁, ±1)` for the nine kinds, this is Computation 7.3, from the tables alone and without the reduced walk or the
+exported skeletons.
 -/
 import SpectreKnot.Lengths
 import SpectreKnot.Gluing

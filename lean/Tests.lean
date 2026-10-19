@@ -43,6 +43,32 @@ def runs (G : Gluing) : Nat :=
 #guard (cases18 1).all fun C => C.sigCheck
 #guard !((Comp.ofPattern .Delta (letterLen 1) (dOff 1) true).spreadCorners 0).sigCheck
 
+-- the paper's negative control for Computation 7.3, as `compositions.py` runs it: with every child's corner `B` placed
+-- two vertices from `A` (`B = A ± 2`), all 18 compositions fail the check
+def spreadAll (C : Comp) (ω : Bool) : Comp :=
+  { C with kids := C.kids.map fun k => { k with B := if ω then (k.A + 2) % k.E else (k.A + k.E - 2) % k.E } }
+#guard allKinds.all fun T => [true, false].all fun ω =>
+  !(spreadAll (Comp.ofPattern T (letterLen 1) (dOff 1) ω) ω).check ω
+
+/-- The kernel's check of Computation 9.2 (`Statement.stepCheck`), with the junction map `tg` in place of Table 6. -/
+def stepCheckWith (tg : Bool → (Nat → Nat) → Nat → Bool → Option Nat) (ω : Bool) : Bool :=
+  let C := Comp.ofLens .Delta (L₁ .Delta) (dOff 1) ω
+  (List.range (pos (L₁ .Delta 1) 6)).all fun u => [true, false].all fun s =>
+    match tg ω (L₁ .Delta 1) u s with
+    | none => true
+    | some q =>
+      C.toGluing.fullWalk C.fuel (1, u, s) == some (Statement.jR (L₁ .Delta) q) ||
+        C.toGluing.fullWalk C.fuel (1, u, s) == some (Statement.jL (L₁ .Delta) q)
+
+/-- Table 6 with junctions 12 and 16 exchanged. -/
+def tgtSwapped (ω : Bool) (f : Nat → Nat) (u : Nat) (s : Bool) : Option Nat :=
+  (Statement.tgt ω f u s).map fun q => if q = 12 then 16 else if q = 16 then 12 else q
+
+-- the check passes with Table 6 (as `step_base` proves in the kernel), and the paper's negative control for
+-- Computation 9.2: with junctions 12 and 16 exchanged it fails, for both signs
+#guard [true, false].all fun ω => stepCheckWith Statement.tgt ω
+#guard [true, false].all fun ω => !stepCheckWith tgtSwapped ω
+
 /-! ## Tests of the statement file (`Statement.lean`)
 
 They check that its definitions mean what they are meant to: the supertiles it builds are the real ones, and the

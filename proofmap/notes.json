@@ -10,6 +10,8 @@
     "cor:placement": "used only by {rem:labels}, a cross-check of {thm:merge} by the earlier route"
   },
   "lean_part": {
+    "prop:reduce": "Parts (a) and (b), and (c) in the form the proof uses: if every reduced walk reaches the rim there is no closed strand. The count of closed strands, $\\kappa(P)$, is not formalised.",
+    "rem:skeleton": "Only the skeleton walks of (3), on skeletons exported from the JavaScript, as a corroboration; Definition 5.3 and the skeleton argument are not formalised.",
     "prop:pattern": "Only the rims: the parent's rim, read from Table 3, is the rim of the glued children. That actual supertiles are glued as the tables say is assumption (M1), not formalised.",
     "lem:tilesig": "The tile only. The Mystic (the level-0 Γ) is not treated separately; the Lean starts from the nine level-1 supertiles.",
     "lem:gap": "In combinatorial form: every edge of $N_b$ is glued in $N_{b+2}$ (part (b)), and every vertex of every tile of $N_b$ is surrounded by tiles of $N_{b+2}$ (part (a) at the vertices of tiles). The step from tile vertices to points of the plane is part of assumption (M3).",
@@ -29,7 +31,7 @@
     "lem:box": "Seen from outside, a patch of tiles is just a pairing of the ports on its rim, together with a count of the closed strands hidden inside. This \"box\" is all that later sections need to know about a patch.",
     "lem:gluing": "The box of a patch glued from smaller patches can be worked out from their boxes alone: alternate between the small boxes' pairings and the straight-through rule across shared edges. This is what lets the proof compute with supertiles as black boxes instead of tile by tile.",
     "lem:tilesig": "The two base cases of the induction on levels. A single tile has the signature by the design itself (the one crossing sits at its corners $v_0, v_1$). The Mystic, the two-tile level-0 supertile, is a small computation.",
-    "prop:reduce": "When children with the signature are glued, almost all of their rim vertices are hooks, and the ribbon just zigzags along the shared runs. So the parent's box is decided by a small skeleton: the marks where children meet or turn, and the parities of the runs between them. This is what makes the composition computation finite and short.",
+    "prop:reduce": "When children with the signature are glued, almost all of their rim vertices are hooks, and the ribbon just zigzags along the shared runs. So the parent's box is decided by a small skeleton: the marks where children meet or turn, and the parities of the runs between them. The Lean formalisation uses it to show that lengthening a side creates no closed strand; the computations themselves follow the ribbon from every port.",
     "cor:placement": "This says exactly where a hook of a child ends up after gluing: on the parent's rim, or on one of the two zigzag connections along a shared run, decided by the parity of its distance along the run. It is the Zigzag Lemma restated in the setting of Proposition 5.4.",
     "prop:letters": "The length of a supertile's side depends only on a letter (one of eight) carried by that side, and the eight lengths obey one linear recurrence from level to level. So side lengths at every level are known exactly from the level-1 counts.",
     "prop:fib": "Solving the recurrence of Proposition 6.1: every side length is a Fibonacci number, twice one, or one plus or minus 2. The proof is a direct substitution.",

@@ -37,4 +37,16 @@ theorem iter_add {α : Type} (f : α → α) (m n : Nat) (x : α) : iter f (m + 
   | zero => simp
   | succ m ih => rw [Nat.add_right_comm, iter_succ, ih, iter_succ]
 
+/-- Cyclic successor on `0 … E-1`. -/
+def nxt (E x : Nat) : Nat := if x + 1 = E then 0 else x + 1
+
+/-- Cyclic predecessor on `0 … E-1`. -/
+def prv (E x : Nat) : Nat := if x = 0 then E - 1 else x - 1
+
+/-- The Fibonacci numbers, `fib 1 = fib 2 = 1`. -/
+def fib : Nat → Nat
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fib n + fib (n + 1)
+
 end SpectreKnot

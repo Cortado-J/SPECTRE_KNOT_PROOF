@@ -134,20 +134,8 @@ theorem turnsB_stop : ∀ n {c : Nat × Nat}, P.turnsB n c = none → ∃ m d, P
       obtain ⟨m, d, reached, stops⟩ := ih stopped
       exact ⟨m + 1, d, by simp only [turnsB, back_eq]; exact reached, stops⟩
 
-/-- The corner `(t, i)` of a port `(t, i, s)`: vertex `v_i` of tile `t`, which the port is beside. -/
-def corner (p : Port) : Nat × Nat := (p.1, p.2.1)
-
-/-- The corner where the chain of corners about rim vertex `k` starts (in the patch's orientation `o`): beside its rim
-port `(k, o)`, on the rim edge that turning backwards would cross. -/
-def sC (P : Patch) (o : Bool) (k : Nat) : Nat × Nat := corner (P.bport o (k, o))
-
-/-- The corner where the chain about rim vertex `k` ends: beside its other rim port, on the rim edge that turning would
-cross. -/
-def fC (P : Patch) (o : Bool) (k : Nat) : Nat × Nat := corner (P.bport o (k, !o))
-
-/-- **The patch is a disc at its rim**: turning about each rim vertex, from the corner beside one of its rim ports,
-reaches the corner beside the other. -/
-def RimChains (P : Patch) (o : Bool) : Prop := ∀ k, k < P.E → ∃ n, P.turns n (P.sC o k) = some (P.fC o k)
+-- The corners `corner`, `sC`, `fC` and the claim that a patch is a disc at its rim, `RimChains`, are in
+-- `Statement.lean`, where the claim `SignatureTheorem` uses them.
 
 /-- The start of a chain is a corner of an actual tile. -/
 theorem sC_valid {o : Bool} {A B : Nat} (sig : P.HasSig o A B) {k : Nat} (k_lt : k < P.E) :

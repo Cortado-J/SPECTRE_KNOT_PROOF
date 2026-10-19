@@ -1,7 +1,8 @@
 /-
 The base case of the parity lemma: the signature (`Gluing.Sig`) of the 18 compositions at the level-1 lengths
-`(ℓ₁, d₁)`, checked by the kernel. Well-formedness and the absence of closed strands come from `compositions_level1_signature`;
-`sigCheck` checks the rest (the hooks at every parent rim vertex found by turning about it, and the crossover).
+`(ℓ₁, d₁)`, checked by the kernel. Well-formedness and the absence of closed strands come from `compositions_level1`,
+through `Comp.check_sound`; `sigCheck` checks the rest (the hooks at every parent rim vertex found by turning about it,
+and the crossover).
 -/
 import SpectreKnot.Signature
 import SpectreKnot.CompFull

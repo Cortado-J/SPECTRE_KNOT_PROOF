@@ -419,8 +419,8 @@ theorem adm_sig (T : Kind) (ω : Bool) :
           have d_after := Move.d'_c₀ (L := μ.shorten T L) (d := d) (by rw [c₀_sig]; exact sig_is_sigma) j₀_5
             (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sig μ c₀_sig j₀_5 side_glued sib_sigma)
           rw [ite_eq_right (by omega)] at d_after; omega
-      · -- a move elsewhere
-        obtain ⟨μ, c₀_eq, j₀_eq, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 1 := ⟨⟨c, j, 1⟩, rfl, rfl, rfl⟩
+      · -- a move elsewhere, cutting the third edge of the side (the paper's choice, Lemma 7.2(b))
+        obtain ⟨μ, c₀_eq, j₀_eq, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 2 := ⟨⟨c, j, 2⟩, rfl, rfl, rfl⟩
         subst c₀_eq j₀_eq
         -- the side cut is not side 5 of the Σ child
         have not_sigma₀ : ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5) := fun ⟨is_sigma, is_5⟩ =>

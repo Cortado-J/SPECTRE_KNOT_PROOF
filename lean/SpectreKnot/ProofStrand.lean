@@ -62,12 +62,6 @@ theorem same_orbit {p q : P} (same : S.Same p q) : ∃ k, q = S.walk p k ∨ q =
         show S.next (iter S.prev (k + 1) p) = _
         rw [iter_succ, next_prev]
 
-/-- Going `a` steps back and then `a` steps forwards returns to the start. -/
-theorem forward_back (a : Nat) : ∀ y, iter S.next a (iter S.prev a y) = y := by
-  induction a with
-  | zero => intro y; rfl
-  | succ a ih => intro y; rw [iter_succ', iter_succ, next_prev, ih]
-
 end SpectreKnot.StrandSystem
 
 namespace SpectreKnot.Statement
@@ -725,37 +719,17 @@ theorem theoremB_strand : TheoremB_strand := by
     | zero => rfl
     | succ k ih => rw [iter_succ, ih]; rfl
   -- Lemma 3.4: the strand is closed or a two-way infinite path; it is not closed
-  obtain ⟨distinct, apart, no_piece_twice⟩ := (nestSys.closed_or_path start).resolve_left (not_closed start)
-  -- going back `d` steps never returns to the start, unless `d = 0`
-  have back_ne : ∀ d, iter nestSys.prev d start = start → d = 0 := fun d back_at_start =>
-    (apart d 0 back_at_start).1
+  obtain ⟨distinct, back_distinct, apart, no_piece_twice⟩ :=
+    (nestSys.closed_or_path start).resolve_left (not_closed start)
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · -- (1) forwards, no port twice
     intro i j same
     rw [forwards, forwards] at same
     exact distinct i j (Subtype.ext same)
-  · -- (2) backwards, no port twice: undo the shorter walk back
+  · -- (2) backwards, no port twice
     intro a a' same
     rw [backwards, backwards] at same
-    -- the same ports of the nest tiling
-    have same' := Subtype.ext same
-    rcases Nat.le_total a a' with le | le
-    · obtain ⟨d, rfl⟩ : ∃ d, a' = a + d := ⟨a' - a, by omega⟩
-      rw [iter_add] at same'
-      -- go `a` steps forwards from both
-      have undone := congrArg (iter nestSys.next a) same'
-      rw [nestSys.forward_back, nestSys.forward_back] at undone
-      -- so going `d` steps back returns to the start: `d = 0`
-      have := back_ne d undone.symm
-      omega
-    · obtain ⟨d, rfl⟩ : ∃ d, a = a' + d := ⟨a - a', by omega⟩
-      rw [iter_add] at same'
-      -- go `a'` steps forwards from both
-      have undone := congrArg (iter nestSys.next a') same'
-      rw [nestSys.forward_back, nestSys.forward_back] at undone
-      -- so going `d` steps back returns to the start: `d = 0`
-      have := back_ne d undone
-      omega
+    exact back_distinct a a' (Subtype.ext same)
   · -- (3) backwards never meets forwards, except at the start
     intro a b same
     rw [backwards, forwards] at same

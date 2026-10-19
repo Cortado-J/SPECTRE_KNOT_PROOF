@@ -3,6 +3,26 @@
 What changed each time this site was published, newest first: in the paper, the Lean, the code and the pages
 themselves. Dates are UK dates.
 
+## 19 October 2026
+
+- **Lean:** the statement changed: a new claim, `SignatureTheorem`, states the paper's Signature Theorem (Thm 7.6) in
+  the statement file. Every supertile of level 1 or more is a disc at its rim and has the signature at its crossover
+  corners A and B = A + ω_m, with A placed as in Lemma 6.4. The definitions it uses (the rim ports, the
+  signature itself, and what it means to be a disc at the rim) moved into the statement file unchanged. The ten
+  earlier claims say what they said before. Assumption (M) is worded more exactly: (M1) covers levels 1 and above and
+  says how the tiles are numbered, and (M2) gives the step from a tiling to a chain in which every edge is glued.
+- **Lean:** Lemma 9.4 is also proved as the paper states it, five edges from the ends of a side. Lemma 3.4 now says
+  that the ports met going backwards along a strand are distinct. The induction behind Prop 7.4 makes the same moves
+  as the paper's proof. The paper's two negative controls (corners two apart in Computation 7.3; junctions 12 and 16
+  exchanged in Computation 9.2) run as tests. Several comments are corrected. None of this changes what the claims
+  say.
+- **Paper:** the account of the formal verification (§1) lists the differences between the paper's proofs and the
+  Lean's more fully. Small corrections in the proofs of Lemma 3.4, the Zigzag Lemma, Lemma 7.2 and Theorem A, in
+  Definition 5.2, Proposition 5.4(c) and §7.1 (why §5 applies to the compositions), and in Appendix A.
+- **Site:** the guide to the statement file explains the new claim and the definitions it uses. Proposition 5.4 and
+  Remark 7.8 are marked as formalised in part. The table of how each Lean statement differs from the paper's is
+  brought up to date.
+
 ## 15 October 2026
 
 - **Code:** a new check runs Kaplan’s implementation of the spectre’s substitution, the program of the spectre

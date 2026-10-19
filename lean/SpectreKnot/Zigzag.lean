@@ -75,7 +75,8 @@ ports at the ends of the path as follows:
 
 (Each connection is `σ ∘ (τ ∘ σ)^(n-1)`, read from the port at `u_0`.) Moreover, for `0 < k < n`, the hook of `X_c`
 at `u_k` lies on the connection through `R_c(u_0)` if `k` is even and on the one through `L_{c'}(u_0)` if `k` is
-odd; and the two connections together cross every edge of the path at all four of its ports. -/
+odd; and the two connections together pass through the ports `R_c(u_k)` and `L_{c'}(u_k)` of every edge of the path
+(its other two ports are their images under `σ`, so all four ports are used). -/
 theorem zigzag (len_pos : 1 ≤ n)
     (σ_invol : ∀ p, σ (σ p) = p) (τ_invol : ∀ p, τ (τ p) = p)
     (across_R : ∀ k, k < n → σ (ι (.c .R k)) = ι (.d .R (k + 1)))

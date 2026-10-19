@@ -76,7 +76,8 @@ for t in NAMES:
     lines.append(f'  | .{t} => {lean_list("." + x for x in LT["letter"][t])}')
 lines += [
     '',
-    '/-- The side lengths of the level-1 supertiles, counted on the actual tiles (paper §6, `exact/exact.py`). -/',
+    '/-- The side lengths of the level-1 supertiles, counted on the actual tiles by `hierarchy/combin.js` (paper §6);',
+    'the kernel checks them against the clusters of `Data/Clusters.lean` (`level1Check`). -/',
     'def len1 : Kind → List Nat',
 ]
 for t in NAMES:

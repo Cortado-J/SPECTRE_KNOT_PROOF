@@ -665,38 +665,17 @@ theorem theoremA_strand : TheoremA_strand := by
     | zero => rfl
     | succ k ih => rw [iter_succ, ih]; rfl
   -- Lemma 3.4: the strand is closed or a two-way infinite path; it is not closed
-  obtain ⟨distinct, apart, no_piece_twice⟩ :=
+  obtain ⟨distinct, back_distinct, apart, no_piece_twice⟩ :=
     (S.closed_or_path start).resolve_left (X.not_closed covers contains tiling start)
-  -- going back `d` steps never returns to the start, unless `d = 0`
-  have back_ne : ∀ d, iter S.prev d start = start → d = 0 := fun d back_at_start =>
-    (apart d 0 back_at_start).1
   refine ⟨?_, ?_, ?_, ?_⟩
   · -- (1) forwards, no port twice
     intro i j same
     rw [forwards, forwards] at same
     exact distinct i j (Subtype.ext same)
-  · -- (2) backwards, no port twice: undo the shorter walk back
+  · -- (2) backwards, no port twice
     intro a a' same
     rw [backwards, backwards] at same
-    -- the same ports of the tiling
-    have same' := Subtype.ext same
-    rcases Nat.le_total a a' with le | le
-    · obtain ⟨d, rfl⟩ : ∃ d, a' = a + d := ⟨a' - a, by omega⟩
-      rw [iter_add] at same'
-      -- go `a` steps forwards from both
-      have undone := congrArg (iter S.next a) same'
-      rw [S.forward_back, S.forward_back] at undone
-      -- so going `d` steps back returns to the start: `d = 0`
-      have := back_ne d undone.symm
-      omega
-    · obtain ⟨d, rfl⟩ : ∃ d, a = a' + d := ⟨a - a', by omega⟩
-      rw [iter_add] at same'
-      -- go `a'` steps forwards from both
-      have undone := congrArg (iter S.next a') same'
-      rw [S.forward_back, S.forward_back] at undone
-      -- so going `d` steps back returns to the start: `d = 0`
-      have := back_ne d undone
-      omega
+    exact back_distinct a a' (Subtype.ext same)
   · -- (3) backwards never meets forwards, except at the start
     intro a b same
     rw [backwards, forwards] at same

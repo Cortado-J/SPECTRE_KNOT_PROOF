@@ -139,18 +139,50 @@ theorem back_ne_forward_of_not_closed (p : P) (not_closed : ¬ S.Closed p) :
   have no_steps := S.walk_injective_of_not_closed p not_closed 0 (a + b) returns
   omega
 
+/-- If a strand is not closed, the ports reached by following it backwards are pairwise distinct. -/
+theorem prev_injective_of_not_closed (p : P) (not_closed : ¬ S.Closed p) :
+    ∀ a a', iter S.prev a p = iter S.prev a' p → a = a' := by
+  -- `a` steps back, then `a` steps forwards, return to the start
+  have back_then_forward : ∀ a x, iter S.next a (iter S.prev a x) = x := by
+    intro a
+    induction a with
+    | zero => intro x; rfl
+    | succ a ih => intro x; rw [iter_succ', iter_succ, next_prev, ih]
+  -- going back `d` steps never returns to the start, unless `d = 0`
+  have back_ne : ∀ d, iter S.prev d p = p → d = 0 := fun d back_at_start =>
+    (S.back_ne_forward_of_not_closed p not_closed d 0 back_at_start).1
+  -- if `a` and `a + d` steps back meet, then `d` steps back return to the start
+  have key : ∀ a d, iter S.prev a p = iter S.prev (a + d) p → d = 0 := by
+    intro a d same
+    rw [iter_add] at same
+    -- go `a` steps forwards from both
+    have undone := congrArg (iter S.next a) same
+    rw [back_then_forward, back_then_forward] at undone
+    exact back_ne d undone.symm
+  intro a a' same
+  rcases Nat.le_total a a' with le | le
+  · obtain ⟨d, rfl⟩ : ∃ d, a' = a + d := ⟨a' - a, by omega⟩
+    -- the gap between the two visits is zero
+    have no_gap := key a d same
+    omega
+  · obtain ⟨d, rfl⟩ : ∃ d, a = a' + d := ⟨a - a', by omega⟩
+    -- the gap between the two visits is zero
+    have no_gap := key a' d same.symm
+    omega
+
 /-- **Lemma 3.4** (in the port model). Every strand is either closed, or a two-way infinite path: following it
-forwards and backwards from a port `p`, all the ports met are distinct, and no piece is passed twice (in either
-direction). -/
+forwards from a port `p`, the ports met are distinct; so are those met backwards; the two walks meet only at `p`; and
+no piece is passed twice (in either direction). -/
 theorem closed_or_path (p : P) :
     S.Closed p ∨
       ((∀ i j, S.walk p i = S.walk p j → i = j) ∧
+       (∀ a a', iter S.prev a p = iter S.prev a' p → a = a') ∧
        (∀ a b, iter S.prev a p = S.walk p b → a = 0 ∧ b = 0) ∧
        (∀ i j, S.walk p j ≠ S.inside (S.walk p i))) := by
   by_cases closed : S.Closed p
   · exact Or.inl closed
-  · exact Or.inr ⟨S.walk_injective_of_not_closed p closed, S.back_ne_forward_of_not_closed p closed,
-      S.walk_ne_inside_walk p⟩
+  · exact Or.inr ⟨S.walk_injective_of_not_closed p closed, S.prev_injective_of_not_closed p closed,
+      S.back_ne_forward_of_not_closed p closed, S.walk_ne_inside_walk p⟩
 
 end StrandSystem
 

@@ -1,12 +1,12 @@
 /-
-Lists the declarations of `SpectreKnot` that the ten main results do not use: `theoremA`, `theoremB`,
-`theoremB_sharp`, `nestModel`, `theoremB_strand`, `chainModel`, `theoremA_strand`, `nestCovers`, `theoremB_exact` and
-`grandparent`.
+Lists the declarations of `SpectreKnot` that the eleven main results do not use: `signatureTheorem`, `theoremA`,
+`theoremB`, `theoremB_sharp`, `nestModel`, `theoremB_strand`, `chainModel`, `theoremA_strand`, `nestCovers`,
+`theoremB_exact` and `grandparent`.
 Run from `lean/` with
 
     lake env lean tools/unused.lean
 
-It follows every constant named in the types and proofs, starting from those ten. Compiler-generated declarations
+It follows every constant named in the types and proofs, starting from those eleven. Compiler-generated declarations
 and the generated data files are left out. One blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace in the
 proofs that use it (`iter_zero` is such a lemma, used by `iter_add`), so it is listed even when it is needed.
 -/
@@ -37,10 +37,10 @@ def generated (n : Name) : Bool :=
 
 #eval show CommandElabM Unit from do
   let env ← getEnv
-  let roots := [`SpectreKnot.Statement.theoremA, `SpectreKnot.Statement.theoremB,
-    `SpectreKnot.Statement.theoremB_sharp, `SpectreKnot.Statement.nestModel, `SpectreKnot.Statement.theoremB_strand,
-    `SpectreKnot.Statement.chainModel, `SpectreKnot.Statement.theoremA_strand, `SpectreKnot.Statement.nestCovers,
-    `SpectreKnot.Statement.theoremB_exact, `SpectreKnot.Statement.grandparent]
+  let roots := [`SpectreKnot.Statement.signatureTheorem, `SpectreKnot.Statement.theoremA,
+    `SpectreKnot.Statement.theoremB, `SpectreKnot.Statement.theoremB_sharp, `SpectreKnot.Statement.nestModel,
+    `SpectreKnot.Statement.theoremB_strand, `SpectreKnot.Statement.chainModel, `SpectreKnot.Statement.theoremA_strand,
+    `SpectreKnot.Statement.nestCovers, `SpectreKnot.Statement.theoremB_exact, `SpectreKnot.Statement.grandparent]
   let used := reach env roots {}
   let modules := env.header.moduleNames
   let mut unused : Array (String × String) := #[]

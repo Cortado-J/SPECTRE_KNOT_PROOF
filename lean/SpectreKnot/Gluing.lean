@@ -2,21 +2,19 @@
 A patch glued from children (paper §4.1 and §5): the general setting of Lemma 4.2 and Prop 5.4.
 
 Child `c` has `E c` rim vertices `0 … E c - 1`, numbered in its orientation (all children in the same rotational
-sense); edge `k` runs from vertex `k` to vertex `k+1`. Each child carries the signature at its crossover corners
-`A c`, `B c` (Def 4.3). `mate c k = some (c', k')` says that edge `k` of child `c` is edge `k'` of child `c'`,
-traversed the other way; `none` says that it lies on the parent's rim. Nothing here refers to the tables: Prop 5.4 is
-proved for every gluing that is well formed (`WF`).
+sense); edge `k` runs from vertex `k` to vertex `k+1`. Each child carries the signature's pairing at its crossover
+corners `A c`, `B c` (Def 4.3, `tau`). `mate c k = some (c', k')` says that edge `k` of child `c` is edge `k'` of child
+`c'`, traversed the other way; `none` says that it lies on the parent's rim. Nothing here refers to the tables: Prop 5.4
+is proved for every gluing that is well formed (`WF`). `WF` asks only that each child's corners be distinct, not that
+they be adjacent, and nothing about the children's interiors, so Prop 5.4 is proved a little more generally than the
+paper states it.
 -/
 import SpectreKnot.Basic
 import SpectreKnot.Box
 
 namespace SpectreKnot
 
-/-- Cyclic successor on `0 … E-1`. -/
-def nxt (E x : Nat) : Nat := if x + 1 = E then 0 else x + 1
-
-/-- Cyclic predecessor on `0 … E-1`. -/
-def prv (E x : Nat) : Nat := if x = 0 then E - 1 else x - 1
+-- `nxt` and `prv`, the cyclic successor and predecessor on `0 … E-1`, are in `Basic.lean`.
 
 /-- The successor of a vertex is a vertex. -/
 theorem nxt_lt {E x : Nat} (x_lt : x < E) : nxt E x < E := by unfold nxt; split <;> omega

@@ -27,6 +27,7 @@ STATIC_NOTE = ('<p class="static-note">Static copy: this viewer has not run the 
 HERE = pathlib.Path(__file__).resolve().parent
 LEAN = HERE.parent
 BASIC_FROM, BASIC_TO = 7, 20  # Kind and iter
+BASIC2_FROM, BASIC2_TO = 40, 50  # nxt, prv and fib
 
 
 def load():
@@ -37,6 +38,9 @@ def load():
     basic = '\n'.join(basic_lines[BASIC_FROM - 1:BASIC_TO])
     if not basic_lines[BASIC_FROM - 1].startswith('/-- The nine kinds') or not basic_lines[BASIC_TO - 1].startswith('  | n + 1, x'):
         sys.exit('Basic.lean has moved: update BASIC_FROM/BASIC_TO in build_guide.py')
+    basic2 = '\n'.join(basic_lines[BASIC2_FROM - 1:BASIC2_TO])
+    if not basic_lines[BASIC2_FROM - 1].startswith('/-- Cyclic successor') or not basic_lines[BASIC2_TO - 1].startswith('  | n + 2'):
+        sys.exit('Basic.lean has moved: update BASIC2_FROM/BASIC2_TO in build_guide.py')
     sha = hashlib.sha256(src.encode('utf-8')).hexdigest()
     n_lines = len(src.rstrip('\n').split('\n'))
     content = (HERE / 'content.js').read_text(encoding='utf-8')
@@ -74,7 +78,7 @@ def load():
     if guide['writtenFor'] != sha:
         print('WARNING: Statement.lean has changed since content.js was written; review the explanations, then set '
               f"writtenFor to {sha}", file=sys.stderr)
-    return {'src': src, 'sha': sha, 'basic': basic, 'n_lines': n_lines, 'guide': guide, 'content': content,
+    return {'src': src, 'sha': sha, 'basic': basic, 'basic2': basic2, 'n_lines': n_lines, 'guide': guide, 'content': content,
             'app': (HERE / 'app.js').read_text(encoding='utf-8'),
             'tpl': (HERE / 'template.html').read_text(encoding='utf-8')}
 
@@ -88,7 +92,8 @@ def assemble(g, title=None, head=None, css='', top='', foot=''):
     title, head links (in place of the template's font links), extra CSS, a header to put above the guide's bar and a
     footer."""
     data = 'window.GUIDE_DATA = ' + js(json.dumps(
-        {'src': g['src'], 'sha': g['sha'], 'basic': g['basic'], 'basicStart': BASIC_FROM}, ensure_ascii=False)) + ';'
+        {'src': g['src'], 'sha': g['sha'], 'basic': g['basic'], 'basicStart': BASIC_FROM, 'basic2': g['basic2'],
+         'basic2Start': BASIC2_FROM}, ensure_ascii=False)) + ';'
     out = (g['tpl'].replace('/*__DATA__*/', data)
                    .replace('/*__CONTENT__*/', js(g['content']))
                    .replace('/*__APP__*/', js(g['app'])))

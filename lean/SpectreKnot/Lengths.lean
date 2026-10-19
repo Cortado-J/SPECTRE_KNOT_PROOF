@@ -105,11 +105,7 @@ theorem letterLen_succ (m : Nat) :
 
 /-! ### Prop 6.2: Fibonacci side lengths -/
 
-/-- The Fibonacci numbers, `fib 1 = fib 2 = 1`. -/
-def fib : Nat → Nat
-  | 0 => 0
-  | 1 => 1
-  | n + 2 => fib n + fib (n + 1)
+-- The Fibonacci numbers `fib`, with `fib 1 = fib 2 = 1`, are in `Basic.lean`.
 
 /-- The Fibonacci recurrence. -/
 theorem fib_add_two (n : Nat) : fib (n + 2) = fib n + fib (n + 1) := rfl
