@@ -43,6 +43,7 @@ themselves. Dates are UK dates.
   a supertile off its composition; two phrases in the same proof are shorter, so the paper keeps its 21 pages.
 - **Site:** the graph joins Lemmas 4.1 and 4.2 to the rest of the argument again, and fits the page without
   scrolling sideways.
+- **Paper:** the contact address at the end of the paper is now cortado.just@gmail.com.
 
 ## 19 October 2026
 
