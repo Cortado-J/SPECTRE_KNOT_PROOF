@@ -129,7 +129,7 @@ theorem linked_lift {c : Nat} (hc : c < nk T) {p q : Port} (linked : (child c).L
 /-- The parent's gluing is symmetric if the children's are. -/
 theorem glue_symm (children_symm : ∀ c, c < nk T → (child c).GlueSymm) : (compose T child).GlueSymm := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   intro t i t' j ht hi glued
   -- the child `c` that tile `t` belongs to
   obtain ⟨c, hc, after_start, before_end⟩ := owner_exists child (nk T) t ht

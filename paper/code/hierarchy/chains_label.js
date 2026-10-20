@@ -1,4 +1,4 @@
-// Experiment (not part of the proof): the label computation of the paper (Remark 9.5(3): label states and their steps) run along an
+// Experiment (not part of the proof): the label computation of the paper's Appendix A (label states and their steps) run along an
 // ARBITRARY chain X_b < X_{b+1} < ... , where X_N is child c_N of a parent of kind T_N, instead of the nest (Delta, child 1).
 // Positions are carried as integer affine forms in x = l_1 (54 side lengths at level 1) with the actual numbers as the
 // shadow, so the run is exact for the given b. Prints per relative level: label classes, stretch vertices, |P_k(b)|.

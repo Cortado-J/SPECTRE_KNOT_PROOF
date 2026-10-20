@@ -4,9 +4,8 @@ vertex of every tile of `N_b` is surrounded by tiles of `N_{b+2}`.
 
 Every supertile is a disc at its rim (`chains_super`: the nine level-1 clusters by a kernel check, then
 `Kids.rimChains` level by level). A vertex of a tile of `N_b` is surrounded in `N_b`, or lies on the chain about a rim
-vertex `u` of `N_b` (`surrounded_or_chain`). Then an argument on the tables: the paper's proof of Lemma 8.3(b), carried
-from edges to vertices. (For part (a) the paper argues instead from eq. (side2) and the disjointness of the closed sides
-2 and 4 of `N_{b+1}`; the second case below replaces that step.)
+vertex `u` of `N_b` (`surrounded_or_chain`). Then the paper's argument on the tables (its proof of Lemma 8.3), at the
+vertices of tiles:
 * `u` not on the closed side 2 of `N_b`, which is child 1 of `N_{b+1}`: turning about vertex `u` of child 1 of the Δ
   composition comes round, in two steps inside a side (`side_cycle`), in three at a vertex (Table 2:
   `delta_cycles`); so the vertex is surrounded in `N_{b+1}` (`surrounded_off_side2`);
@@ -445,12 +444,8 @@ theorem signatureTheorem : SignatureTheorem := by
   intro m K m_pos
   -- the induction's conclusion at level `m`
   have good_m := good m K m_pos
-  -- vertex 5 lies where the side lengths put it
-  have vtx5 : (super m K).vtx.getD 5 0 = vpos m K 5 := by rw [good_m.vtx]; rfl
   -- the claim's `A` is the induction's: d_m = 2 F_{3m+1} (Lemma 6.4)
-  have a_eq : cornerA m K = aPos m K := by
-    unfold cornerA aPos
-    rw [vtx5, (dOff_fib m m_pos).1]
+  have a_eq := cornerA_eq_aPos m_pos K
   -- and so is its `B`
   have b_eq : cornerB m K = bPos m K := by
     unfold cornerB bPos ori

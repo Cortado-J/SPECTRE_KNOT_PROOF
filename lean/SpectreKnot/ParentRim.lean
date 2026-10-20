@@ -4,7 +4,8 @@ The parent's rim, read from Table 3: position `p` of the rim of `compose T child
 rim edges that the composition leaves unglued, and consecutive positions meet at a parent rim vertex in the sense of
 `Gluing.Rot` (a table check, `consec_ok`).
 -/
-import SpectreKnot.ComposeTiles
+import SpectreKnot.Lens
+import SpectreKnot.Signature
 
 namespace SpectreKnot.Statement
 

@@ -1,7 +1,8 @@
 /-
 A *move*: lengthen side `j₀` of child `c₀` by 2, together with the side of the sibling glued to it (Table 2), or
 alone if it lies on the parent's rim. The composition with the longer sides is (equivalent to) the old one with one
-edge cut into three (`Move.equiv`), so by `Subdivide` everything that holds for the old composition still holds.
+edge cut into three (`Move.OK.equiv`), so by `Subdivide` and `Signature` it has the signature if the old one has
+(Lemma 7.1: `Move.OK.keep`, in `Parity.lean`).
 -/
 import SpectreKnot.Lens
 

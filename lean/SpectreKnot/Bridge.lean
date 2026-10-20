@@ -7,6 +7,7 @@ the composition has none (`Kids.noClosed`), and its rim ports are joined as the 
 (`Kids.follow_of_reach`).
 -/
 import SpectreKnot.ParentRim
+import SpectreKnot.ComposeTiles
 import SpectreKnot.Reverse
 
 namespace SpectreKnot.Statement
@@ -127,7 +128,7 @@ structure Kids (T : Kind) (child : Nat → Patch) (L : Nat → Nat → Nat) (d :
   shape : ∀ c, c < nk T → (child c).vtx = (List.range 7).map (pos (L c)) ∧ (child c).E = pos (L c) 6
   sig : ∀ c, c < nk T →
     (child c).HasSig o ((Comp.ofLens T L d ω).toGluing.A c) ((Comp.ofLens T L d ω).toGluing.B c)
-  gsig : Sig (Comp.ofLens T L d ω).toGluing (nk T - 1)
+  csig : CompSig T L d ω
 
 /-- The parent's port for the gluing's port `(c, u, s)`: the port of child `c` at its rim vertex `u`. -/
 def ιP (child : Nat → Patch) (o : Bool) : GPort → Port
@@ -206,7 +207,7 @@ theorem across_rim {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c
   -- child `c` has the signature
   have has_sig := kids.sig c c_lt
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   -- `c` is a child of the composition
   have c_lt_n : c < (Comp.ofLens T L d ω).toGluing.n := by rw [ofLens_n]; exact c_lt
   cases s with
@@ -327,7 +328,7 @@ theorem tau_btau (c u : Nat) (s : Bool) :
 theorem btau_lt {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c).E) :
     (btau ((Comp.ofLens T L d ω).toGluing.A c) ((Comp.ofLens T L d ω).toGluing.B c) (u, s)).1 < (child c).E := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   -- `c` is a child of the composition
   have c_lt_n : c < (Comp.ofLens T L d ω).toGluing.n := by rw [ofLens_n]; exact c_lt
   -- corner `A` is on the child's rim
@@ -346,7 +347,7 @@ theorem btau_lt {c u : Nat} {s : Bool} (c_lt : c < nk T) (u_lt : u < (child c).E
 theorem follow_of_reach : ∀ k x r, (Comp.ofLens T L d ω).toGluing.FReach k x r →
     (Comp.ofLens T L d ω).toGluing.Valid x → (compose T child).Follow (ιP child o x) (ιP child o r) := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   intro k x r reach
   induction reach with
   | @stop x on_rim =>
@@ -400,7 +401,7 @@ theorem follow_of_fullReach {x r : GPort} (reach : (Comp.ofLens T L d ω).toGlui
 /-- **No closed strand in the parent.** -/
 theorem noClosed : (compose T child).NoClosedStrand := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   intro p is_port
   obtain ⟨t, i, s⟩ := p
   obtain ⟨t_lt, i_lt⟩ := is_port
@@ -428,7 +429,7 @@ theorem noClosed : (compose T child).NoClosedStrand := by
     -- `y` is a port of an actual child
     have y_valid := sigma_valid wf ⟨c_lt_n, by rw [kids.E_eq c_lt]; exact u_lt⟩ sigma_eq
     -- the composition's walk from `y` reaches its rim
-    obtain ⟨r', reach'⟩ := kids.gsig.noLoops y y_valid
+    obtain ⟨r', reach'⟩ := kids.csig.noLoops y y_valid
     exact ⟨_, kids.lift c_lt _ _ follow (by simp only; omega) i_lt _
       (Or.inr ⟨ιP child o y, by rw [across_eq, sigma_eq]; rfl, kids.follow_of_fullReach reach' y_valid⟩)⟩
 

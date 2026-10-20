@@ -7,41 +7,20 @@ import SpectreKnot.Data.Level2
 
 open SpectreKnot Compose
 
-/-- All ports of a gluing. -/
-def allPorts (G : Gluing) : List GPort :=
-  (List.range G.n).flatMap fun c => (List.range (G.E c)).flatMap fun u => [(c, u, true), (c, u, false)]
-
 def cases18 (m : Nat) : List Comp :=
   allKinds.flatMap fun T => [true, false].map fun ω => Comp.ofPattern T (letterLen m) (dOff m) ω
 
--- the compositions are well formed (Prop 5.4 applies)
+-- the compositions are well formed
 #guard (cases18 1).all fun C => C.toGluing.wfCheck
 #guard (cases18 2).all fun C => C.toGluing.wfCheck
 
--- Prop 5.4(b) on instances: the full and the reduced walk agree from every port, at levels 1 and 2
-#guard (cases18 1).all fun C =>
-  let G := C.toGluing; (allPorts G).all fun x => G.fullWalk C.fuel x == G.redWalk C.fuel x
-#guard (cases18 2).all fun C =>
-  let G := C.toGluing; (allPorts G).all fun x => G.fullWalk C.fuel x == G.redWalk C.fuel x
-
--- marks, counted per child (= runs), agree with the paper (Remark 7.8: 52 runs, 45 for Γ)
-def runs (G : Gluing) : Nat :=
-  ((List.range G.n).map fun c => ((List.range (G.E c)).filter fun u => !G.smooth c u).length).sum
-#guard (cases18 1).map (fun C => runs C.toGluing) == [45, 45] ++ List.replicate 16 52
-
--- rim lengths: E₂(Γ) = 160, E₂(Δ) = 182 (paper Computation 7.3), from the composition of level-1 children
+-- rim lengths: E₂(Γ) = 160, E₂(Δ) = 182 (for Δ, the paper's Table 5), from the composition of level-1 children
 #guard ((Comp.ofPattern .Gamma (letterLen 1) (dOff 1) true).rimEdges.length,
         (Comp.ofPattern .Delta (letterLen 1) (dOff 1) true).rimEdges.length) == (160, 182)
 
 -- the check is not vacuous: wrong orientation sign, or non-adjacent corners in any child, are rejected
 #guard (allKinds.all fun T => [true, false].all fun ω => !(Comp.ofPattern T (letterLen 1) (dOff 1) ω).check (!ω))
 #guard (List.range 8).all fun c => !((Comp.ofPattern .Delta (letterLen 1) (dOff 1) true).spreadCorners c).check true
-
--- the parity lemma's base checker (`sigCheck`) holds at level 1, as `sig_base` proves, and is not vacuous: it rejects
--- non-adjacent corners in the first child (non-adjacent corners in the Γ child are caught by `parity_lemma_adj`'s
--- adjacency, which `Sig` itself does not contain)
-#guard (cases18 1).all fun C => C.sigCheck
-#guard !((Comp.ofPattern .Delta (letterLen 1) (dOff 1) true).spreadCorners 0).sigCheck
 
 -- the paper's negative control for Computation 7.3, as `compositions.py` runs it: with every child's corner `B` placed
 -- two vertices from `A` (`B = A ± 2`), all 18 compositions fail the check
@@ -188,7 +167,7 @@ def nestCount (b k : Nat) : Nat :=
   strandsThrough ((mlevels (b + k))[kindIdx .Delta]!) (nestOff b k) (nestTiles b)
 
 
-/-- The chain of the paper's Remark 10.1: X_m is a Θ for odd m and a Γ for even m; X_m is child 2 of X_{m+1} for odd m
+/-- The chain of the paper's §10: X_m is a Θ for odd m and a Γ for even m; X_m is child 2 of X_{m+1} for odd m
 and child 7 for even m. `chainKind m`, and the offset of X_m's first tile in X_{m+1}. -/
 def chainKind (m : Nat) : Kind := if m % 2 = 1 then .Theta else .Gamma
 def chainStep (m : Nat) : Nat :=
@@ -215,7 +194,7 @@ def chainCount (m k : Nat) : Nat :=
 #guard allK.all fun K => glueAgree (super 1 K) ((mlevels 1)[kindIdx K]!).toPatch
 #guard allK.all fun K => glueAgree (super 2 K) ((mlevels 2)[kindIdx K]!).toPatch
 
--- sizes (paper §6 and Appendix A): tiles 9, 71, 559, 4401 and rims 46, 182, 758, 3198 for Δ; 8, 62, 488, 3842 and
+-- sizes (for Δ, the paper's Table 5): tiles 9, 71, 559, 4401 and rims 46, 182, 758, 3198 for Δ; 8, 62, 488, 3842 and
 -- 44, 160, 652, 2736 for Γ
 #guard (List.range 4).map (fun m => ((mlevels (m + 1))[kindIdx .Delta]!).tiles) == [9, 71, 559, 4401]
 #guard (List.range 4).map (fun m => ((mlevels (m + 1))[kindIdx .Delta]!).rim.size) == [46, 182, 758, 3198]
@@ -226,7 +205,7 @@ def chainCount (m k : Nat) : Nat :=
 #guard [nestCount 1 1, nestCount 1 2, nestCount 1 3] == [10, 2, 2]
 #guard [nestCount 2 1, nestCount 2 2] == [37, 2]
 
--- Negative control: along that chain the same definitions give three strands, not one (Remark 10.1). So "one strand"
+-- Negative control: along that chain the same definitions give three strands, not one (§10). So "one strand"
 -- is not built into the definitions.
 #guard [chainCount 1 1, chainCount 1 2, chainCount 1 3] == [32, 3, 3]
 

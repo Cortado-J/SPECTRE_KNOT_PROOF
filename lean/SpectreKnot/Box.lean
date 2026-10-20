@@ -1,5 +1,8 @@
 /-
-Rim ports, boxes and the signature (paper §4.1–4.2: Def 4.3, Lemma 4.4 for the tile), and the decoration (Def 3.1).
+The two hands of a rim port (`Hand`), used throughout. The rest is the pilot's model of a tile, not used by the main
+results: boxes and the signature (paper §4: Lemma 4.1, Def 4.3), the decoration as a pairing of the tile's 28 ports
+(Def 3.1), and the tile's signature (Lemma 4.4; the main results use `Statement.tile_hasSig`, for the statement file's
+decoration `pieceEnd`).
 -/
 import SpectreKnot.Basic
 
@@ -20,8 +23,8 @@ instance {E : Nat} (q : RimPort E → Prop) [DecidablePred q] : Decidable (∀ p
     ⟨fun both_hands p => by rcases p with ⟨i, _ | _⟩ <;> simp [both_hands i],
      fun every_port i => ⟨every_port _, every_port _⟩⟩
 
-/-- The box of a patch (Lemma 4.1): the pairing of its rim ports by its arcs, and its number `κ` of closed
-strands. -/
+/-- The box of a patch (Lemma 4.1): the pairing of its rim ports by its arcs, and its number `κ` of closed strands
+(the count of the paper's long version, 19 October 2026). -/
 structure Box (E : Nat) where
   pair : RimPort E → RimPort E
   closed : Nat

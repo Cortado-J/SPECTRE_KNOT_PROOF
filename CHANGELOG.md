@@ -3,6 +3,39 @@
 What changed each time this site was published, newest first: in the paper, the Lean, the code and the pages
 themselves. Dates are UK dates.
 
+## 20 October 2026
+
+- **Paper:** shortened from 33 pages to 21, with the argument kept complete and every result on the path to Theorems A
+  and B kept under the same number. Dropped: §5.2 (marks, skeletons, Proposition 5.4, Corollary 5.5), which only the
+  second routes used; Remarks 3.5, 3.6, 7.7, 7.8, 9.5 and 10.1, cut to a sentence or two in §1, §10 or Appendix A; the
+  outline, five illustrations, and the table of what was computed (Appendix A now points to `paper/code/README.md`).
+  New: a figure of the route of the proof (Fig. 2) and §3.3, *Strands*.
+- **Paper:** the paper and the Lean now take the same route, result by result. Lemma 7.2 ends as an induction
+  principle; §7.1 states the finite check that Tables 2 and 3 agree; the Signature Theorem is stated from level 1;
+  Theorem A's proof is in two steps, the second the one the Lean checks; Lemma 8.3 is proved from the tables; Lemma 9.4
+  says two edges; Theorem 9.1 includes its exactness (Table 5). Appendix B lists the differences that remain, all of
+  them bookkeeping.
+- **Paper:** the account of how the work was done with AI, and of what the Lean formalisation checks, moves from
+  §1 to a new Appendix B, with a new *Tool and computational resource disclosure* listing the AI system, the proof
+  assistant, the other software and the computing the checks need; §1 keeps a short note. The abstract and §1 say
+  that the paper has not been peer reviewed, and §1 that the author is responsible for the paper, including its
+  citations, and that the AI system is not an author. Appendix B says that no human has checked that the Lean's
+  formal statements say what the paper's theorems say. Four references are corrected or completed.
+- **Lean:** the statement changed, in its opening comment only: assumption (M1) also names step (ii) of §7.1
+  (children meet only in the sides they share), as the paper's Appendix B does. No definition or claim changes.
+- **Lean:** the proofs follow the paper's. Lemma 7.1 crosses the new path of a cut by the Zigzag Lemma with n = 3, and
+  shows directly that a cut creates no closed strand, so Proposition 5.4, dropped from the paper, is no longer needed
+  here either: it is removed, with its reduced walk, and so are the skeleton walks, which only checked an earlier route
+  again. Lemma 7.2 is one induction principle, used for both the signature and the junction map. Computation 7.3 and
+  Proposition 7.4 are stated as the paper words them, and the induction step uses that form; a second kernel check of
+  the 18 compositions is no longer needed. New statements in the paper's terms: Proposition 6.1 for the supertiles
+  themselves, Lemma 4.4 for a tile, Lemma 4.1 for patches with the signature, and the corner A of a supertile as that
+  of its Γ child. None of this touches `Statement.lean`.
+- **Site:** every page says, under the menu, that this is a draft proof, not peer reviewed; so do the overview's
+  opening paragraph and its line about AI.
+- **Site:** the pages follow the shortened paper: the computations each result's page lists come from
+  `paper/code/README.md`, step 1 shows the new route figure, and step 10 shows §10 in full.
+
 ## 19 October 2026
 
 - **Lean:** the statement changed: a new claim, `SignatureTheorem`, states the paper's Signature Theorem (Thm 7.6) in

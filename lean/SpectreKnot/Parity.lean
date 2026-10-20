@@ -1,16 +1,18 @@
 /-
-**The parity lemma** (the paper's Prop 7.4, by Lemmas 7.1 and 7.2). For every level `m ≥ 1`, every kind and both signs, the composition with the level-`m` lengths
-`(ℓ_m, d_m)`, its children carrying the signature, has the signature itself (`parity_lemma`).
+**The parity lemma** (the paper's Prop 7.4, by Lemmas 7.1 and 7.2). For every level `m ≥ 1`, every kind and both
+signs, the composition with the level-`m` lengths `(ℓ_m, d_m)`, its children carrying the signature, has the signature
+itself (`parity_lemma`; `prop_7_4` reads it at Table 3's rim positions).
 
-Proof. The lengths `ℓ_m` only grow with `m` and keep their parities (Cor 6.3), and so do `d_m` and the rest of the Σ
-child's side 5. So `(ℓ_m, d_m)` is reached from `(ℓ₁, d₁)` by *moves*: each adds two edges to a pair of glued sides
-(or to one side on the parent's rim), and two to `d` if it adds them before the Σ corner. A move is the same as cutting
-one edge into three (`Move.OK.equiv`), and cutting keeps the signature (`Cut.OK.sig`). The base case `(ℓ₁, d₁)` is
-the kernel's computation (`sig_base`). The induction runs backwards: from any admissible lengths `(L, d)` other than
-`(ℓ₁, d₁)`, undo one move (`back_step`).
+Proof, as in the paper. The pairs `(L, d)` reached from `(ℓ₁, d₁)` by moves are the admissible ones (`Adm`): a move adds
+two edges to a pair of glued sides (or to one side on the parent's rim), and two to `d` if it adds them before the Σ
+corner. The level-`m` lengths are admissible (`adm_level`, Lemma 7.2(a)), and a property that holds at `(ℓ₁, d₁)` and is
+kept by the moves holds at every admissible pair (`adm_induct`, Lemma 7.2(b)). The signature holds at `(ℓ₁, d₁)` by
+Computation 7.3 (`sig_base`), and a move keeps it (Lemma 7.1, `Move.OK.keep`): a move is the same as cutting one edge
+into three (`Move.OK.equiv`), and cutting keeps the signature (`Cut.OK.sig`). So every admissible pair has it
+(`adm_sig`). The junction map (`StepMap.lean`, Lemma 9.3) is carried to every level by `adm_induct` too.
 -/
 import SpectreKnot.Move
-import SpectreKnot.SigCheck
+import SpectreKnot.CompSig
 
 namespace SpectreKnot.Compose
 
@@ -253,209 +255,249 @@ theorem excess_shorten (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : �
   rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
   omega
 
-/-- A move keeps the signature. -/
+/-- **Lemma 7.1**: a move keeps the signature. -/
 theorem OK.keep {ω : Bool} (move_ok : μ.OK T L d ω) (has_sig : Sig (Comp.ofLens T L d ω).toGluing (nk T - 1)) :
     Sig (Comp.ofLens T (μ.lens T L) (μ.d' T L d) ω).toGluing (nk T - 1) :=
   move_ok.equiv.symm.sig (move_ok.cutOK.sig has_sig)
 
-/-- **One step back**: if undoing the move `μ` from `(L, d)` gives admissible lengths `(L₀, d₀)` with the
-signature, then `(L, d)` has the signature. -/
-theorem back_step {ω : Bool} (adm : Adm T L d) (c₀_lt : μ.c₀ < nk T) (j₀_lt : μ.j₀ < 6)
-    (long₀ : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀) (r₀_ge : 1 ≤ μ.r₀) (r₀_le : μ.r₀ + 4 ≤ L μ.c₀ μ.j₀) {d₀ : Nat}
-    (adm₀ : Adm T (μ.shorten T L) d₀)
+/-- The conditions of a move from the shortened lengths: a move cutting side `j₀` of child `c₀` at offset `r₀`, at
+least one edge from its start and three from its end (with the lengths after the move), can be made at admissible
+shortened lengths whose composition is well formed, if it is clear of the Σ corner. -/
+theorem mkOK {ω : Bool} (hc₀ : μ.c₀ < nk T) (hj₀ : μ.j₀ < 6)
+    (r₀_pos : 1 ≤ μ.r₀) (r₀_room : μ.r₀ + 4 ≤ L μ.c₀ μ.j₀) {d₀ : Nat} (adm₀ : Adm T (μ.shorten T L) d₀)
     (cut₀ : kidAt T μ.c₀ = .Sigma → μ.j₀ = 5 → d₀ + 1 ≤ μ.r₀ ∨ μ.r₀ + 2 ≤ d₀)
     (cut₁ : μ.two T = true → kidAt T (μ.c₁ T) ≠ .Sigma ∨ μ.j₁ T ≠ 5)
-    (d_eq : μ.d' T (μ.shorten T L) d₀ = d)
-    (has_sig₀ : Sig (Comp.ofLens T (μ.shorten T L) d₀ ω).toGluing (nk T - 1)) :
-    Sig (Comp.ofLens T L d ω).toGluing (nk T - 1) := by
-  -- the move can be made from the shorter lengths
-  have move_ok : μ.OK T (μ.shorten T L) d₀ ω :=
-    { wf := has_sig₀.wf
-      pos_len := fun c c_lt j j_lt => by
-        -- the shorter side is at least as long as at level 1
-        have := (adm₀.len c c_lt j j_lt).1
-        -- which is at least 5 edges
-        have := L₁_ge T c j
-        omega
-      pair := adm₀.pair
-      c₀ := c₀_lt
-      j₀ := j₀_lt
-      r₀ := r₀_ge
-      r₀' := by simp only [shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
-      sig := fun c c_lt is_sigma => by
-        -- the shorter side 5 has room for the corner
-        have := adm₀.sig c c_lt is_sigma
-        -- and the offset `d₀` is at least `d₁`
-        have := adm₀.d_ge
-        rw [L₁_sig is_sigma, dOff_one] at *; omega
-      sig1 := fun c c' c_lt c'_lt is_sigma is_sigma' => sigma_unique T c c_lt c' c'_lt is_sigma is_sigma'
-      cut₀ := cut₀
-      cut₁ := fun side_glued is_sigma is_5 => by rcases cut₁ side_glued with not_sigma | not_5 <;> contradiction }
-  -- the signature after the move
-  have after := move_ok.keep has_sig₀
-  rwa [lens_shorten adm c₀_lt j₀_lt long₀, d_eq] at after
+    (wf₀ : (Comp.ofLens T (μ.shorten T L) d₀ ω).toGluing.WF) : μ.OK T (μ.shorten T L) d₀ ω :=
+  { wf := wf₀
+    pos_len := fun c hc j hj => by
+      -- each side is at least as long as at level 1
+      have := (adm₀.len c hc j hj).1
+      -- where it has at least 5 edges
+      have := L₁_ge T c j
+      omega
+    pair := adm₀.pair
+    c₀ := hc₀
+    j₀ := hj₀
+    r₀ := r₀_pos
+    r₀' := by simp only [shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]; omega
+    sig := fun c hc is_sigma => by
+      -- room for the Σ corner on side 5, as at level 1
+      have := adm₀.sig c hc is_sigma
+      -- and `d₀ ≥ d₁`
+      have := adm₀.d_ge
+      rw [L₁_sig is_sigma, dOff_one] at *
+      omega
+    sig1 := fun c c' hc hc' is_sigma is_sigma' => sigma_unique T c hc c' hc' is_sigma is_sigma'
+    cut₀ := cut₀
+    cut₁ := fun shared is_sigma side_five => by
+      rcases cut₁ shared with not_sigma | not_five <;> contradiction }
 
 end Move
 
-/-! ### The induction -/
+/-! ### The induction (Lemma 7.2) -/
 
-/-- Every admissible `(L, d)` has the signature. -/
-theorem adm_sig (T : Kind) (ω : Bool) :
-    ∀ N L d, excess T L < N → Adm T L d → Sig (Comp.ofLens T L d ω).toGluing (nk T - 1) := by
+/-- **Lemma 7.2(b), as an induction principle** (with `adm_level`, Lemma 7.2(a), below). A property of `(L, d)` that
+holds at `(ℓ₁, d₁)`, depends only on the lengths of actual sides (and on `d` only through the Σ child), and is kept by
+every move whose cut is two edges clear of both ends of its side or lies on the Σ child's side 5, holds at every
+admissible `(L, d)`.
+
+By induction on the excess over `ℓ₁` (the paper's induction on `∑ L`): from an admissible `(L, d) ≠ (ℓ₁, d₁)`, undo a
+move, chosen as in the paper: the third edge of a long side; on the Σ child's side 5, the second edge before the corner
+if `d ≥ d₁ + 2`, the second after it if `d = d₁`. The induction also carries that the composition is well formed
+(`Gluing.WF`), which a move needs (`Move.OK`): at `(ℓ₁, d₁)` by Computation 7.3 (`sig_base`), and after a move because
+the composition is then the old one with an edge cut (`Move.OK.equiv`). -/
+theorem adm_induct (T : Kind) (ω : Bool) (P : (Nat → Nat → Nat) → Nat → Prop)
+    (congr : ∀ L L' d d', (∀ c, c < nk T → ∀ j, j < 6 → L c j = L' c j) →
+      (∀ c, c < nk T → kidAt T c = .Sigma → d = d') → P L' d' → P L d)
+    (base : P (L₁ T) (dOff 1))
+    (step : ∀ (μ : Move) (L : Nat → Nat → Nat) (d : Nat), μ.OK T L d ω →
+      ((2 ≤ μ.r₀ ∧ μ.r₀ + 3 ≤ L μ.c₀ μ.j₀) ∨ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5)) → P L d →
+      P (μ.lens T L) (μ.d' T L d)) :
+    ∀ L d, Adm T L d → P L d := by
+  -- by induction on the excess, carrying along that the composition is well formed
+  suffices carried : ∀ N L d, excess T L < N → Adm T L d → P L d ∧ (Comp.ofLens T L d ω).toGluing.WF from
+    fun L d adm => (carried _ L d (Nat.lt_succ_self _) adm).1
   intro N
   induction N with
-  | zero => intro L d excess_lt; omega
+  | zero => intro L d below_zero; omega
   | succ N ih =>
     intro L d excess_lt adm
-    obtain ⟨sig_lt, sig_is_sigma⟩ := sigIdx_spec T
+    -- the Σ child is an actual child, of kind Σ
+    obtain ⟨sig_lt, sig_kind⟩ := sigIdx_spec T
     -- `d₁ = 6`
     have d₁_eq := dOff_one
-    by_cases zero_excess : excess T L = 0
-    -- the base case: `(L, d) = (ℓ₁, d₁)`; first, every side is as at level 1
-    · have at_level_1 : ∀ c, c < nk T → ∀ j, j < 6 → L c j = L₁ T c j := fun c c_lt j j_lt => by
-        -- side `j` of child `c` has no excess
-        have := tot_eq_zero (tot_eq_zero zero_excess c c_lt) j j_lt
-        -- and is at least as long as at level 1
-        have := (adm.len c c_lt j j_lt).1
+    by_cases at_base : excess T L = 0
+    · -- the base case: `(L, d) = (ℓ₁, d₁)`
+      -- every side is as long as at level 1
+      have is_L₁ : ∀ c, c < nk T → ∀ j, j < 6 → L c j = L₁ T c j := fun c hc j hj => by
+        -- no excess on side `j` of child `c`
+        have := tot_eq_zero (tot_eq_zero at_base c hc) j hj
+        -- and the side is at least as long as at level 1
+        have := (adm.len c hc j hj).1
         omega
-      -- second, `d = d₁`
-      have d_eq : d = dOff 1 := by
-        -- side 5 of the Σ child has room for the corner
-        have := adm.sig _ sig_lt sig_is_sigma
-        -- and is as at level 1
-        have := at_level_1 _ sig_lt 5 (by omega)
+      -- and the Σ offset is `d₁`
+      have is_d₁ : d = dOff 1 := by
+        -- room for the Σ corner on side 5
+        have := adm.sig _ sig_lt sig_kind
+        -- which is as long as at level 1
+        have := is_L₁ _ sig_lt 5 (by omega)
         -- and `d ≥ d₁`
         have := adm.d_ge
         omega
-      rw [ofLens_congr (L' := L₁ T) (d' := dOff 1) at_level_1 (fun _ _ _ => d_eq)]
-      exact sig_base T ω
+      -- so the property holds, and the composition is that of Computation 7.3, which is well formed
+      refine ⟨congr L (L₁ T) d (dOff 1) is_L₁ (fun _ _ _ => is_d₁) base, ?_⟩
+      rw [ofLens_congr is_L₁ (fun _ _ _ => is_d₁)]
+      exact (sig_base T ω).wf
     · -- a side longer than at level 1
-      obtain ⟨c, c_lt, c_excess⟩ := tot_ne_zero zero_excess
-      obtain ⟨j, j_lt, j_excess⟩ := tot_ne_zero c_excess
+      obtain ⟨c, hc, child_excess⟩ := tot_ne_zero at_base
+      obtain ⟨j, hj, side_excess⟩ := tot_ne_zero child_excess
       -- side `j` of child `c` is at least two edges longer than at level 1
-      have long : L₁ T c j + 2 ≤ L c j := by
-        -- it is longer by an even number of edges
-        have := adm.len c c_lt j j_lt
+      have longer : L₁ T c j + 2 ≤ L c j := by
+        -- it is at least as long, with the same parity
+        have := adm.len c hc j hj
         omega
-      -- the induction hypothesis, at the lengths before a move that lengthened a long side
-      have ih_shorter : ∀ μ : Move, μ.c₀ < nk T → μ.j₀ < 6 → L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ → ∀ d₀,
-          Adm T (μ.shorten T L) d₀ → Sig (Comp.ofLens T (μ.shorten T L) d₀ ω).toGluing (nk T - 1) :=
-        fun μ c₀_lt j₀_lt long₀ d₀ adm₀ => by
-          -- undoing the move lowers the excess
-          have := Move.excess_shorten adm c₀_lt j₀_lt long₀
-          exact ih _ _ (by omega) adm₀
-      -- the sibling glued to side `5` of the Σ child is not the Σ child
+      -- one step back
+      have back : ∀ μ : Move, μ.c₀ < nk T → μ.j₀ < 6 → L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ → 1 ≤ μ.r₀ →
+          μ.r₀ + 4 ≤ L μ.c₀ μ.j₀ → ∀ d₀, Adm T (μ.shorten T L) d₀ →
+          (kidAt T μ.c₀ = .Sigma → μ.j₀ = 5 → d₀ + 1 ≤ μ.r₀ ∨ μ.r₀ + 2 ≤ d₀) →
+          (μ.two T = true → kidAt T (μ.c₁ T) ≠ .Sigma ∨ μ.j₁ T ≠ 5) → μ.d' T (μ.shorten T L) d₀ = d →
+          ((2 ≤ μ.r₀ ∧ μ.r₀ + 5 ≤ L μ.c₀ μ.j₀) ∨ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5)) →
+          P L d ∧ (Comp.ofLens T L d ω).toGluing.WF := by
+        intro μ hc₀ hj₀ big r₀_pos r₀_room d₀ adm₀ cut₀ cut₁ d_after clear
+        -- the induction hypothesis: at the shortened lengths, which have less excess, the property holds and the
+        -- composition is well formed
+        obtain ⟨holds₀, wf₀⟩ := ih _ _ (by
+          -- shortening lowers the excess
+          have := Move.excess_shorten adm hc₀ hj₀ big
+          omega) adm₀
+        -- so the move can be made from the shortened lengths
+        have move_ok : μ.OK T (μ.shorten T L) d₀ ω := Move.mkOK hc₀ hj₀ r₀_pos r₀_room adm₀ cut₀ cut₁ wf₀
+        -- side `j₀` of `c₀` is two edges shorter before the move
+        have shortened : μ.shorten T L μ.c₀ μ.j₀ = L μ.c₀ μ.j₀ - 2 := by
+          simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T μ.c₀ μ.j₀ from Or.inl ⟨rfl, rfl⟩)]
+        -- the property survives the move
+        have after := step μ _ _ move_ok (by
+          rw [shortened]
+          rcases clear with clear_ends | on_sigma_five
+          · exact Or.inl ⟨clear_ends.1, by omega⟩
+          · exact Or.inr on_sigma_five) holds₀
+        -- and the composition after it is the old one with an edge cut, so it is well formed
+        have wf_after := move_ok.equiv.symm.wf move_ok.cutOK.wf_subdiv
+        rw [Move.lens_shorten adm hc₀ hj₀ big, d_after] at after wf_after
+        exact ⟨after, wf_after⟩
+      -- the sibling glued to side 5 of the Σ child is not the Σ child
       have sib_not_sig : ∀ μ : Move, μ.c₀ = sigIdx T → μ.j₀ = 5 → μ.two T = true → kidAt T (μ.c₁ T) ≠ .Sigma := by
-        intro μ c₀_sig j₀_5 side_glued sib_sigma
-        -- Table 2 glues side 5 of the Σ child to the sibling's side
-        have glued := Move.adj₀ (T := T) (μ := μ)
-        rw [ite_eq_left side_glued] at glued
-        -- so the sibling is a child, different from the Σ child
-        have valid := adj_valid (c₀_sig ▸ sig_lt) (by omega) glued
-        exact valid.2.2.1 (sigma_unique T _ valid.1 _ (c₀_sig ▸ sig_lt) sib_sigma (c₀_sig ▸ sig_is_sigma))
-      by_cases on_sigma_5 : (c = sigIdx T ∧ j = 5) ∨ adjAt T c j = some (sigIdx T, 5)
-      -- a move on the Σ child's side 5, which is long
-      · have long_5 : L₁ T (sigIdx T) 5 + 2 ≤ L (sigIdx T) 5 := by
-          rcases on_sigma_5 with ⟨rfl, rfl⟩ | glued
-          · exact long
-          · rw [adm.pair c c_lt j j_lt _ _ glued]
+        intro μ on_sigma side_five shared sib_sigma
+        -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
+        have sib := Move.adj₀ (T := T) (μ := μ)
+        rw [ite_eq_left shared] at sib
+        -- the sibling is an actual child, other than `c₀`
+        have sib_valid := adj_valid (on_sigma ▸ sig_lt) (by omega) sib
+        exact sib_valid.2.2.1 (sigma_unique T _ sib_valid.1 _ (on_sigma ▸ sig_lt) sib_sigma (on_sigma ▸ sig_kind))
+      by_cases on_sig_five : (c = sigIdx T ∧ j = 5) ∨ adjAt T c j = some (sigIdx T, 5)
+      · -- a move on the Σ child's side 5
+        -- that side is at least two edges longer than at level 1
+        have big : L₁ T (sigIdx T) 5 + 2 ≤ L (sigIdx T) 5 := by
+          rcases on_sig_five with ⟨rfl, rfl⟩ | glued_to
+          · exact longer
+          · rw [adm.pair c hc j hj _ _ glued_to]
             show letterLen 1 (letterOf (kidAt T (sigIdx T)) 5) + 2 ≤ _
-            rw [pair_letter c_lt j_lt glued]; exact long
-        -- at level 1 that side has 10 edges
-        have L₁_5 := L₁_sig sig_is_sigma
-        -- it has room for the corner
-        have room := adm.sig _ sig_lt sig_is_sigma
+            rw [pair_letter hc hj glued_to]; exact longer
+        -- side 5 of the Σ child has 10 edges at level 1
+        have sig_five := L₁_sig sig_kind
+        -- room for the Σ corner on side 5
+        have corner_room := adm.sig _ sig_lt sig_kind
         -- `d ≥ d₁`
         have d_ge := adm.d_ge
-        -- `d - d₁` is even
+        -- and `d` has the parity of `d₁`
         have d_par := adm.d_par
         by_cases d_big : dOff 1 + 2 ≤ d
-        · -- before the corner
-          obtain ⟨μ, c₀_sig, j₀_5, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = 1 :=
+        · -- cut the edge at offset 1, before the Σ corner, which moves back by 2
+          obtain ⟨μ, μ_c₀, μ_j₀, μ_r₀⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = 1 :=
             ⟨⟨_, 5, 1⟩, rfl, rfl, rfl⟩
-          -- the child cut is a child
-          have c₀_lt : μ.c₀ < nk T := c₀_sig ▸ sig_lt
-          -- the side cut is one of its six sides
-          have j₀_lt : μ.j₀ < 6 := by omega
-          -- the side cut is long
-          have long₀ : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [c₀_sig, j₀_5]; exact long_5
-          -- undoing the move shortens side 5 of the Σ child by 2
+          have hc₀ : μ.c₀ < nk T := μ_c₀ ▸ sig_lt -- the Σ child is an actual child
+          have hj₀ : μ.j₀ < 6 := by omega -- and side 5 is a side
+          -- the side cut is at least two edges longer than at level 1
+          have big' : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [μ_c₀, μ_j₀]; exact big
+          -- before the move it is two edges shorter
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
-            simp only [Move.shorten]
-            rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
-          -- the shorter lengths, with `d - 2`, are admissible
+            simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
+          -- the shortened lengths, with `d - 2`, are admissible
           have adm₀ : Adm T (μ.shorten T L) (d - 2) :=
-            Move.adm_shorten adm c₀_lt j₀_lt long₀ (by omega) (by omega) (fun c' c'_lt is_sigma' => by
-              rw [sigma_unique T _ c'_lt _ sig_lt is_sigma' sig_is_sigma, shortened, L₁_5]; omega)
-          refine Move.back_step adm c₀_lt j₀_lt long₀ (by omega) (by rw [c₀_sig, j₀_5, r₀_eq]; omega) adm₀
-            (fun _ _ => Or.inr (by omega)) (fun side_glued => Or.inl (sib_not_sig μ c₀_sig j₀_5 side_glued)) ?_
-            (ih_shorter μ c₀_lt j₀_lt long₀ _ adm₀)
-          -- the Σ offset after the move: `d - 2 + 2`
-          have d_after := Move.d'_c₀ (L := μ.shorten T L) (d := d - 2) (by rw [c₀_sig]; exact sig_is_sigma) j₀_5
-            (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sig μ c₀_sig j₀_5 side_glued sib_sigma)
-          rw [ite_eq_left (by omega)] at d_after; omega
-        -- after the corner, where `d = d₁`
-        · have d_eq : d = dOff 1 := by omega
-          obtain ⟨μ, c₀_sig, j₀_5, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = d + 1 :=
+            Move.adm_shorten adm hc₀ hj₀ big' (by omega) (by omega) (fun c' hc' is_sigma => by
+              rw [sigma_unique T _ hc' _ sig_lt is_sigma sig_kind, shortened, sig_five]; omega)
+          refine back μ hc₀ hj₀ big' (by omega) (by rw [μ_c₀, μ_j₀, μ_r₀]; omega) _ adm₀
+            (fun _ _ => Or.inr (by omega)) (fun shared => Or.inl (sib_not_sig μ μ_c₀ μ_j₀ shared)) ?_
+            (Or.inr ⟨by rw [μ_c₀]; exact sig_kind, μ_j₀⟩)
+          -- the move puts the Σ corner back at `d`
+          have new_d := Move.d'_c₀ (L := μ.shorten T L) (d := d - 2) (by rw [μ_c₀]; exact sig_kind) μ_j₀
+            (fun ⟨shared, is_sigma, _⟩ => sib_not_sig μ μ_c₀ μ_j₀ shared is_sigma)
+          rw [ite_eq_left (by omega)] at new_d; omega
+        · -- `d = d₁`: cut the edge just after the Σ corner, which stays put
+          have is_d₁ : d = dOff 1 := by omega -- `d` has the parity of `d₁`
+          obtain ⟨μ, μ_c₀, μ_j₀, μ_r₀⟩ : ∃ μ : Move, μ.c₀ = sigIdx T ∧ μ.j₀ = 5 ∧ μ.r₀ = d + 1 :=
             ⟨⟨_, 5, d + 1⟩, rfl, rfl, rfl⟩
-          -- the child cut is a child
-          have c₀_lt : μ.c₀ < nk T := c₀_sig ▸ sig_lt
-          -- the side cut is one of its six sides
-          have j₀_lt : μ.j₀ < 6 := by omega
-          -- the side cut is long
-          have long₀ : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [c₀_sig, j₀_5]; exact long_5
-          -- undoing the move shortens side 5 of the Σ child by 2
+          have hc₀ : μ.c₀ < nk T := μ_c₀ ▸ sig_lt -- the Σ child is an actual child
+          have hj₀ : μ.j₀ < 6 := by omega -- and side 5 is a side
+          -- the side cut is at least two edges longer than at level 1
+          have big' : L₁ T μ.c₀ μ.j₀ + 2 ≤ L μ.c₀ μ.j₀ := by rw [μ_c₀, μ_j₀]; exact big
+          -- before the move it is two edges shorter
           have shortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 - 2 := by
-            simp only [Move.shorten]
-            rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨c₀_sig.symm, j₀_5.symm⟩)]
-          -- the shorter lengths, with the same `d`, are admissible
+            simp only [Move.shorten]; rw [ite_eq_left (show μ.Hit T (sigIdx T) 5 from Or.inl ⟨μ_c₀.symm, μ_j₀.symm⟩)]
+          -- the shortened lengths, with the same `d`, are admissible
           have adm₀ : Adm T (μ.shorten T L) d :=
-            Move.adm_shorten adm c₀_lt j₀_lt long₀ d_ge d_par (fun c' c'_lt is_sigma' => by
-              rw [sigma_unique T _ c'_lt _ sig_lt is_sigma' sig_is_sigma, shortened, L₁_5]; omega)
-          refine Move.back_step adm c₀_lt j₀_lt long₀ (by omega) (by rw [c₀_sig, j₀_5, r₀_eq]; omega) adm₀
-            (fun _ _ => Or.inl (by omega)) (fun side_glued => Or.inl (sib_not_sig μ c₀_sig j₀_5 side_glued)) ?_
-            (ih_shorter μ c₀_lt j₀_lt long₀ _ adm₀)
-          -- the Σ offset after the move: still `d`
-          have d_after := Move.d'_c₀ (L := μ.shorten T L) (d := d) (by rw [c₀_sig]; exact sig_is_sigma) j₀_5
-            (fun ⟨side_glued, sib_sigma, _⟩ => sib_not_sig μ c₀_sig j₀_5 side_glued sib_sigma)
-          rw [ite_eq_right (by omega)] at d_after; omega
-      · -- a move elsewhere, cutting the third edge of the side (the paper's choice, Lemma 7.2(b))
-        obtain ⟨μ, c₀_eq, j₀_eq, r₀_eq⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 2 := ⟨⟨c, j, 2⟩, rfl, rfl, rfl⟩
-        subst c₀_eq j₀_eq
-        -- the side cut is not side 5 of the Σ child
-        have not_sigma₀ : ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5) := fun ⟨is_sigma, is_5⟩ =>
-          on_sigma_5 (Or.inl ⟨sigma_unique T _ c_lt _ sig_lt is_sigma sig_is_sigma, is_5⟩)
-        -- nor is the sibling's side
-        have not_sigma₁ : ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5) := by
-          rintro ⟨side_glued, sib_sigma, sib_5⟩
-          -- Table 2 glues the side cut to the sibling's side
-          have glued := Move.adj₀ (T := T) (μ := μ)
-          rw [ite_eq_left side_glued] at glued
-          -- the sibling is a child
-          have valid := adj_valid c_lt j_lt glued
-          rw [sigma_unique T _ valid.1 _ sig_lt sib_sigma sig_is_sigma, sib_5] at glued
-          exact on_sigma_5 (Or.inr glued)
-        -- so side 5 of the Σ child is not lengthened
-        have not_hit_5 : ¬ μ.Hit T (sigIdx T) 5 := by
-          rintro (⟨is_c₀, is_j₀⟩ | ⟨side_glued, is_c₁, is_j₁⟩)
-          · exact not_sigma₀ ⟨is_c₀ ▸ sig_is_sigma, is_j₀.symm⟩
-          · exact not_sigma₁ ⟨side_glued, is_c₁ ▸ sig_is_sigma, is_j₁.symm⟩
-        -- and undoing the move leaves it as it is
-        have unshortened : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 := by
-          simp only [Move.shorten]; rw [ite_eq_right not_hit_5]; omega
-        -- the shorter lengths, with the same `d`, are admissible
+            Move.adm_shorten adm hc₀ hj₀ big' d_ge d_par (fun c' hc' is_sigma => by
+              rw [sigma_unique T _ hc' _ sig_lt is_sigma sig_kind, shortened, sig_five]; omega)
+          refine back μ hc₀ hj₀ big' (by omega) (by rw [μ_c₀, μ_j₀, μ_r₀]; omega) _ adm₀
+            (fun _ _ => Or.inl (by omega)) (fun shared => Or.inl (sib_not_sig μ μ_c₀ μ_j₀ shared)) ?_
+            (Or.inr ⟨by rw [μ_c₀]; exact sig_kind, μ_j₀⟩)
+          -- the move leaves the Σ corner at `d`
+          have new_d := Move.d'_c₀ (L := μ.shorten T L) (d := d) (by rw [μ_c₀]; exact sig_kind) μ_j₀
+            (fun ⟨shared, is_sigma, _⟩ => sib_not_sig μ μ_c₀ μ_j₀ shared is_sigma)
+          rw [ite_eq_right (by omega)] at new_d; omega
+      · -- a move elsewhere, cutting the third edge of the side
+        obtain ⟨μ, μ_c₀, μ_j₀, μ_r₀⟩ : ∃ μ : Move, μ.c₀ = c ∧ μ.j₀ = j ∧ μ.r₀ = 2 := ⟨⟨c, j, 2⟩, rfl, rfl, rfl⟩
+        subst μ_c₀ μ_j₀
+        -- every side has at least 5 edges at level 1
+        have L₁_five := L₁_ge T μ.c₀ μ.j₀
+        -- the side cut is not the Σ child's side 5
+        have not_sig_five₀ : ¬ (kidAt T μ.c₀ = .Sigma ∧ μ.j₀ = 5) := fun ⟨is_sigma, side_five⟩ =>
+          on_sig_five (Or.inl ⟨sigma_unique T _ hc _ sig_lt is_sigma sig_kind, side_five⟩)
+        -- nor is the sibling's side glued to it
+        have not_sig_five₁ : ¬ (μ.two T = true ∧ kidAt T (μ.c₁ T) = .Sigma ∧ μ.j₁ T = 5) := by
+          rintro ⟨shared, is_sigma, side_five⟩
+          -- Table 2 glues side `j₀` of `c₀` to side `j₁` of `c₁`
+          have sib := Move.adj₀ (T := T) (μ := μ)
+          rw [ite_eq_left shared] at sib
+          -- the sibling is an actual child
+          have sib_valid := adj_valid hc hj sib
+          rw [sigma_unique T _ sib_valid.1 _ sig_lt is_sigma sig_kind, side_five] at sib
+          exact on_sig_five (Or.inr sib)
+        -- so the move leaves the Σ child's side 5 alone
+        have sig_not_hit : ¬ μ.Hit T (sigIdx T) 5 := by
+          rintro (⟨is_c₀, is_j₀⟩ | ⟨shared, is_c₁, is_j₁⟩)
+          · exact not_sig_five₀ ⟨is_c₀ ▸ sig_kind, is_j₀.symm⟩
+          · exact not_sig_five₁ ⟨shared, is_c₁ ▸ sig_kind, is_j₁.symm⟩
+        -- the Σ child's side 5 is as long before the move as after
+        have unchanged : μ.shorten T L (sigIdx T) 5 = L (sigIdx T) 5 := by
+          simp only [Move.shorten]; rw [ite_eq_right sig_not_hit]; omega
+        -- the shortened lengths, with the same `d`, are admissible
         have adm₀ : Adm T (μ.shorten T L) d :=
-          Move.adm_shorten adm c_lt j_lt long adm.d_ge adm.d_par (fun c' c'_lt is_sigma' => by
-            rw [sigma_unique T _ c'_lt _ sig_lt is_sigma' sig_is_sigma, unshortened]
-            exact adm.sig _ sig_lt sig_is_sigma)
-        -- every level-1 side has at least 5 edges
-        have L₁_ge_5 := L₁_ge T μ.c₀ μ.j₀
-        refine Move.back_step adm c_lt j_lt long (by omega) (by rw [r₀_eq]; omega) adm₀
-          (fun is_sigma is_5 => absurd ⟨is_sigma, is_5⟩ not_sigma₀) (fun side_glued => ?_)
-          (Move.d'_eq not_sigma₀ not_sigma₁) (ih_shorter μ c_lt j_lt long _ adm₀)
-        by_cases sib_sigma : kidAt T (μ.c₁ T) = .Sigma
-        · exact Or.inr (fun sib_5 => not_sigma₁ ⟨side_glued, sib_sigma, sib_5⟩)
-        · exact Or.inl sib_sigma
+          Move.adm_shorten adm hc hj longer adm.d_ge adm.d_par (fun c' hc' is_sigma => by
+            rw [sigma_unique T _ hc' _ sig_lt is_sigma sig_kind, unchanged]; exact adm.sig _ sig_lt sig_kind)
+        refine back μ hc hj longer (by omega) (by omega) _ adm₀
+          (fun is_sigma side_five => absurd ⟨is_sigma, side_five⟩ not_sig_five₀) (fun shared => ?_)
+          (Move.d'_eq not_sig_five₀ not_sig_five₁) (Or.inl ⟨by omega, by omega⟩)
+        by_cases is_sigma : kidAt T (μ.c₁ T) = .Sigma
+        · exact Or.inr (fun side_five => not_sig_five₁ ⟨shared, is_sigma, side_five⟩)
+        · exact Or.inl is_sigma
+
+/-- **Every admissible `(L, d)` has the signature**: it holds at `(ℓ₁, d₁)` by Computation 7.3 (`sig_base`), and a
+move keeps it by Lemma 7.1 (`Move.OK.keep`). -/
+theorem adm_sig (T : Kind) (ω : Bool) : ∀ L d, Adm T L d → Sig (Comp.ofLens T L d ω).toGluing (nk T - 1) :=
+  adm_induct T ω (fun L d => Sig (Comp.ofLens T L d ω).toGluing (nk T - 1))
+    (fun _ _ _ _ same_len same_d has_sig => by rw [ofLens_congr same_len same_d]; exact has_sig)
+    (sig_base T ω) (fun _ _ _ move_ok _ has_sig => move_ok.keep has_sig)
 
 /-! ### The level-`m` lengths are admissible -/
 
@@ -526,13 +568,28 @@ theorem adm_level (T : Kind) (m : Nat) (m_pos : 1 ≤ m) :
 
 /-! ### The parity lemma -/
 
-/-- **The parity lemma** (the paper's Prop 7.4: Computation 7.3 at every level). For every level `m ≥ 1`, every kind `T` and both signs
-`ω`: the composition of §7.1 with the level-`m` lengths `(ℓ_m, d_m)`, its children carrying the signature, has the
-signature (`Sig`): it is well formed, no strand closes up, every parent rim vertex is a hook except the Γ child's
-corners `A` and `B`, which lie on the parent's rim and carry the crossover. -/
+/-- **The parity lemma** (the paper's Prop 7.4: Computation 7.3 at every level). For every level `m ≥ 1`, every kind
+`T` and both signs `ω`: the composition of §7.1 with the level-`m` lengths `(ℓ_m, d_m)`, its children carrying the
+signature, has the signature (`Sig`): it is well formed, no strand closes up, every parent rim vertex is a hook except
+the Γ child's corners `A` and `B`, which lie on the parent's rim and carry the crossover. -/
 theorem parity_lemma (m : Nat) (m_pos : 1 ≤ m) (T : Kind) (ω : Bool) :
     Sig (Comp.ofPattern T (letterLen m) (dOff m) ω).toGluing (nk T - 1) :=
-  adm_sig T ω _ _ _ (Nat.lt_succ_self _) (adm_level T m m_pos)
+  adm_sig T ω _ _ (adm_level T m m_pos)
+
+/-- **Prop 7.4, as the paper words it**: for every level `m ≥ 1`, every kind `T` and both signs `ω`, the composition
+`C_T(ℓ_m, d_m, ω)` has the signature (`CompSig`): the parity lemma's `Sig`, read at Table 3's rim positions. -/
+theorem prop_7_4 (m : Nat) (m_pos : 1 ≤ m) (T : Kind) (ω : Bool) :
+    Statement.CompSig T (fun c j => letterLen m (letterOf (kidAt T c) j)) (dOff m) ω :=
+  Statement.compSig_of_sig
+    (fun c j => by
+      -- every side has at least 5 edges (Lemma 6.5)
+      have := (bounds m m_pos).1 (letterOf (kidAt T c) j)
+      omega)
+    (by
+      -- so does side 0 of the Γ child
+      have := (bounds m m_pos).1 (letterOf (kidAt T (nk T - 1)) 0)
+      omega)
+    (parity_lemma m m_pos T ω)
 
 /-- The corner `B` of child `c`, in terms of the composition's own rim length and corner `A`: the vertex after `A` if
 `ω`, the vertex before it otherwise. -/

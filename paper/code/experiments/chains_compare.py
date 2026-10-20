@@ -1,4 +1,4 @@
-# Remark 10.1 (experiment, not part of the proof): the label bookkeeping along an arbitrary chain
+# §10 of the paper (experiment, not part of the proof): the label bookkeeping along an arbitrary chain
 # (hierarchy/chains_label.js) against exact strand following (exact/exact.py), on chains chosen at random step by step
 # as in random_chains.js (here with Python's random, seed 1), for b = 1, 2, 3, up to level 8. For each level N the two
 # must give the same number of arcs of X_N on which the arcs of X_b lie. About 1 hour, ~10 GB RAM.

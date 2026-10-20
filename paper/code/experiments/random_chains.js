@@ -1,4 +1,4 @@
-// Remark 10.1 (experiment, not part of the proof): the label bookkeeping of Section 9 (hierarchy/chains_label.js) along
+// §10 of the paper (experiment, not part of the proof): the label bookkeeping of Section 9 (hierarchy/chains_label.js) along
 // chains chosen at random, step by step. X_b has a random kind; at each level the parent of the current supertile is
 // drawn uniformly from all pairs (parent kind T, child number c) of Table 1 whose child c has the current kind.
 // Records the first level N <= 20 at which all the arcs of X_b lie on a single arc of X_N.

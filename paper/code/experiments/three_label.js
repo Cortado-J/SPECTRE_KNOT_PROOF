@@ -1,4 +1,4 @@
-// Remark 10.1 (experiment, not part of the proof): the label bookkeeping of Section 9 along the same chain, to level 20.
+// §10 of the paper (experiment, not part of the proof): the label bookkeeping of Section 9 along the same chain, to level 20.
 // Per level: number of arcs of X_N that the arcs of X_b lie on; "c2" = 2 of them still carried on the rim stretch.
 const { initState, advance } = require('../hierarchy/chains_label.js');
 // pure periodic chain: ... Gamma is child 7 of Theta, Theta is child 2 of Gamma, ...

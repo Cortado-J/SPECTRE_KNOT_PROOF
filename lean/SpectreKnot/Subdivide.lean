@@ -3,14 +3,15 @@ Simulations between gluings, and subdivision of an edge (paper Lemma 7.1, length
 
 A *simulation* `Sim G G' φ` maps the ports of `G` into those of `G'` so that `τ` commutes with `φ`, rim ports go to
 rim ports, and each crossing `σ x = y` of `G` becomes a forced chain of crossings `Cross (φ x) (φ y)` in `G'` (one
-crossing, or several joined by `τ`). Then every walk of `G` maps to a walk of `G'` (`Sim.reach`), and if the marks of
-`G'` all come from `G`, "no closed strand" carries over (`Sim.noLoops`, by Prop 5.4).
+crossing, or several joined by `τ`). Then every walk of `G` maps to a walk of `G'` (`Sim.reach`).
 
-*Subdividing* an edge into three (`subdiv`) is a simulation: by the zigzag, crossing the three short edges ends where
-crossing the long one did. Lengthening a side of a composition by 2 is such a subdivision, so the parity lemma
-follows by repeated subdivision from the level-1 lengths.
+*Subdividing* an edge into three (`subdiv`) is a simulation: by the zigzag lemma with `n = 3` (`cross_three`), crossing
+the three short edges ends where crossing the long one did. Lengthening a side of a composition by 2 is such a
+subdivision, so the parity lemma follows by repeated subdivision from the level-1 lengths. That a cut creates no closed
+strand is `Cut.OK.noLoops`, in `NewWalk.lean`.
 -/
-import SpectreKnot.Prop54
+import SpectreKnot.Gluing
+import SpectreKnot.Zigzag
 
 namespace SpectreKnot.Gluing
 
@@ -19,10 +20,8 @@ variable {G G' : Gluing}
 /-! ### Forced chains of crossings -/
 
 /-- `Cross p q`: from port `p`, crossing an edge (`σ`) and then, while not yet at `q`, going through a piece (`τ`) and
-crossing again, leads to `q`. -/
-inductive Cross (G : Gluing) : GPort → GPort → Prop
-  | one {p q : GPort} : G.sigma p = some q → Cross G p q
-  | more {p p₁ q : GPort} : G.sigma p = some p₁ → Cross G (G.tau p₁) q → Cross G p q
+crossing again, leads to `q`: a connection of the zigzag lemma (`Zigzag.Chain`) in the gluing. -/
+abbrev Cross (G : Gluing) : GPort → GPort → Prop := Zigzag.Chain G.sigma G.tau
 
 /-- A forced chain of crossings from `p` to `q` extends walks backwards: if the piece at `x` leads to `p`, and the walk
 from `q` ends at the rim port `r`, then so does the walk from `x`. -/
@@ -64,7 +63,6 @@ structure Sim (G G' : Gluing) (φ : GPort → GPort) : Prop where
   tau : ∀ x, G.Valid x → G'.tau (φ x) = φ (G.tau x)
   rim : ∀ x, G.Valid x → G.sigma x = none → G'.sigma (φ x) = none
   cross : ∀ x y, G.Valid x → G.sigma x = some y → G'.Cross (φ x) (φ y)
-  marks : ∀ x', G'.Valid x' → G'.smooth x'.1 x'.2.1 = false → ∃ x, G.Valid x ∧ φ x = x'
 
 /-- Along a simulation, every walk of `G` from a valid port maps to a walk of `G'` between the images of its ends. -/
 theorem Sim.reach (G_wf : G.WF) {φ : GPort → GPort} (sim : Sim G G' φ) :
@@ -83,17 +81,6 @@ theorem Sim.reach (G_wf : G.WF) {φ : GPort → GPort} (sim : Sim G G' φ) :
     -- the port crossed to is valid, so the rest of the walk maps too
     have y_valid := sigma_valid G_wf (tau_valid G_wf x_valid) crosses
     exact Cross.reach (sim.cross _ _ (tau_valid G_wf x_valid) crosses) (φ x) (φ r) (sim.tau x x_valid) (ih y_valid)
-
-/-- "No closed strand" carries over along a simulation whose target's marks all come from the source. -/
-theorem Sim.noLoops (G_wf : G.WF) (G'_wf : G'.WF) {φ : GPort → GPort} (sim : Sim G G' φ)
-    (no_loops : ∀ x, G.Valid x → ∃ r, G.FullReach x r) : ∀ x', G'.Valid x' → ∃ r, G'.FullReach x' r := by
-  -- by Prop 5.4(c) it is enough to reach the rim from the ports at marks
-  apply prop_5_4_c G'_wf
-  intro x' x'_valid at_mark
-  obtain ⟨x, x_valid, rfl⟩ := sim.marks x' x'_valid at_mark
-  obtain ⟨r, k, walk⟩ := no_loops x x_valid
-  -- the image of the walk of `G` is a walk of `G'`, hence a reduced walk (Prop 5.4(b))
-  exact ⟨φ r, (prop_5_4_b G'_wf x'_valid _).mp (sim.reach G_wf k x r x_valid walk)⟩
 
 /-! ### Equivalent gluings -/
 
@@ -250,6 +237,48 @@ theorem prv_succ' (E q : Nat) : prv E (q + 1) = q := by simp [prv]
 
 /-- The vertex after `q` is `q + 1` when that is not the end of the rim. -/
 theorem nxt_of_lt' {E q : Nat} (succ_lt : q + 1 < E) : nxt E q = q + 1 := by simp [nxt]; omega
+
+/-! ### A shared path of three edges -/
+
+/-- The ports along a path of three edges `ea, ea + 1, ea + 2` of child `a`, glued to edges `eb + 2, eb + 1, eb` of
+child `b`: `u_k` is vertex `ea + k` of `a`, which is vertex `eb + 3 - k` of `b`. -/
+def pathPort (a ea b eb : Nat) : Strip → GPort
+  | .c hand k => (a, ea + k, hand.isR)
+  | .d hand k => (b, eb + 3 - k, hand.isR)
+
+/-- **A shared path of three edges, by the zigzag lemma (Lemma 5.1 with `n = 3`).** Let edges `ea, ea + 1, ea + 2` of
+child `a` be glued, in reverse order, to edges `eb + 2, eb + 1, eb` of child `b`, with hooks at the inner vertices
+`ea + 1, ea + 2` of `a` and `eb + 1, eb + 2` of `b`. Then the crossings from `R_a(ea)` are forced along the path to
+`R_b(eb)`, and those from `L_b(eb + 3)` to `L_a(ea + 3)`: the two connections for odd `n`. -/
+theorem cross_three {G : Gluing} {a ea b eb : Nat} (a_room : ea + 3 < G.E a)
+    (glued_a : ∀ i, i ≤ 2 → G.mate a (ea + i) = some (b, eb + 2 - i))
+    (glued_b : ∀ i, i ≤ 2 → G.mate b (eb + i) = some (a, ea + 2 - i))
+    (hook_a : ∀ i, 1 ≤ i → i ≤ 2 → G.corner a (ea + i) = false)
+    (hook_b : ∀ i, 1 ≤ i → i ≤ 2 → G.corner b (eb + i) = false) :
+    G.Cross (a, ea, true) (b, eb, true) ∧ G.Cross (b, eb + 3, false) (a, ea + 3, false) := by
+  obtain ⟨from_R, from_L, _⟩ := Zigzag.zigzag G.sigma G.tau (pathPort a ea b eb) 3 (by omega)
+    (fun k k_lt => by
+      -- across edge `ea + k` of `a`, to `R_b` at vertex `eb + 2 - k`, where that edge of `b` starts
+      simp only [pathPort, Hand.isR, sigmaR, glued_a k (by omega), Option.map_some, Option.some.injEq,
+        Prod.mk.injEq, true_and, and_true]
+      omega)
+    (fun k k_lt => by
+      -- across the edge of `b` before its vertex `eb + 3 - k`, edge `eb + 2 - k`, to `L_a` after edge `ea + k`
+      simp only [pathPort, Hand.isR, sigmaL]
+      rw [show eb + 3 - k = (eb + (2 - k)) + 1 by omega, prv_succ', glued_b (2 - k) (by omega)]
+      simp only [Option.map_some, show ea + 2 - (2 - k) = ea + k by omega,
+        nxt_of_lt' (show ea + k + 1 < G.E a by omega), Nat.add_assoc])
+    (fun k k_pos k_lt => by
+      -- the hook of `a` at its inner vertex `ea + k`
+      simp only [pathPort, Hand.isR]
+      rw [tau_of_not_corner (hook_a k k_pos (by omega))]; rfl)
+    (fun k k_pos k_lt => by
+      -- the hook of `b` at its inner vertex `eb + 3 - k`
+      simp only [pathPort, Hand.isR]
+      rw [show eb + 3 - k = eb + (3 - k) by omega, tau_of_not_corner (hook_b (3 - k) (by omega) (by omega))]; rfl)
+  simp only [pathPort, Hand.isR, Nat.add_zero, show 3 % 2 = 1 by rfl, Nat.one_ne_zero, ite_false,
+    show eb + 3 - 3 = eb by omega, show eb + 3 - 0 = eb + 3 by omega] at from_R from_L
+  exact ⟨from_R, from_L⟩
 
 namespace Cut.OK
 
@@ -581,45 +610,6 @@ theorem corner_new₁ (cut_glued : κ.two = true) {i : Nat} (i_ge : 1 ≤ i) (i_
       · exact cut_ok.ne cut_glued same
       · omega
 
-/-- The new vertices of `c₀` are smooth: across the three new edges, the two children meet straight on. -/
-theorem smooth_new₀ {i : Nat} (i_ge : 1 ≤ i) (i_le : i ≤ 2) : (subdiv G κ).smooth κ.c₀ (κ.e₀ + i) = true := by
-  apply smooth_iff.mpr
-  refine ⟨cut_ok.corner_new₀ i_ge i_le, ?_⟩
-  -- the edge before the new vertex is the previous new edge
-  have prev_edge : prv ((subdiv G κ).E κ.c₀) (κ.e₀ + i) = κ.e₀ + (i - 1) := by
-    rw [show κ.e₀ + i = (κ.e₀ + (i - 1)) + 1 by omega, prv_succ']
-  rw [prev_edge, cut_ok.mate_new₀ i_le, cut_ok.mate_new₀ (i := i - 1) (by omega)]
-  by_cases cut_glued : κ.two = true
-  · rw [ite_eq_left cut_glued, ite_eq_left cut_glued]
-    right
-    -- the partner edge is not the last edge of `c₁`
-    have e₁_lt := cut_ok.e₁ cut_glued
-    refine ⟨κ.c₁, κ.e₁ + 2 - i, rfl, ?_, ?_⟩
-    · rw [cut_ok.E_c₁ cut_glued, nxt_of_lt' (by omega)]
-      congr 2; omega
-    · rw [cut_ok.E_c₁ cut_glued, nxt_of_lt' (by omega), show κ.e₁ + 2 - i + 1 = κ.e₁ + (3 - i) by omega]
-      exact cut_ok.corner_new₁ cut_glued (by omega) (by omega)
-  · rw [ite_eq_right cut_glued, ite_eq_right cut_glued]
-    left; exact ⟨rfl, rfl⟩
-
-/-- The new vertices of `c₁` (when the cut edge is glued) are smooth. -/
-theorem smooth_new₁ (cut_glued : κ.two = true) {i : Nat} (i_ge : 1 ≤ i) (i_le : i ≤ 2) :
-    (subdiv G κ).smooth κ.c₁ (κ.e₁ + i) = true := by
-  apply smooth_iff.mpr
-  refine ⟨cut_ok.corner_new₁ cut_glued i_ge i_le, ?_⟩
-  -- the edge before the new vertex is the previous new edge
-  have prev_edge : prv ((subdiv G κ).E κ.c₁) (κ.e₁ + i) = κ.e₁ + (i - 1) := by
-    rw [show κ.e₁ + i = (κ.e₁ + (i - 1)) + 1 by omega, prv_succ']
-  rw [prev_edge, cut_ok.mate_new₁ cut_glued i_le, cut_ok.mate_new₁ cut_glued (i := i - 1) (by omega)]
-  right
-  -- the cut edge is not the last edge of `c₀`
-  have e₀_lt := cut_ok.e₀
-  refine ⟨κ.c₀, κ.e₀ + 2 - i, rfl, ?_, ?_⟩
-  · rw [cut_ok.E_c₀, nxt_of_lt' (by omega)]
-    congr 2; omega
-  · rw [cut_ok.E_c₀, nxt_of_lt' (by omega), show κ.e₀ + 2 - i + 1 = κ.e₀ + (3 - i) by omega]
-    exact cut_ok.corner_new₀ (by omega) (by omega)
-
 /-- Every position of the subdivided child that is not new comes from an old one. -/
 theorem preimage {c k : Nat} (k_lt : k < (subdiv G κ).E c) (not_new₀ : ¬ (c = κ.c₀ ∧ κ.e₀ < k ∧ k ≤ κ.e₀ + 2))
     (not_new₁ : ¬ (κ.two = true ∧ c = κ.c₁ ∧ κ.e₁ < k ∧ k ≤ κ.e₁ + 2)) : ∃ u, u < G.E c ∧ κ.sh c u = k := by
@@ -702,6 +692,32 @@ theorem prv_cut₁ (cut_glued : κ.two = true) {c p : Nat} (p_lt : p < G.E c)
   have := cut_ok.e₁ cut_glued
   unfold prv at prev_eq; split at prev_eq <;> omega
 
+/-- The new path of a glued cut edge, read from `c₀` (Lemma 7.1 with the zigzag lemma for `n = 3`): from `R_{c₀}(e₀)` to
+`R_{c₁}(e₁)`, and from `L_{c₁}(e₁ + 3)` to `L_{c₀}(e₀ + 3)`. -/
+theorem cross_cut₀ (cut_glued : κ.two = true) :
+    (subdiv G κ).Cross (κ.c₀, κ.e₀, true) (κ.c₁, κ.e₁, true) ∧
+    (subdiv G κ).Cross (κ.c₁, κ.e₁ + 3, false) (κ.c₀, κ.e₀ + 3, false) := by
+  -- the cut edge is not the last edge of `c₀`
+  have e₀_lt := cut_ok.e₀
+  exact cross_three (by rw [cut_ok.E_c₀]; omega)
+    (fun i i_le => by rw [cut_ok.mate_new₀ i_le, ite_eq_left cut_glued])
+    (fun i i_le => cut_ok.mate_new₁ cut_glued i_le)
+    (fun i i_ge i_le => cut_ok.corner_new₀ i_ge i_le)
+    (fun i i_ge i_le => cut_ok.corner_new₁ cut_glued i_ge i_le)
+
+/-- The new path of a glued cut edge, read from `c₁`: from `R_{c₁}(e₁)` to `R_{c₀}(e₀)`, and from `L_{c₀}(e₀ + 3)` to
+`L_{c₁}(e₁ + 3)`. -/
+theorem cross_cut₁ (cut_glued : κ.two = true) :
+    (subdiv G κ).Cross (κ.c₁, κ.e₁, true) (κ.c₀, κ.e₀, true) ∧
+    (subdiv G κ).Cross (κ.c₀, κ.e₀ + 3, false) (κ.c₁, κ.e₁ + 3, false) := by
+  -- the partner edge is not the last edge of `c₁`
+  have e₁_lt := cut_ok.e₁ cut_glued
+  exact cross_three (by rw [cut_ok.E_c₁ cut_glued]; omega)
+    (fun i i_le => cut_ok.mate_new₁ cut_glued i_le)
+    (fun i i_le => by rw [cut_ok.mate_new₀ i_le, ite_eq_left cut_glued])
+    (fun i i_ge i_le => cut_ok.corner_new₁ cut_glued i_ge i_le)
+    (fun i i_ge i_le => cut_ok.corner_new₀ i_ge i_le)
+
 /-- **Subdividing an edge is a simulation.** -/
 theorem sim : Sim G (subdiv G κ) κ.port where
   valid x x_valid := ⟨x_valid.1, cut_ok.sh_lt x_valid.2⟩
@@ -758,46 +774,20 @@ theorem sim : Sim G (subdiv G κ) κ.port where
       obtain ⟨⟨c', k'⟩, glued, rfl⟩ := crosses
       by_cases is_cut₀ : c = κ.c₀ ∧ p = κ.e₀
       · obtain ⟨rfl, rfl⟩ := is_cut₀
-        -- the cut edge: three crossings, from R(e₀) of c₀ to R(e₁) of c₁
+        -- the cut edge: across the new path, from R(e₀) of c₀ to R(e₁) of c₁, by the zigzag lemma
         obtain ⟨cut_glued, partner⟩ := cut_ok.two_true glued
         simp only [Prod.mk.injEq] at partner
         obtain ⟨rfl, rfl⟩ := partner
-        -- the partner edge is not the last edge of `c₁`
-        have e₁_lt := cut_ok.e₁ cut_glued
-        rw [cut_ok.sh_c₀_le (Nat.le_refl _)]
-        simp only [Cut.port]
-        rw [cut_ok.sh_c₁_le cut_glued (Nat.le_refl _)]
-        refine .more (p₁ := (κ.c₁, κ.e₁ + 2, true)) (by rw [sigmaR, cut_ok.mate_cut₀, ite_eq_left cut_glued]; rfl) ?_
-        rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-        refine .more (p₁ := (κ.c₀, κ.e₀ + 2, false)) ?_ ?_
-        · rw [sigmaL, cut_ok.E_c₁ cut_glued, show κ.e₁ + 2 = (κ.e₁ + 1) + 1 by omega, prv_succ',
-            cut_ok.mate_new₁ cut_glued (by omega)]
-          simp only [Option.map_some, cut_ok.E_c₀]
-          rw [nxt_of_lt' (by omega)]; congr 3
-        · rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-          refine .one ?_
-          rw [sigmaR, cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]; rfl
+        rw [cut_ok.sh_c₀_le (Nat.le_refl _), cut_ok.sh_c₁_le cut_glued (Nat.le_refl _)]
+        exact (cut_ok.cross_cut₀ cut_glued).1
       · by_cases is_cut₁ : κ.two = true ∧ c = κ.c₁ ∧ p = κ.e₁
         · obtain ⟨cut_glued, rfl, rfl⟩ := is_cut₁
-          -- the partner of the cut edge: three crossings, from R(e₁) of c₁ to R(e₀) of c₀
+          -- the partner of the cut edge: across the new path, from R(e₁) of c₁ to R(e₀) of c₀
           rw [(cut_ok.two_mate cut_glued).2.2] at glued
           simp only [Option.some.injEq, Prod.mk.injEq] at glued
           obtain ⟨rfl, rfl⟩ := glued
-          -- the partner edge is not the last edge of `c₁`
-          have e₁_lt := cut_ok.e₁ cut_glued
-          rw [cut_ok.sh_c₁_le cut_glued (Nat.le_refl _)]
-          simp only [Cut.port]
-          rw [cut_ok.sh_c₀_le (Nat.le_refl _)]
-          refine .more (p₁ := (κ.c₀, κ.e₀ + 2, true)) (by rw [sigmaR, cut_ok.mate_cut₁ cut_glued]; rfl) ?_
-          rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-          refine .more (p₁ := (κ.c₁, κ.e₁ + 2, false)) ?_ ?_
-          · rw [sigmaL, cut_ok.E_c₀, show κ.e₀ + 2 = (κ.e₀ + 1) + 1 by omega, prv_succ',
-              cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]
-            simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
-            rw [nxt_of_lt' (by omega)]; congr 3
-          · rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-            refine .one ?_
-            rw [sigmaR, cut_ok.mate_new₁ cut_glued (by omega)]; rfl
+          rw [cut_ok.sh_c₁_le cut_glued (Nat.le_refl _), cut_ok.sh_c₀_le (Nat.le_refl _)]
+          exact (cut_ok.cross_cut₁ cut_glued).1
         · refine .one ?_
           rw [sigmaR, cut_ok.mate_old is_cut₀ is_cut₁, glued]; rfl
     | false =>
@@ -813,46 +803,21 @@ theorem sim : Sim G (subdiv G κ) κ.port where
         obtain ⟨rfl, rfl⟩ := partner
         -- the partner edge is not the last edge of `c₁`
         have e₁_lt := cut_ok.e₁ cut_glued
-        -- from L(e₀+3) of c₀ to L(e₁+3) of c₁
+        -- across the new path, from L(e₀+3) of c₀ to L(e₁+3) of c₁, by the zigzag lemma
         rw [cut_ok.sh_c₀_gt (by omega)]
-        simp only [Cut.port]
+        simp only
         rw [nxt_of_lt' e₁_lt, cut_ok.sh_c₁_gt cut_glued (by omega)]
-        refine .more (p₁ := (κ.c₁, κ.e₁ + 1, false)) ?_ ?_
-        · rw [sigmaL, cut_ok.E_c₀, show κ.e₀ + 1 + 2 = (κ.e₀ + 2) + 1 by omega, prv_succ', cut_ok.mate_new₀ (by omega),
-            ite_eq_left cut_glued]
-          simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
-          rw [nxt_of_lt' (by omega)]; congr 3
-        · rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-          refine .more (p₁ := (κ.c₀, κ.e₀ + 1, true)) (by rw [sigmaR, cut_ok.mate_new₁ cut_glued (by omega)]; rfl) ?_
-          rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-          refine .one ?_
-          rw [sigmaL, cut_ok.E_c₀, prv_succ', cut_ok.mate_cut₀, ite_eq_left cut_glued]
-          simp only [Option.map_some, cut_ok.E_c₁ cut_glued]
-          rw [nxt_of_lt' (by omega)]
+        exact (cut_ok.cross_cut₁ cut_glued).2
       · by_cases after_cut₁ : κ.two = true ∧ c = κ.c₁ ∧ p = κ.e₁ + 1
         · obtain ⟨cut_glued, rfl, rfl⟩ := after_cut₁
           rw [prv_succ', (cut_ok.two_mate cut_glued).2.2] at glued
           simp only [Option.some.injEq, Prod.mk.injEq] at glued
           obtain ⟨rfl, rfl⟩ := glued
-          -- the partner edge is not the last edge of `c₁`
-          have e₁_lt := cut_ok.e₁ cut_glued
-          -- from L(e₁+3) of c₁ to L(e₀+3) of c₀
+          -- across the new path, from L(e₁+3) of c₁ to L(e₀+3) of c₀, by the zigzag lemma
           rw [cut_ok.sh_c₁_gt cut_glued (by omega)]
-          simp only [Cut.port]
+          simp only
           rw [nxt_of_lt' e₀_lt, cut_ok.sh_c₀_gt (by omega)]
-          refine .more (p₁ := (κ.c₀, κ.e₀ + 1, false)) ?_ ?_
-          · rw [sigmaL, cut_ok.E_c₁ cut_glued, show κ.e₁ + 1 + 2 = (κ.e₁ + 2) + 1 by omega, prv_succ',
-              cut_ok.mate_new₁ cut_glued (by omega)]
-            simp only [Option.map_some, cut_ok.E_c₀]
-            rw [nxt_of_lt' (by omega)]; congr 3
-          · rw [cut_ok.tau_new₀ (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-            refine .more (p₁ := (κ.c₁, κ.e₁ + 1, true))
-              (by rw [sigmaR, cut_ok.mate_new₀ (by omega), ite_eq_left cut_glued]; rfl) ?_
-            rw [cut_ok.tau_new₁ cut_glued (by omega) (by omega)]; try simp only [Bool.not_true, Bool.not_false]
-            refine .one ?_
-            rw [sigmaL, cut_ok.E_c₁ cut_glued, prv_succ', cut_ok.mate_cut₁ cut_glued]
-            simp only [Option.map_some, cut_ok.E_c₀]
-            rw [nxt_of_lt' (by omega)]
+          exact (cut_ok.cross_cut₀ cut_glued).2
         · refine .one ?_
           -- the edge before `p` is not the cut edge
           have not_cut₀ : ¬ (c = κ.c₀ ∧ prv (G.E c) p = κ.e₀) :=
@@ -867,23 +832,6 @@ theorem sim : Sim G (subdiv G κ) κ.port where
           rw [sigmaL, cut_ok.prv_sh p_lt after_cut₀ after_cut₁, cut_ok.mate_old not_cut₀ not_cut₁, glued]
           simp only [Option.map_some]
           rw [cut_ok.nxt_sh k'_lt mate_not_cut₀ mate_not_cut₁]
-  marks := by
-    rintro ⟨c, v, s⟩ ⟨c_lt, v_lt⟩ at_mark
-    simp only at at_mark
-    by_cases new₀ : c = κ.c₀ ∧ κ.e₀ < v ∧ v ≤ κ.e₀ + 2
-    · obtain ⟨rfl, v_gt, v_le⟩ := new₀
-      -- a new vertex of `c₀` is smooth, so it is not a mark
-      have is_smooth := cut_ok.smooth_new₀ (i := v - κ.e₀) (by omega) (by omega)
-      rw [show κ.e₀ + (v - κ.e₀) = v by omega] at is_smooth
-      rw [is_smooth] at at_mark; contradiction
-    · by_cases new₁ : κ.two = true ∧ c = κ.c₁ ∧ κ.e₁ < v ∧ v ≤ κ.e₁ + 2
-      · obtain ⟨cut_glued, rfl, v_gt, v_le⟩ := new₁
-        -- a new vertex of `c₁` is smooth, so it is not a mark
-        have is_smooth := cut_ok.smooth_new₁ cut_glued (i := v - κ.e₁) (by omega) (by omega)
-        rw [show κ.e₁ + (v - κ.e₁) = v by omega] at is_smooth
-        rw [is_smooth] at at_mark; contradiction
-      · obtain ⟨u, u_lt, shifted⟩ := cut_ok.preimage v_lt new₀ new₁
-        exact ⟨(c, u, s), ⟨c_lt, u_lt⟩, by simp only [Cut.port, shifted]⟩
 
 /-- The subdivided gluing is well formed. -/
 theorem wf_subdiv : (subdiv G κ).WF where
@@ -939,12 +887,6 @@ theorem wf_subdiv : (subdiv G κ).WF where
         obtain ⟨mate_not_cut₀, mate_not_cut₁⟩ := cut_ok.target_not_cut c_lt u_lt glued_old not_cut₀ not_cut₁
         refine ⟨c₂_lt, cut_ok.sh_lt u₂_lt, ?_⟩
         rw [cut_ok.mate_old mate_not_cut₀ mate_not_cut₁, glued_back]; rfl
-
-/-- What a cut gives: the subdivided gluing is well formed, and if no walk of `G` closes up, neither does any walk of
-the subdivided gluing. -/
-theorem noLoops (no_loops : ∀ x, G.Valid x → ∃ r, G.FullReach x r) :
-    ∀ x, (subdiv G κ).Valid x → ∃ r, (subdiv G κ).FullReach x r :=
-  Sim.noLoops cut_ok.wf cut_ok.wf_subdiv cut_ok.sim no_loops
 
 end Cut.OK
 

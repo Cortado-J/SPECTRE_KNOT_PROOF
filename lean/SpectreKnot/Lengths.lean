@@ -3,7 +3,9 @@ Side lengths (paper §6): Prop 6.1 (lengths by letter), Prop 6.2 (Fibonacci side
 constant), Lemma 6.4 (position of A on the Σ side), Lemma 6.5 (lower bounds).
 
 The side lengths are *defined* here from the level-1 counts and Prop 2.4(c) (a parent side is the concatenation of
-the children's sides of Table 3). Prop 2.4 itself rests on the cited spectre theorems and is not formalised.
+the children's sides of Table 3). Prop 2.4 itself rests on the cited spectre theorems and is not formalised. That the
+supertiles `super m K` of the statement file have these side lengths, the paper's definition of `ℓ_m`, is
+`Statement.super_side_length` (`ProofA.lean`).
 -/
 import SpectreKnot.Basic
 import SpectreKnot.Data.Pattern

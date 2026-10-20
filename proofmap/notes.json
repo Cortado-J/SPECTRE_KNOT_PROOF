@@ -2,21 +2,18 @@
   "_about": "Hand-kept input of the proof map (build.py). Everything else on the map is read from the paper's LaTeX, the PDF (numbering check), lean/README.md and the Lean sources. 'labels' are short names for results the paper leaves untitled, shown in the graph only. 'lean_part' says what part of a result the Lean formalisation covers, where it covers only part (from lean/README.md, 'What it does not show'). 'notes' are short AI-written reading aids, shown labelled as such. 'off_graph' lists results kept off the graph, with the reason shown under it ({label} becomes a link). 'route' gives each step of the route (the same ten steps as the public site's Prove page, step n following section n of the paper, whose results are listed in 'prove_steps') a title and a one-sentence summary; the summaries were written by the AI and are labelled as a paraphrase where they appear.",
   "labels": {
     "lem:degree2": "Strands are cycles or lines",
-    "lem:tilesig": "Signature of the tile and the Mystic",
+    "lem:tilesig": "Signature of the tile",
     "prop:nestwell": "The blocks are well defined",
     "prop:nesttiling": "The nest tiles the plane"
   },
-  "off_graph": {
-    "cor:placement": "used only by {rem:labels}, a cross-check of {thm:merge} by the earlier route"
-  },
+  "off_graph": {},
   "lean_part": {
-    "prop:reduce": "Parts (a) and (b), and (c) in the form the proof uses: if every reduced walk reaches the rim there is no closed strand. The count of closed strands, $\\kappa(P)$, is not formalised.",
-    "rem:skeleton": "Only the skeleton walks of (3), on skeletons exported from the JavaScript, as a corroboration; Definition 5.3 and the skeleton argument are not formalised.",
     "prop:pattern": "Only the rims: the parent's rim, read from Table 3, is the rim of the glued children. That actual supertiles are glued as the tables say is assumption (M1), not formalised.",
-    "lem:tilesig": "The tile only. The Mystic (the level-0 Γ) is not treated separately; the Lean starts from the nine level-1 supertiles.",
     "lem:gap": "In combinatorial form: every edge of $N_b$ is glued in $N_{b+2}$ (part (b)), and every vertex of every tile of $N_b$ is surrounded by tiles of $N_{b+2}$ (part (a) at the vertices of tiles). The step from tile vertices to points of the plane is part of assumption (M3).",
     "thm:A": "In combinatorial form: for any chain of supertiles whose union has every edge glued; the nest is one. That a tiling whose hierarchy covers the plane is such a union is assumption (M2).",
-    "thm:B": "In combinatorial form: for the union of the blocks $N_b$. That this union is the nest tiling of the plane is Prop 8.2 and Prop 8.4, which are geometric and not formalised (assumption (M3)); Lemma 8.3(a), which Prop 8.4 uses, is formalised at the vertices of tiles."
+    "thm:B": "In combinatorial form: for the union of the blocks $N_b$. That this union is the nest tiling of the plane is Prop 8.2 and Prop 8.4, which are geometric and not formalised (assumption (M3)); Lemma 8.3(a), which Prop 8.4 uses, is formalised at the vertices of tiles.",
+    "lem:box": "For the patches with the signature, the only ones the proof uses: following the ribbon pairs their rim ports without fixed points. The box of a general patch is not formalised.",
+    "lem:gluing": "In the two forms the proof uses: for compositions, glued from boxes, and for supertiles glued from their children."
   },
   "notes": {
     "lem:zigzag": "Where two neighbouring supertiles share a stretch of rim with hooks at every inner corner, the ribbon zigzags along it: it crosses at every edge and turns back at every corner, alternately on each side. So which end each connection reaches depends only on whether the stretch has an even or odd number of edges. This is what lets Lemma 7.1 lengthen glued sides by two edges without changing how anything joins.",
@@ -28,18 +25,16 @@
     "prop:pattern": "This turns the spectre paper's hexagon pictures into four tables: which kinds the children are, which sides are glued to which, and how the parent's sides and its crossover corner are made from the children's. Because the same tables hold at every level, the rest of the proof can treat any level by the same finite bookkeeping. In the Lean, these tables are data, and that real supertiles follow them is assumption (M1).",
     "lem:rigid": "Two supertiles of the same kind and level are copies of each other, by exactly one rotation and translation that also lines up all their descendants. The proof is an induction from the Mystic, which has no symmetry. It is used to show that the blocks of the nest do not depend on the choices made in building them (Proposition 8.2).",
     "lem:degree2": "Each ribbon piece has two ends, and each end meets exactly one piece of the neighbouring tile. So the pieces form a graph in which every vertex has degree 2, and such a graph is a union of cycles and two-way infinite paths. Theorems A and B both start from this.",
-    "lem:box": "Seen from outside, a patch of tiles is just a pairing of the ports on its rim, together with a count of the closed strands hidden inside. This \"box\" is all that later sections need to know about a patch.",
+    "lem:box": "Seen from outside, a patch of tiles is just a pairing of the ports on its rim; the pieces that no rim port reaches form its closed strands. This “box”, and whether the patch has a closed strand, is all that later sections need to know about a patch.",
     "lem:gluing": "The box of a patch glued from smaller patches can be worked out from their boxes alone: alternate between the small boxes' pairings and the straight-through rule across shared edges. This is what lets the proof compute with supertiles as black boxes instead of tile by tile.",
-    "lem:tilesig": "The two base cases of the induction on levels. A single tile has the signature by the design itself (the one crossing sits at its corners $v_0, v_1$). The Mystic, the two-tile level-0 supertile, is a small computation.",
-    "prop:reduce": "When children with the signature are glued, almost all of their rim vertices are hooks, and the ribbon just zigzags along the shared runs. So the parent's box is decided by a small skeleton: the marks where children meet or turn, and the parities of the runs between them. The Lean formalisation uses it to show that lengthening a side creates no closed strand; the computations themselves follow the ribbon from every port.",
-    "cor:placement": "This says exactly where a hook of a child ends up after gluing: on the parent's rim, or on one of the two zigzag connections along a shared run, decided by the parity of its distance along the run. It is the Zigzag Lemma restated in the setting of Proposition 5.4.",
+    "lem:tilesig": "A single tile has the signature by the design itself: the one crossing sits at its corners $v_0$ and $v_1$, and every other corner is a hook.",
     "prop:letters": "The length of a supertile's side depends only on a letter (one of eight) carried by that side, and the eight lengths obey one linear recurrence from level to level. So side lengths at every level are known exactly from the level-1 counts.",
     "prop:fib": "Solving the recurrence of Proposition 6.1: every side length is a Fibonacci number, twice one, or one plus or minus 2. The proof is a direct substitution.",
     "cor:parity": "Read off the Fibonacci forms: each side length is odd at every level or even at every level. By the Zigzag Lemma only parities of shared runs matter, so this fixed pattern of parities is the heart of why one computation covers all levels.",
     "lem:Apos": "Where the crossover corner sits: at vertex 0 for eight of the nine kinds, and part-way along side 5 for $\\Sigma$, at a distance that is again a Fibonacci expression and always even.",
     "lem:bounds": "Every side is at least 5 edges long and the $\\Sigma$ corner is at least 6 and 4 edges from the ends of its side. These margins make sure a lengthening move can always be placed away from corners.",
     "lem:lengthen": "Lengthening a glued pair of sides by two edges cuts one edge into three. By the Zigzag Lemma, a path of 3 edges joins its ends exactly as a path of 1 edge does, and the two new vertices are hooks. So the move changes nothing about how the ports of the composition are paired, and the signature survives.",
-    "lem:reach": "The side lengths at any level can be reached from the level-1 lengths by such two-edge moves, through compositions that are all well defined. Lengths only grow and never change parity, so this is possible; the proof picks each move with care so that it stays away from corners.",
+    "lem:reach": "The side lengths at any level can be reached from the level-1 lengths by such two-edge moves, through compositions that are all well defined. Lengths only grow and never change parity, so this is possible; the proof picks each move with care so that it stays away from corners. So a property that holds at the level-1 lengths and survives every move holds at every level.",
     "prop:compose": "Three ingredients make the induction: the 18 compositions at level-1 lengths have the signature (Computation 7.3), each move keeps it (Lemma 7.1), and every level is reached by moves (Lemma 7.2). So the compositions at every level have the signature.",
     "comp:base": "The level-1 supertiles, built tile by tile from the actual geometry in exact arithmetic, have the signature, with the crossover corner where Lemma 6.4 says. This is the base of the induction in Theorem 7.6, and it also fixes the starting lengths $\\ell_1$ and $d_1$.",
     "thm:signature": "Every supertile, at every level, looks the same from outside: a hook at every rim corner except two adjacent ones, which carry the crossover, and no closed strand inside. The induction goes level by level: if the children have the signature, the parent is glued as a composition, and Proposition 7.4 says that composition has it.",
@@ -49,7 +44,7 @@
     "thm:merge": "Following every arc of a block up the nest, a few levels at a time: by the junction map each arc lands on one of five hooks of the next block, and those hooks land on further hooks one level higher. After three levels (b even) or four (b odd), every arc of $N_b$ is on the single hook at junction 12. This is the paper's bound on how quickly everything joins.",
     "comp:junction": "The level-1 version of the junction map. In the composition of a $\\Delta$ from its eight children at the level-1 lengths, built from the tables alone, every arc of child 1 ends on the hook at one of the five junctions that Table 6 names, depending mostly only on which side of child 1 it leaves from. Like Computation 7.3, it is checked port by port, by a program and by Lean's kernel.",
     "lem:junctionmap": "The junction map holds at every level, not just at level-1 lengths: the same two-edge moves that carry the signature (Lemmas 7.1 and 7.2) also carry this property, provided the cuts stay at least two edges from the ends of child 1's sides.",
-    "lem:junctions": "Bookkeeping from Table 3: the five junctions, and the inside of the small block's side 2, all lie well inside sides of the bigger block, at least five edges from the ends. That margin is what lets the junction map be applied again one level up."
+    "lem:junctions": "Bookkeeping from Table 3: the five junctions, and the inside of the small block's side 2, all lie well inside sides of the bigger block, at least two edges from the ends. That margin is what lets the junction map be applied again one level up."
   },
   "prove_steps": {
     "_about": "Which results of the paper each of the ten steps of the public site's Prove page (and of this site's Route) is made of, in this order; step n follows section n of the paper, and step 1, the introduction, has no results of its own. Every label here is named in its step's text on the Prove page (SPECTRE_KNOT_DEV's site build checks it).",
@@ -63,8 +58,7 @@
       "def:decoration",
       "def:rule",
       "def:strandgraph",
-      "lem:degree2",
-      "rem:periodic"
+      "lem:degree2"
     ],
     "4": [
       "lem:box",
@@ -73,9 +67,7 @@
       "lem:tilesig"
     ],
     "5": [
-      "lem:zigzag",
-      "prop:reduce",
-      "cor:placement"
+      "lem:zigzag"
     ],
     "6": [
       "prop:letters",
@@ -106,9 +98,7 @@
       "lem:junctions",
       "thm:B"
     ],
-    "10": [
-      "rem:three"
-    ]
+    "10": []
   },
   "route": {
     "1": {
@@ -121,15 +111,15 @@
     },
     "3": {
       "title": "The decoration and its strands",
-      "summary": "Every tile carries the same fourteen ribbon pieces and ribbons run straight through each edge, so every strand is a closed loop or a two-way infinite path; in a periodic tiling the pieces could never form a single strand."
+      "summary": "Every tile carries the same fourteen ribbon pieces and ribbons run straight through each edge, so every strand is a closed loop or a two-way infinite path."
     },
     "4": {
       "title": "Boxes and the signature",
-      "summary": "Seen from outside, a patch is a box, a pairing of the ports on its rim, and boxes glue by following ports; the signature is a hook at every rim vertex but two adjacent ones, where the ribbons cross over, and no closed strand inside, and the tile and the Mystic have it."
+      "summary": "Seen from outside, a patch is a box, a pairing of the ports on its rim, and boxes glue by following ports; the signature is a hook at every rim vertex but two adjacent ones, where the ribbons cross over, and no closed strand inside, and a tile has it."
     },
     "5": {
       "title": "The Zigzag Lemma",
-      "summary": "Where two boxes with hooks are glued along a path, the ribbons zigzag along it and come out according to the parity of its length alone, so a composition of boxes can be followed on a reduced picture."
+      "summary": "Where two boxes with hooks are glued along a path, the ribbons zigzag along it and come out according to the parity of its length alone, so lengthening a shared path by two edges changes nothing."
     },
     "6": {
       "title": "Side lengths",

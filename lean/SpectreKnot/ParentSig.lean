@@ -1,19 +1,15 @@
 /-
 **The induction step of Thm 7.6, at tile level.** If the children of `compose T child` have the signature (with the
-corners and side lengths of the abstract composition), and the composition has the signature `Gluing.Sig`, then so
-does the parent (`Kids.parent`): its rim is Table 3's (`rim_edgeAt`), its six vertices are where the parent's side
-lengths put them (`parent_vtx`), and its rim ports are joined as hooks except at the corners `pA`, `pB`, where they
-cross over.
+corners and side lengths of the abstract composition), and the composition has the signature as §7.1 words it
+(`CompSig`), then so does the parent (`Kids.parent_sig`): its rim is Table 3's (`rim_edgeAt`), its six vertices are
+where the parent's side lengths put them (`parent_vtx`), and its rim ports are joined as hooks except at the corners
+`cA`, `cB`, where they cross over.
 -/
 import SpectreKnot.Bridge
 
 namespace SpectreKnot.Statement
 
 open Pattern Compose Gluing
-
-/-- Stepping back one position round a rim of length `N` is one to one. -/
-theorem prv_inj {N p p' : Nat} (p_lt : p < N) (p_lt' : p' < N) (same : prv N p = prv N p') : p = p' := by
-  unfold prv at same; split at same <;> split at same <;> omega
 
 /-- Later children start later: the first tile number `offC child c` grows with `c`. -/
 theorem offC_mono (child : Nat → Patch) {a b : Nat} (a_le : a ≤ b) : offC child a ≤ offC child b := by
@@ -184,15 +180,6 @@ end Rim
 
 /-! ### The parent's signature -/
 
-/-- The gluing's port at the parent's port `R(p)` (in the parent's orientation): the end of the child edge at rim
-position `p`, in the children's sense. -/
-def gR (T : Kind) (L : Nat → Nat → Nat) (d : Nat) (ω : Bool) (p : Nat) : GPort :=
-  ((ownGo L (pcs T) p).1, nxt ((Comp.ofLens T L d ω).toGluing.E (ownGo L (pcs T) p).1) (ownGo L (pcs T) p).2, false)
-
-/-- The gluing's port at the parent's port `L(p)`: the start of the child edge at rim position `p - 1`. -/
-def gL (T : Kind) (L : Nat → Nat → Nat) (p : Nat) : GPort :=
-  ((ownGo L (pcs T) (prv (rimN T L) p)).1, (ownGo L (pcs T) (prv (rimN T L) p)).2, true)
-
 namespace Kids
 
 set_option linter.unusedSectionVars false
@@ -224,56 +211,46 @@ theorem bport_L {p : Nat} (p_lt : p < rimN T L) :
 
 /-- The vertex of `gR p` is a parent rim vertex reached along the rim: the edge before it is unglued. -/
 theorem gR_rimL {p : Nat} (p_lt : p < rimN T L) :
-    (Comp.ofLens T L d ω).toGluing.RimL (gR T L d ω p).1 (gR T L d ω p).2.1 := by
-  obtain ⟨c_lt, k_lt, unglued⟩ := own_mate (d := d) (ω := ω) kids.len_pos p_lt
-  -- the edge is on the child's rim, in the composition's terms
-  have k_lt' : (ownGo L (pcs T) p).2 < (Comp.ofLens T L d ω).toGluing.E (ownGo L (pcs T) p).1 := by
-    rw [ofLens_E c_lt]; exact k_lt
-  exact ⟨by rw [ofLens_n]; exact c_lt, nxt_lt k_lt', by simp only [gR]; rw [prv_nxt k_lt']; exact unglued⟩
+    (Comp.ofLens T L d ω).toGluing.RimL (gR T L d ω p).1 (gR T L d ω p).2.1 :=
+  Statement.gR_rimL kids.len_pos p_lt
 
 /-- Turning about the vertex of `gR p` reaches the start of the child edge at position `p - 1`, the vertex of
 `gL p`. -/
 theorem gR_rot {p : Nat} (p_lt : p < rimN T L) :
     (Comp.ofLens T L d ω).toGluing.Rot ((gR T L d ω p).1, (gR T L d ω p).2.1) (ownGo L (pcs T) (prv (rimN T L) p)) :=
-  own_rot kids.len_pos p_lt
+  Statement.gR_rot kids.len_pos p_lt
 
 /-- `gR p` is a port of an actual child, at an actual rim vertex. -/
 theorem gR_valid {p : Nat} (p_lt : p < rimN T L) : (Comp.ofLens T L d ω).toGluing.Valid (gR T L d ω p) :=
-  ⟨(kids.gR_rimL p_lt).1, (kids.gR_rimL p_lt).2.1⟩
+  Statement.gR_valid kids.len_pos p_lt
 
 /-- `gL p` is a port of an actual child, at an actual rim vertex. -/
-theorem gL_valid {p : Nat} (p_lt : p < rimN T L) : (Comp.ofLens T L d ω).toGluing.Valid (gL T L p) := by
-  obtain ⟨c_lt, k_lt, _⟩ := own_mate (d := d) (ω := ω) kids.len_pos (prv_lt p_lt)
-  refine ⟨?_, ?_⟩ <;> simp only [gL]
-  · rw [ofLens_n]; exact c_lt
-  · rw [ofLens_E c_lt]; exact k_lt
+theorem gL_valid {p : Nat} (p_lt : p < rimN T L) : (Comp.ofLens T L d ω).toGluing.Valid (gL T L p) :=
+  Statement.gL_valid kids.len_pos p_lt
 
 /-- `gR p` is on the parent's rim: nothing lies across it. -/
 theorem gR_sigma {p : Nat} (p_lt : p < rimN T L) :
-    (Comp.ofLens T L d ω).toGluing.sigma (gR T L d ω p) = none := by
-  -- the edge before the vertex is unglued
-  have unglued := (kids.gR_rimL p_lt).2.2
-  simp only [gR, Gluing.sigma] at unglued ⊢
-  rw [unglued]; rfl
+    (Comp.ofLens T L d ω).toGluing.sigma (gR T L d ω p) = none :=
+  Statement.gR_sigma kids.len_pos p_lt
 
 /-- `gL p` is on the parent's rim: nothing lies across it. -/
 theorem gL_sigma {p : Nat} (p_lt : p < rimN T L) :
-    (Comp.ofLens T L d ω).toGluing.sigma (gL T L p) = none := by
-  obtain ⟨_, _, unglued⟩ := own_mate (d := d) (ω := ω) kids.len_pos (prv_lt p_lt)
-  simp only [gL, Gluing.sigma]
-  rw [unglued]; rfl
+    (Comp.ofLens T L d ω).toGluing.sigma (gL T L p) = none :=
+  Statement.gL_sigma kids.len_pos p_lt
 
-/-- **The parent has the signature**, with corners `pA`, `pB` at the Γ child's corners. -/
-theorem parent_sig {pA pB : Nat} (pA_lt : pA < rimN T L) (pB_lt : pB < rimN T L) (pA_ne_pB : pA ≠ pB)
-    (at_A : ownGo L (pcs T) (prv (rimN T L) pA) = (nk T - 1, (Comp.ofLens T L d ω).toGluing.A (nk T - 1)))
-    (at_B : ownGo L (pcs T) (prv (rimN T L) pB) = (nk T - 1, (Comp.ofLens T L d ω).toGluing.B (nk T - 1))) :
-    (compose T child).HasSig (!o) pA pB := by
+/-- **The parent has the signature** (Thm 7.6's induction step, at tile level), at the rim positions `cA`, `cB` of the
+Γ child's corners: Prop 7.4 for the composition of the children (`Kids.csig`), read port by port. -/
+theorem parent_sig : (compose T child).HasSig (!o) (cA T L) (cB T L ω) := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   -- the children's vertices sit where the side lengths put them
   have shape := kids.shape
   -- the parent's rim length
   have E_eq := compose_E (child := child) shape
+  -- the corners' positions are on the rim
+  have pA_lt := kids.csig.cA_lt
+  -- (both of them)
+  have pB_lt := kids.csig.cB_lt
   refine ⟨?_, ?_, ?_, ?_, ?_, kids.noClosed, ?_⟩
   · -- tiles
     show 0 < offC child (nk T)
@@ -379,97 +356,35 @@ theorem parent_sig {pA pB : Nat} (pA_lt : pA < rimN T L) (pB_lt : pB < rimN T L)
   · -- the signature
     intro p s p_lt
     rw [E_eq] at p_lt
-    -- turning about the vertex of `gR pA` reaches the Γ child's corner `A`
-    have rot_A := kids.gR_rot pA_lt
-    rw [at_A] at rot_A
-    -- and about that of `gR pB`, its corner `B`
-    have rot_B := kids.gR_rot pB_lt
-    rw [at_B] at rot_B
-    by_cases p_eq_A : p = pA
-    · -- at the corner `pA`
+    by_cases p_eq_A : p = cA T L
+    · -- at the corner `cA`
       subst p_eq_A
       simp only [btau, ↓reduceIte]
       cases s with
       | true =>
-        -- `R(pA) ↔ R(pB)`: the composition's crossover at `L(A) ↔ L(B)`
+        -- `R(cA) ↔ R(cB)`: the composition's crossover `L(A) ↔ L(B)`
         rw [kids.bport_R p_lt, kids.bport_R pB_lt]
-        obtain ⟨cA, uA, cB, uB, rim_A, turn_A, rim_B, turn_B, reach⟩ := kids.gsig.crossL
-        -- the vertex turning to `A` is that of `gR pA`
-        have vtx_A := Rot.inj wf rim_A (kids.gR_rimL p_lt) turn_A rot_A
-        -- the vertex turning to `B` is that of `gR pB`
-        have vtx_B := Rot.inj wf rim_B (kids.gR_rimL pB_lt) turn_B rot_B
-        -- so `gR pA` is the start of the crossover walk
-        have gR_A : gR T L d ω p = (cA, uA, false) := by
-          rw [Prod.ext_iff] at vtx_A; exact Prod.ext vtx_A.1.symm (Prod.ext vtx_A.2.symm rfl)
-        -- and `gR pB` its end
-        have gR_B : gR T L d ω pB = (cB, uB, false) := by
-          rw [Prod.ext_iff] at vtx_B; exact Prod.ext vtx_B.1.symm (Prod.ext vtx_B.2.symm rfl)
-        rw [gR_A, gR_B]
-        exact kids.follow_of_fullReach reach (gR_A ▸ kids.gR_valid p_lt)
+        exact kids.follow_of_fullReach kids.csig.crossL (kids.gR_valid p_lt)
       | false =>
-        -- `L(pA) ↔ L(pB)`: the composition's crossover at `R(A) ↔ R(B)`
+        -- `L(cA) ↔ L(cB)`: the composition's crossover `R(A) ↔ R(B)`
         rw [kids.bport_L p_lt, kids.bport_L pB_lt]
-        -- `gL pA` is the port `R` at the Γ child's corner `A`
-        have gL_A : gL T L p = (nk T - 1, (Comp.ofLens T L d ω).toGluing.A (nk T - 1), true) := by
-          simp only [gL, at_A]
-        -- `gL pB` is the port `R` at its corner `B`
-        have gL_B : gL T L pB = (nk T - 1, (Comp.ofLens T L d ω).toGluing.B (nk T - 1), true) := by
-          simp only [gL, at_B]
-        rw [gL_A, gL_B]
-        exact kids.follow_of_fullReach kids.gsig.crossR (gL_A ▸ kids.gL_valid p_lt)
-    · by_cases p_eq_B : p = pB
-      · -- at the corner `pB`: the crossover walks, backwards
+        exact kids.follow_of_fullReach kids.csig.crossR (kids.gL_valid p_lt)
+    · by_cases p_eq_B : p = cB T L ω
+      · -- at the corner `cB`: the crossover walks, backwards
         subst p_eq_B
         simp only [btau, ite_eq_right p_eq_A, ↓reduceIte]
         cases s with
         | true =>
           rw [kids.bport_R p_lt, kids.bport_R pA_lt]
-          obtain ⟨cA, uA, cB, uB, rim_A, turn_A, rim_B, turn_B, reach⟩ := kids.gsig.crossL
-          -- the vertex turning to `A` is that of `gR pA`
-          have vtx_A := Rot.inj wf rim_A (kids.gR_rimL pA_lt) turn_A rot_A
-          -- the vertex turning to `B` is that of `gR pB`
-          have vtx_B := Rot.inj wf rim_B (kids.gR_rimL p_lt) turn_B rot_B
-          -- so `gR pA` is the start of the crossover walk
-          have gR_A : gR T L d ω pA = (cA, uA, false) := by
-            rw [Prod.ext_iff] at vtx_A; exact Prod.ext vtx_A.1.symm (Prod.ext vtx_A.2.symm rfl)
-          -- and `gR pB` its end
-          have gR_B : gR T L d ω p = (cB, uB, false) := by
-            rw [Prod.ext_iff] at vtx_B; exact Prod.ext vtx_B.1.symm (Prod.ext vtx_B.2.symm rfl)
-          rw [gR_A, gR_B]
-          -- the start of the crossover walk is a port of an actual child
-          have valid_A : (Comp.ofLens T L d ω).toGluing.Valid (cA, uA, false) := gR_A ▸ kids.gR_valid pA_lt
-          exact kids.follow_of_fullReach (reach.reverse wf valid_A (gR_A ▸ kids.gR_sigma pA_lt))
-            (gR_B ▸ kids.gR_valid p_lt)
+          exact kids.follow_of_fullReach (kids.csig.crossL.reverse wf (kids.gR_valid pA_lt) (kids.gR_sigma pA_lt))
+            (kids.gR_valid p_lt)
         | false =>
           rw [kids.bport_L p_lt, kids.bport_L pA_lt]
-          -- `gL pA` is the port `R` at the Γ child's corner `A`
-          have gL_A : gL T L pA = (nk T - 1, (Comp.ofLens T L d ω).toGluing.A (nk T - 1), true) := by
-            simp only [gL, at_A]
-          -- `gL pB` is the port `R` at its corner `B`
-          have gL_B : gL T L p = (nk T - 1, (Comp.ofLens T L d ω).toGluing.B (nk T - 1), true) := by
-            simp only [gL, at_B]
-          rw [gL_A, gL_B]
-          exact kids.follow_of_fullReach (kids.gsig.crossR.reverse wf (gL_A ▸ kids.gL_valid pA_lt)
-            (gL_A ▸ kids.gL_sigma pA_lt)) (gL_B ▸ kids.gL_valid p_lt)
-      · simp only [btau, ite_eq_right p_eq_A, ite_eq_right p_eq_B]
-        -- a hook
-        obtain ⟨c₂, u₂, turn, corner_or_hook⟩ := kids.gsig.hooks _ _ (kids.gR_rimL p_lt)
-        -- turning about the vertex of `gR p` reaches the vertex of `gL p`
-        have same_vtx := Rot.unique turn (kids.gR_rot p_lt)
-        -- that vertex is not one of the Γ child's corners, since `p` is neither `pA` nor `pB`
-        have not_corner : ¬ (c₂ = nk T - 1 ∧ (u₂ = (Comp.ofLens T L d ω).toGluing.A (nk T - 1) ∨
-            u₂ = (Comp.ofLens T L d ω).toGluing.B (nk T - 1))) := by
-          rintro ⟨rfl, at_cA | at_cB⟩
-          · rw [at_cA, ← at_A] at same_vtx
-            exact p_eq_A (prv_inj p_lt pA_lt (own_inj kids.len_pos (prv_lt pA_lt) (prv_lt p_lt) same_vtx).symm)
-          · rw [at_cB, ← at_B] at same_vtx
-            exact p_eq_B (prv_inj p_lt pB_lt (own_inj kids.len_pos (prv_lt pB_lt) (prv_lt p_lt) same_vtx).symm)
-        -- so the composition's walk joins `gR p` to `gL p`
-        have reach : (Comp.ofLens T L d ω).toGluing.FullReach (gR T L d ω p) (gL T L p) := by
-          rcases corner_or_hook with corner | hook
-          · exact absurd corner not_corner
-          · have gL_eq : gL T L p = (c₂, u₂, true) := by simp only [gL, ← same_vtx] -- `R` at the vertex turned to
-            rw [gL_eq]; exact hook
+          exact kids.follow_of_fullReach (kids.csig.crossR.reverse wf (kids.gL_valid pA_lt) (kids.gL_sigma pA_lt))
+            (kids.gL_valid p_lt)
+      · -- a hook of the composition
+        simp only [btau, ite_eq_right p_eq_A, ite_eq_right p_eq_B]
+        have reach := kids.csig.hooks p p_lt p_eq_A p_eq_B  -- the composition's walk from `gR p` to `gL p`
         cases s with
         | true =>
           rw [kids.bport_R p_lt, Bool.not_true, kids.bport_L p_lt]

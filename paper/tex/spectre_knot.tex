@@ -66,22 +66,16 @@
 \begin{document}
 
 \begin{abstract}
-The Spectre of Smith, Myers, Kaplan and Goodman-Strauss tiles the plane, but only non-periodically.
-We decorate its straight-edged form $\Tile$ with fourteen ribbon pieces, the same on every tile, so that ribbons
-continue straight across every tile edge. We prove that the pieces never close up: in every tiling by copies of $\Tile$ of one handedness whose supertile
-hierarchy covers the plane, the ribbons contain no closed strand. In the tiling grown from a nested chain of
-$\Delta$-supertiles, all the pieces of all the tiles join into a single strand, a two-way infinite path that passes
-through every tile. We do not claim this for other tilings, and computations indicate that it fails in some.
-The proof shows that every supertile, at every level, connects the ribbon ends on its
-boundary in the same simple pattern: a hook at every boundary vertex but two, and one crossover. Where supertiles are
-glued, the ribbons zigzag along the shared boundary, so lengthening it by two edges changes nothing; and the side
-lengths at every level are reached from those at level~$1$ in steps of two, because every side length is a Fibonacci
-number, twice one, or one plus or minus two, with the same parity at every level. This reduces the infinite problem to
-finitely many cases at level~$1$, which we check by computer. The single strand is reduced in the same way to a map,
-computed at level~$1$, that says where the ribbons of a supertile go one level up. The combinatorial core of the
-proof, with these computations, is also formalised in the Lean proof assistant. The proof, the programs, the
-formalisation and this text were produced by the author working with an AI system (see \emph{Use of AI and
-verification status} in \cref{sec:intro}).
+The Spectre of Smith, Myers, Kaplan and Goodman-Strauss tiles the plane, but only non-periodically. We decorate its
+straight-edged form $\Tile$ with fourteen ribbon pieces, the same on every tile, that continue straight across every
+tile edge. We prove that in every tiling by copies of $\Tile$ of one handedness whose supertile hierarchy
+covers the plane no strand of ribbon is closed, and that in the tiling grown from a nested chain of $\Delta$-supertiles
+all the pieces join into a single strand, a two-way infinite path through every tile; we do not claim this for other
+tilings. Every supertile connects the ribbon ends on its boundary in the same pattern; ribbons zigzag along a shared
+boundary, so lengthening it by two edges changes nothing; and the side lengths at every level are reached from those at
+level~$1$ in such steps. So finitely many computations at level~$1$ settle every level. The combinatorial core is
+formalised in the Lean proof assistant. The proof, the programs, the formalisation and this text were produced by the
+author working with an AI system. This paper has not been peer reviewed (\cref{sec:intro}).
 \end{abstract}
 
 \maketitle
@@ -89,58 +83,56 @@ verification status} in \cref{sec:intro}).
 % ---------------------------------------------------------------------------------------------------------
 \section{Introduction}\label{sec:intro}
 
-A \emph{Celtic knot} is a pattern of interlaced ribbons~\cite{Bain,Cromwell1993}. How many separate strands a finite
-design of this kind contains has been studied, for instance, by Fisher and Mellor~\cite{FisherMellor}. A \emph{knot
-tile} is a polygon carrying ribbon segments that end on its edges, so that copies of the tile, placed edge to edge,
-link up into longer ribbons. We ask for a knot tile whose ribbons, in a tiling of the whole plane, form one endless
-strand. In a periodic tiling this cannot happen: if the decorated tiling is invariant under a non-zero translation, its
-ribbons never form a single strand (\cref{rem:periodic}). So a tile that only tiles
-non-periodically is the natural place to look.
+A \emph{Celtic knot} is a pattern of interlaced ribbons~\cite{Bain,Cromwell1993}; the number of strands in finite
+designs of this kind has been studied, for instance, by Fisher and Mellor~\cite{FisherMellor}. A \emph{knot tile} is a
+polygon carrying ribbon segments that end on its edges, so that copies of the tile, placed edge to edge, link up into
+longer ribbons. We ask for a knot tile whose ribbons, in a tiling of the whole plane, form one endless strand. In a
+periodic tiling this cannot happen:
+if the pieces formed one strand, a period $\tau$ would shift it along itself by some $k\neq0$ ($\tau^2$ moves every
+tile, so $\tau$ cannot reverse it), leaving $|k|$ orbits of pieces under $\langle\tau\rangle$ but infinitely many of
+tiles, as $\RR^2/\langle\tau\rangle$ has infinite area.
+So we look at a tile that tiles only non-periodically.
 
 In 2023 Smith, Myers, Kaplan and Goodman-Strauss described the \emph{hat}, an aperiodic monotile~\cite{SMKGS-hat}, and
 then the \emph{Spectre}~\cite{SMKGS-spectre}: a shape that tiles the plane, admits only non-periodic tilings, and
 admits only tilings in which all tiles have the same handedness, even when reflections are
-allowed~\cite[Thm.~2.2]{SMKGS-spectre}. For background on tilings and substitution
-see~\cite{GrunbaumShephard,BaakeGrimm}.
-The Spectre is a curved-edge form of the polygon $\Tile$ (\cref{fig:tile}): tilings by Spectres correspond exactly to
-the tilings by $\Tile$ in which all tiles have the same handedness~\cite[\S2]{SMKGS-spectre}.
+allowed~\cite[Thm.~2.2]{SMKGS-spectre}. The Spectre is a curved-edge form of the polygon $\Tile$ (\cref{fig:tile},
+\cref{sec:spectre}). For background on tilings and substitution see~\cite{GrunbaumShephard,BaakeGrimm}.
 
-This paper describes a knot tile on the Spectre and proves that it is \emph{mono-stranded} in the following sense:
-in one explicit tiling, all its pieces form a single strand (\cref{thm:B}), and no tiling whose hierarchy covers the
-plane contains a closed strand (\cref{thm:A}). We do not claim one strand for every tiling; computations indicate that some tilings have three (\cref{rem:three}). The decoration
-(\cref{fig:tile}) puts one crossing point on each of the fourteen edges and joins the $28$ ribbon ends inside the tile
-by fourteen pieces: twelve \emph{hooks}, each turning back round one vertex, and two pieces that cross each other
-inside the tile. Across an edge, the ribbons simply continue straight through the crossing point.
+We give a knot tile on the Spectre that is \emph{mono-stranded}: in one explicit tiling all its pieces form a single
+strand (\cref{thm:B}), and no tiling whose hierarchy covers the plane contains a closed strand (\cref{thm:A}). The
+decoration (\cref{fig:tile}) puts one crossing point on each of the fourteen edges and joins the $28$ ribbon ends inside
+the tile by fourteen pieces: twelve \emph{hooks}, each turning back round one vertex, and two pieces that cross each
+other inside the tile. Across an edge, the ribbons continue straight through the crossing point.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.36\textwidth]{figs/tile_ribbons.pdf}\hfill
-\includegraphics[width=0.6\textwidth]{figs/intro_N3.pdf}
+\includegraphics[width=0.23\textwidth]{figs/tile_ribbons.pdf}\hspace{0.08\textwidth}
+\includegraphics[width=0.32\textwidth]{figs/intro_N3.pdf}
 \caption{Left: the tile $\Tile$ with its fourteen ribbon pieces. Right: a supertile of $559$ tiles (the block $N_3$
 of \cref{sec:nest}). The original tile $N_0$ is shaded; all fourteen of its pieces already lie on a single arc of
 this block, drawn in orange.}
 \label{fig:tile}
 \end{figure}
 
-Our first result concerns all tilings with a well-behaved hierarchy. Every tiling by $\Tile$ with tiles of one
-handedness (a \emph{homochiral} tiling; \cref{sec:spectre}) groups uniquely into a hierarchy of larger and larger
-\emph{supertiles}~\cite[Thm.~2.2]{SMKGS-spectre}. We say that the hierarchy \emph{covers the plane} if the supertiles
-containing some (equivalently, every) tile exhaust the plane; equivalence holds because, once a supertile containing
-one tile contains another, the two tiles have the same supertiles from that level on. If it does not, the tiling splits into two or more infinite supertiles
-(unions of nested chains) with disjoint interiors, separated by a \emph{fault}. (Each tile lies in exactly one
-supertile of each level, so two such unions are equal or disjoint.)
+Every tiling by $\Tile$ with tiles of one handedness (a \emph{homochiral} tiling) groups uniquely into a hierarchy of
+larger and larger \emph{supertiles}~\cite[Thm.~2.2]{SMKGS-spectre}. We say that the hierarchy \emph{covers the plane}
+if the supertiles containing some tile exhaust the plane. This does not depend on the tile: once a supertile containing
+one tile contains another, the two tiles have the same supertiles from that level on. Otherwise the tiling splits into
+two or more \emph{infinite supertiles}, unions of nested chains of supertiles, separated by a \emph{fault}
+(\cref{sec:scope}).
 
 \begin{mainthm}[The Daedalus Theorem]\label{thm:A}
 In every homochiral tiling of the plane by $\Tile$ whose supertile hierarchy covers the plane, with every tile carrying
 the decoration of \cref{fig:tile}, there is no closed strand: every strand is a two-way infinite path of ribbon pieces.
 \end{mainthm}
 
-Our second result is the single strand. We prove it for one specific tiling, the \emph{nest tiling} $\N$, which is
-grown from a single tile $N_0$ by repeatedly taking the $\Delta$-supertile $N_{b+1}$ that has $N_b$ as its child
-number~$1$ (\cref{sec:nest}). In the usual language of substitution tilings, $\N$ is the tiling generated from one tile
-as a seed by iterating the substitution about it, a fixed point of the substitution (in the combinatorial sense;
-compare~\cite{BaakeGrimm}); in the tile addresses of~\cite[\S2.8]{TathamTransducers} (after~\cite{GoodmanStrauss1999}), $N_0$
-has the address $\Delta\xleftarrow{1}\Delta\xleftarrow{1}\Delta\xleftarrow{1}\cdots$, a $\Delta$ at every level, each child~$1$ of the next. \Cref{fig:tile,fig:merge,fig:skeleton,fig:nest} show blocks of it.
+Our second result is proved for one tiling, the \emph{nest tiling} $\N$, grown from a single tile $N_0$ by repeatedly
+taking the $\Delta$-supertile $N_{b+1}$ that has $N_b$ as its child number~$1$ (\cref{sec:nest}). In the language of
+substitution tilings, $\N$ is generated from one tile by iterating the substitution about it, a fixed point of the
+substitution (in the combinatorial sense; compare~\cite{BaakeGrimm}); in the tile addresses
+of~\cite[\S2.8]{TathamTransducers} (after~\cite{GoodmanStrauss1999}), $N_0$ has the address
+$\Delta\xleftarrow{1}\Delta\xleftarrow{1}\Delta\xleftarrow{1}\cdots$.
 
 \begin{mainthm}[The Ariadne Theorem]\label{thm:B}
 In the nest tiling $\N$, with every tile carrying the decoration of \cref{fig:tile}, all the ribbon pieces of all the
@@ -149,189 +141,135 @@ that passes through every tile. More precisely, for every $b\ge 1$, all the ribb
 single arc of $N_{b+4}$, and of $N_{b+3}$ when $b$ is even.
 \end{mainthm}
 
-\Cref{fig:merge} shows the merging for $N_0$: its fourteen pieces lie on $5$, $2$ and $1$ arcs of $N_1$, $N_2$ and
-$N_3$. Since the curves cross only transversally and in pairs, over and under can be assigned alternately, as in
-Celtic knotwork (\cref{rem:overunder}); the single strand then becomes an alternating diagram of a line.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figs/merge.pdf}
-\caption{The arcs of the nest blocks $N_1$, $N_2$, $N_3$ that contain pieces of the original tile $N_0$ (shaded),
-one colour per arc. The dashed outline is the previous block.}
-\label{fig:merge}
-\end{figure}
+We make no claim about the number of strands in any other tiling: computations indicate that in at least one other
+tiling whose hierarchy covers the plane the pieces form three strands; and tilings with faults are covered by neither
+theorem (\cref{sec:scope}).
 
 \subsection*{The method}
 The proof has three ideas.
 \begin{enumerate}[leftmargin=*]
 \item \emph{Black boxes.} Seen from outside, a supertile is just a list of which ribbon end on its boundary is
-joined to which. We show that every supertile of every kind and level has the same \emph{signature}: a hook at every
-boundary vertex but two adjacent ones, $A$ and $B$, where the two ribbons cross over; and no closed strand inside
-(\cref{def:signature}, \cref{thm:signature}).
-\item \emph{Zigzags.} When two such boxes are glued along a common boundary path, the ribbons zigzag along it, and
-the outcome depends only on the parity of its length (\cref{lem:zigzag}). So lengthening a shared path by two edges
-changes nothing (\cref{lem:lengthen}).
+joined to which. Every supertile of every kind and level $m\ge1$ has the same \emph{signature}: a hook at every boundary vertex
+but two adjacent ones, $A$ and $B$, where the two ribbons cross over; and no closed strand inside (\cref{def:signature},
+\cref{thm:signature}).
+\item \emph{Zigzags.} When two such boxes are glued along a common boundary path, the ribbons zigzag along it, and the
+outcome depends only on the parity of its length (\cref{lem:zigzag}). So lengthening a shared path by two edges changes
+nothing (\cref{lem:lengthen}).
 \item \emph{Fixed parities.} The supertiles are combinatorially hexagons and compose by the substitution
 of~\cite[Fig.~5.1]{SMKGS-spectre}. Their side lengths are given by Fibonacci numbers (\cref{prop:fib}); they only grow
 with the level, and their parities never change. So the side lengths at any level are reached from those at level~$1$
 by lengthening, two edges at a time (\cref{lem:reach}), and a finite computation at level~$1$ gives the signature at
 every level.
 \end{enumerate}
-The merging of all ribbons into one strand (\cref{thm:merge}) follows the same pattern. Where the ribbons of a block
-go one level up depends only on where they leave it, for most of its rim only on the side (\cref{lem:junctionmap});
-this map is computed at level~$1$ and carried to every level by the same lengthening. Followed three or four levels
-up, it puts every arc of a block on one strand.
+The single strand (\cref{thm:merge}) follows the same pattern. Where the ribbons of a block go one level up depends only
+on where they leave it, for most of its rim only on the side (\cref{lem:junctionmap}); this map is computed at
+level~$1$ and carried to every level by the same lengthening. Followed three or four levels up, it puts every arc of a
+block on one strand.
+The finite computations (the level-$1$ data, the agreement with~\cite[Figs.~4.1, 5.1]{SMKGS-spectre}, and
+\cref{comp:compose,comp:junction} on the $18$ compositions of level-$1$ supertiles) are exact; the last two are repeated
+in the kernel of the Lean proof assistant (\cref{app:computations}). \Cref{fig:roadmap} shows how the steps fit
+together, and which of them Lean checks.
 
-\subsection*{Computer assistance}
-The proof uses computer checks of finitely many explicit facts: the signature of the Mystic and the level-$1$ data
-(vertex positions, side lengths, the position of $A$, and the signature of the level-$1$ supertiles), the agreement of
-our supertile data with~\cite[Figs.~4.1, 5.1]{SMKGS-spectre}, and two computations on the $18$ compositions of
-level-$1$ supertiles, built from the tables and the level-$1$ side lengths alone: their signature
-(\cref{comp:compose}) and, for $\Delta$, the junction map (\cref{comp:junction}). The geometric computations (the
-Mystic and level-$1$ data, and the composition pattern for $m\le3$) were carried out twice, by two separate programs:
-once in JavaScript with floating-point coordinates, and once in Python in exact arithmetic, with coordinates in
-$\ZZ[e^{i\pi/6}]$. The computations on the compositions are exact computations with integers, done by a Python
-program and again in the kernel of the Lean proof assistant. We also checked the conclusions directly on the actual
-supertiles up to level~$9$ (about $1.3\times 10^8$ tiles), and by a second route, through skeletons and a symbolic
-computation with certified inequalities, which the proof does not use (\cref{rem:skeleton,rem:labels}).
-\Cref{app:computations} lists every computation and the script that performs it. The programs, with logs of a full
-run, are in the ancillary files of this paper (folder \code{code/}).
-
-\subsection*{Scope}
-\Cref{thm:A} covers every tiling whose hierarchy covers the plane. \Cref{thm:B} is proved for the nest tiling only,
-and we make no claim about the number of strands in any other tiling. The single strand is not a property of every
-such tiling: computations indicate that in at least one other tiling whose hierarchy covers the plane the pieces form
-exactly three strands (\cref{rem:three}). Tilings with faults are not covered by either theorem; see
-\cref{sec:scope}.
+\begin{figure}[t]
+\centering
+\definecolor{oiyellow}{HTML}{F0E442}
+\begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize,
+  box/.style={draw=black!70,rounded corners=2pt,align=center,inner sep=2pt,minimum height=0.9cm,text width=3.4cm,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  lean/.style={box,fill=oiyellow!40},
+  word/.style={box,fill=white,densely dashed},
+  arr/.style={-{Stealth[length=4pt]},black!65,line width=0.5pt}]
+\node[word] (smkgs) at (0,3.4)     {Spectre hierarchy, cited (Thm.~\ref{thm:smkgs}); the pattern at every level (Prop.~\ref{prop:pattern})};
+\node[lean] (box)   at (0,1.7)    {Boxes and the signature (\S\ref{sec:boxes}); a tile has it (Lemma~\ref{lem:tilesig})};
+\node[lean] (fib)   at (0,0)       {Side lengths are Fibonacci forms whose parities never change (\S\ref{sec:lengths})};
+\node[lean] (comp)  at (3.95,3.4)  {Level $1$: the $18$ compositions and the base, computed (\ref{comp:compose}, \ref{comp:base})};
+\node[lean] (zig)   at (3.95,1.7) {Zigzag Lemma~\ref{lem:zigzag}: only parity matters; two-edge moves keep the signature (\ref{lem:lengthen}) and reach every level (\ref{lem:reach})};
+\node[lean] (A)     at (7.9,3.4)   {\textbf{Theorem A}: no closed strand if the hierarchy covers the plane};
+\node[lean] (sig)   at (7.9,1.7)  {\textbf{Signature Theorem~\ref{thm:signature}}: every supertile has the signature};
+\node[lean] (junc)  at (7.9,0)     {Junction map, at level $1$ and every level (\ref{comp:junction}, \ref{lem:junctionmap}, \ref{lem:junctions})};
+\node[word] (nest)  at (11.85,3.4) {The nest tiling covers the plane (\S\ref{sec:nest}, Grandparent Lemma)};
+\node[lean] (B)     at (11.85,1.7) {\textbf{Theorem B}: one strand in the nest tiling};
+\node[lean] (merge) at (11.85,0)   {Merging: the arcs of $N_b$ lie on one arc of $N_{b+4}$ (Thm.~\ref{thm:merge})};
+\draw[arr] (smkgs) -- (comp);
+\draw[arr] (box) -- (zig);
+\draw[arr] (fib.east) -- (zig.south west);
+\draw[arr] (comp) -- (sig);
+\draw[arr] (zig) -- (sig);
+\draw[arr] (sig) -- (A);
+\draw[arr] (sig) -- (junc);
+\draw[arr] (zig.south east) -- (junc.north west);
+\draw[arr] (junc) -- (merge);
+\draw[arr] (merge) -- (B);
+\draw[arr] (nest) -- (B);
+\draw[arr] (smkgs.north) -- ++(0,0.32) -| (nest.north);
+\end{tikzpicture}
+\caption{The route of the proof. Shaded: checked by the Lean formalisation in a combinatorial form, including the
+computations at level~$1$ (\cref{app:ai}). Dashed: the link with actual tilings, cited from~\cite{SMKGS-spectre} or
+argued in words.}
+\label{fig:roadmap}
+\end{figure}
 
 \subsection*{Related work}
-Curves drawn on tiles and joined across edges appear in several settings; in all of them each curve is closed or
-two-way infinite, as in \cref{lem:degree2}. For Truchet tilings by squares carrying two quarter-circle arcs, the
-closed curves of random tilings have been studied by percolation and renormalisation methods~\cite{Pete2008,Hooper2011}.
-On rectangular grids, the mirror curves behind Celtic, Tchokwe and Tamil designs have a computable number of
-components; without internal mirrors it is the greatest common divisor of the side lengths~\cite{JablanKnotsArt}. On
-aperiodic tilings, the arc decoration of the Penrose rhombs due to Conway and Penrose gives closed curves apart from
-at most two that cross the whole tiling (see~\cite{FlickerSimonParameswaran} and the references there), and Girih
-interlace drawn on Penrose tilings appears to consist of closed strands of unbounded variety~\cite{Cline2024}. Single
-curves through all the tiles of finite patches have been built as Hamiltonian cycles on Ammann--Beenker
-tilings~\cite{SinghLloydFlicker}, and as space-filling self-similar curves from decorations of aperiodic substitution
-tilings~\cite{Pautze2021}. Closest to the present work, an online project~\cite{BohemianMiserSpectre} decorates
-selected edges of $\Tile$ and describes, in one nested tiling, a single non-crossing curve that visits every tile once,
-with a machine check of its combinatorial core. That curve uses only some of the edges and has no crossings. Here every
-edge of every tile carries a ribbon end, the pieces cross, and the single strand is a knot diagram in the sense of
-Celtic knotwork. We are not aware of earlier work on such full knotwork decorations that form a single strand.
+Curves drawn on tiles and joined across edges, each closed or two-way infinite as in \cref{lem:degree2}, have been
+studied for random Truchet tilings~\cite{Pete2008,Hooper2011}; for the mirror curves of Celtic, Tchokwe and Tamil
+designs~\cite{JablanKnotsArt}; for the Conway--Penrose arcs on Penrose rhombs, all closed apart from at most two (see~\cite{FlickerSimonParameswaran}
+and the references there); and for Girih interlace on Penrose tilings~\cite{Cline2024}. Single curves through every
+tile of finite patches have been built as Hamiltonian cycles on Ammann--Beenker tilings~\cite{SinghLloydFlicker} and
+as space-filling curves from aperiodic substitution tilings~\cite{Pautze2021}. Closest to ours, an online
+project~\cite{BohemianMiserSpectre} decorates selected edges of $\Tile$ and describes, in one nested tiling, a single
+non-crossing curve through every tile, with a machine check of its combinatorial core. Here every edge carries a
+ribbon end and the pieces cross;
+in our drawing they cross only transversally and in pairs (\cref{app:computations}), so over and under can alternate by
+the checkerboard rule~\cite{CromwellKnots}, and the single strand becomes an alternating diagram of a line, as in Celtic
+knotwork.
+We are not aware of earlier full knotwork decorations that form a single strand.
 
 \subsection*{Use of AI and verification status}
-This work is an experiment in using AI for mathematical exploration. The author came up with the original idea of
-looking for a mono-stranded aperiodic knot, and then used an AI system (Claude, by Anthropic) to search for it; from the
-$34$ candidates found, the author chose design $0.1{:}01$ and drew its ribbons by hand. From then on the author and the
-AI system worked together: the AI system did the detailed work (the programs, the proof, the Lean formalisation and
-this paper), and the author directed, guided and corrected it. Lean checks the combinatorial core of the proof; the
-link with actual tilings is argued in words. The author has read parts of this paper and spot-checked figures and
-counts; most of the proof has not been reviewed by a human, and no professional mathematician has reviewed it. The AI
-system reviewed its own argument in several passes. A program or check called \emph{independent} or \emph{separate}
-here is a separate implementation by the same AI system. A fuller account:
-\url{https://cortado-j.github.io/SPECTRE_KNOT/made.html}.
-
-\subsection*{Formal verification}
-The combinatorial part of the proof is formalised in the Lean~4 proof assistant~\cite{Lean4}, using its core library
-only (folder \code{lean/} of the ancillary files). Lean's kernel has checked the following, in a combinatorial form in
-which a patch, or a whole tiling, is described by which edge of which tile is glued to which edge of which other tile:
-every supertile of every kind and every level $m\ge1$ has the signature (\cref{thm:signature}), and so contains no
-closed strand; in the union of any chain of supertiles, each a child of the next, in which every edge is eventually
-glued, every strand is a two-way infinite path (\cref{thm:A}), and the nest is such a chain; in the nest tiling, built
-as the union of the blocks $N_b$, the pieces form one two-way infinite strand (\cref{thm:B}), with the bounds of
-\cref{thm:merge}, which are exact (the last two rows of \cref{tab:merge}); and every vertex of every tile of $N_b$ is
-surrounded by tiles of $N_{b+2}$ (\cref{lem:gap}(a), at the vertices of tiles). The kernel also re-runs the finite
-computations that these use (\cref{comp:compose,comp:base}, and the second part of \cref{comp:junction}). The
-formal statements rest on \cref{tab:children,tab:sides,tab:psides}, as computed from the geometry, and on the nine
-level-$1$ supertiles as glued patches of tiles, computed in exact arithmetic by the program of
-\cref{app:computations}; \cref{tab:letters} (read from~\cite[Fig.~4.2]{SMKGS-spectre}) and the level-$1$ lengths
-$\ell_1$, $d_1$ enter only the proofs, which check them against these. The link with tilings
-of the plane is not formalised; it is a stated assumption of the formal statements, in three parts: that the
-supertiles of an actual tiling are glued as these tables say, which rests on~\cite{SMKGS-spectre} and
-\cref{sec:spectre} (\cref{thm:smkgs}, \cref{prop:pattern,lem:rigid}); the first step of the proof of \cref{thm:A}, that
-a tiling whose hierarchy covers the plane is the union of such a chain; and the geometric
-\cref{prop:nestwell,prop:nesttiling}, with the step of \cref{lem:gap}(a) from the vertices of tiles to the points of the
-plane. The Mystic
-(\cref{lem:tilesig}) is not treated separately: the formalisation starts from the level-$1$ supertiles. The formal proofs follow
-\cref{sec:decoration,sec:boxes,sec:reduce,sec:lengths,sec:induction,sec:nest,sec:strand}, with these differences of
-detail. The strands of a tiling are modelled by two fixed-point-free involutions on ports (\cref{lem:degree2}).
-\Cref{prop:reduce} is proved for any gluing of boxes, with marks defined at the vertices of each child, so that the
-facts \cref{sec:skeleton} reads off the angles at a vertex are proved from the gluing; (c) is proved in the form used,
-that if every reduced walk reaches the rim there is no closed strand. The formal proof of \cref{lem:lengthen} follows
-the ribbon along the new path directly, and shows that a move creates no closed strand through
-\cref{prop:reduce}(b),(c). The induction of \cref{prop:compose} carries the signature in a form that finds each parent
-rim vertex by turning about a vertex of a child, and reads the adjacency of $A$ and $B$ off \cref{tab:psides}. In
-\cref{comp:junction} the kernel computes the second part; the first is proved for every level, at the level of tiles,
-from the signature of $N_{m+1}$; and in the proof of \cref{lem:junctionmap} the new vertices are followed port by port
-rather than by the last part of \cref{lem:zigzag}. \Cref{lem:gap}(b) is proved from the tables, as its proof notes; the
-proof of \cref{lem:gap}(a) at the vertices of tiles uses that every supertile is a disc at its rim, which the paper
-takes from the geometry and the formalisation proves level by level, and it carries the table argument of (b) to
-vertices in place of the disjointness of sides $2$ and $4$ of $N_{b+1}$. The formalisation also proves facts the paper
-takes from the geometry: the gluing of every supertile is symmetric and glues no tile to itself, and
-\cref{tab:sides,tab:psides} agree with each other. \Cref{def:skeleton}, \cref{cor:placement} and the second routes of
-\cref{rem:skeleton,rem:labels} are not formalised. The proofs use only
-Lean's standard axioms. The formalisation was written by the AI system as well; its statement file
-(\code{lean/SpectreKnot/Statement.lean}) contains every definition that the formal theorems depend on, with comments in
-plain English.
-
-\subsection*{Outline}
-\Cref{sec:spectre} recalls the facts about Spectre tilings that we use, in the notation of~\cite{SMKGS-spectre}.
-\Cref{sec:decoration} defines the decoration and its strands. \Cref{sec:boxes} introduces boxes and the signature.
-\Cref{sec:reduce} proves the Zigzag Lemma and the reduction to skeletons. \Cref{sec:lengths} computes the side lengths.
-\Cref{sec:induction} proves the signature at every level, by lengthening, and \cref{thm:A}. \Cref{sec:nest}
-constructs the nest tiling, and \cref{sec:strand} shows that its arcs merge and proves \cref{thm:B}. \Cref{sec:scope}
-discusses scope and open questions.
-\Cref{app:computations} lists the computations.
+This work is an experiment in using AI for mathematical exploration: the author worked with an AI system (Claude, by
+Anthropic), which did the detailed work, including the programs, the proofs, the Lean formalisation and this text.
+The author is responsible for the paper: for the correctness of its arguments and results, and for the completeness and
+accuracy of its citations of prior work. The AI system is not an author. Lean checks the combinatorial core of the
+proof; the link with actual tilings is argued in words. Most of the proof has not been reviewed by a human, and the
+paper has not been peer reviewed. \Cref{app:ai} gives the full account: how the work was done, what the formalisation
+checks, and the tools used.
 
 % ---------------------------------------------------------------------------------------------------------
 \section{Spectre tilings}\label{sec:spectre}
 
 \subsection{The tile}
-Let $\rho=e^{i\pi/6}$. The polygon $\Tile$ has fourteen edges of unit length; we label its vertices
-$v_0,\dots,v_{13}$ counter-clockwise and its edges $e_i=v_iv_{i+1}$ (indices mod $14$), with $v_0=0$ and
+Let $\rho=e^{i\pi/6}$. The polygon $\Tile$ has fourteen unit edges; we label its vertices $v_0,\dots,v_{13}$
+counter-clockwise and its edges $e_i=v_iv_{i+1}$ (indices mod $14$), with $v_0=0$ and
 \[
 v_{i+1}-v_i=\rho^{k_i},\qquad (k_0,\dots,k_{13})=(0,10,1,3,0,2,5,7,4,6,6,8,11,9).
 \]
-All vertices lie in $\ZZ[\rho]$, and the edge directions are multiples of $30^\circ$; see \cref{fig:tileports}.
-This is the equilateral member $\Tile$ of the family $\mathrm{Tile}(a,b)$~\cite[\S\S1--2]{SMKGS-spectre}; as there,
-its long side is split into the two collinear edges $e_9,e_{10}$, so that $v_{10}$ has interior angle $180^\circ$.
-Our $\Tile$ is the mirror image of the polygon drawn in~\cite[Fig.~1.1]{SMKGS-spectre}; it has the handedness of the
-single Spectre and of the Mystic drawn in~\cite[Fig.~2.1]{SMKGS-spectre}.
-\emph{Spectres} are tiles, obtained for instance by replacing every edge of $\Tile$ by a suitable curve, whose tilings
-correspond exactly to the homochiral tilings by $\Tile$~\cite[\S2, Lemma~2.1]{SMKGS-spectre}. We work throughout with
-$\Tile$ and \emph{homochiral} tilings, in which any two tiles are related by a rotation and a translation; reflecting
-the whole plane (with the decoration below, which maps strands to strands) if necessary, we assume that every tile is the image of $\Tile$ under a rotation and a translation.
-Since the correspondence keeps the isometries $g_i$~\cite[\S2]{SMKGS-spectre}, and~\cite[p.~5]{SMKGS-spectre} treats the
-two as the same universe of tilings, what~\cite{SMKGS-spectre} proves for tilings by Spectres holds for homochiral
-tilings by $\Tile$, and we use it in that form. Such tilings exist~\cite[Thm.~2.2]{SMKGS-spectre}, and every tiling by $\Tile$ is vertex to vertex, so tiles meet full edge
-to full edge~\cite[proof of Lemma~2.1]{SMKGS-spectre}. The tile has no non-trivial symmetry, proper or improper (its cyclic sequence of edge directions
-has none), so an isometry between two tiles is unique.
+All vertices lie in $\ZZ[\rho]$. This is the equilateral member of the family $\mathrm{Tile}(a,b)$~\cite[\S\S1--2]{SMKGS-spectre},
+with its long side split into the collinear edges $e_9,e_{10}$; it is the mirror image of the polygon drawn
+in~\cite[Fig.~1.1]{SMKGS-spectre}, and has the handedness of the single Spectre and of the Mystic
+in~\cite[Fig.~2.1]{SMKGS-spectre}. \emph{Spectres} are tiles, obtained for instance by replacing every edge of $\Tile$ by
+a suitable curve, whose tilings correspond exactly, with the same isometries, to the \emph{homochiral} tilings by
+$\Tile$, in which any two tiles are related by a rotation and a translation~\cite[\S2, Lemma~2.1]{SMKGS-spectre}; so
+what~\cite{SMKGS-spectre} proves for tilings by Spectres holds for homochiral tilings by $\Tile$~\cite[p.~5]{SMKGS-spectre}. Such tilings
+exist~\cite[Thm.~2.2]{SMKGS-spectre}, and in each, tiles meet full edge to full edge~\cite[proof of
+Lemma~2.1]{SMKGS-spectre}. Reflecting the plane if necessary (with the decoration below, which maps strands to strands),
+we assume that every tile is the image of $\Tile$ under a rotation and a translation. The tile has no non-trivial
+symmetry, proper or improper (its cyclic sequence of edge directions has none), so an isometry between two tiles is
+unique.
 
 \subsection{Supertiles}
-We use the hierarchy of~\cite{SMKGS-spectre}. There are nine \emph{kinds}
-\[
-\K=\{\Gamma,\Delta,\Theta,\Lambda,\Xi,\Pi,\Sigma,\Phi,\Psi\}.
-\]
-A \emph{level-$0$ supertile} of kind $K\neq\Gamma$ is a single tile; a level-$0$ supertile of kind $\Gamma$ is a
-\emph{Mystic}~\cite[Fig.~2.1]{SMKGS-spectre}, the pair of tiles $\{\Tile,\ g(\Tile)\}$ with $g(z)=\rho z+v_8$, and
-its congruent copies; we call $\Tile$ its \emph{first} tile. (The outline of the Mystic, which~\cite{SMKGS-spectre} calls
-symmetric, has a mirror symmetry, but the Mystic has no non-trivial proper symmetry: a proper
-symmetry exchanging its tiles would be an involution taking $\Tile$ to $g(\Tile)$, but the only proper motion doing
-so is $g$, a rotation by $30^\circ$. So the first tile is determined by the pair.) A level-$(m+1)$ supertile is the union of level-$m$ supertiles, its \emph{children}, arranged in a fixed way:
-eight children, or seven for kind $\Gamma$, of the kinds listed in \cref{tab:children}. A level-$1$ supertile has
-the kind of its cluster in~\cite[Fig.~4.1]{SMKGS-spectre}, which is determined by the positions of its six vertices
-(\cref{sec:own})~\cite[proof of Thm.~4.1]{SMKGS-spectre}; a level-$(m+1)$ supertile, $m\ge1$, has kind $T$ if its
-children form the panel $T$ of~\cite[Fig.~5.1]{SMKGS-spectre}. For $m\ge1$, child $c$ is the child at the position in
-the last row of \cref{tab:children}; at level $1$ the children are numbered as in \cref{fig:level1}. (This is the order
-used by Kaplan's implementation of the key-point construction of~\cite[App.~A]{SMKGS-spectre},
-see~\cite{KaplanSpectrePage}. That implementation gives \cref{tab:children} and, tile for tile, the same supertiles as
-\code{exact/}\allowbreak\code{exact.py} up to level~$4$; see \code{crosscheck/}\allowbreak\code{kaplan\_compare.py}.) For
-definiteness a single tile gets the kind of its position in its level-$1$ supertile; only the distinction between
-$\Gamma$ and the other kinds is used at level~$0$.
-In particular child~$1$ of every supertile is a $\Delta$, and the last child is a $\Gamma$; at levels $m\ge1$ a $\Delta$
-occurs only as child~$1$.
+We use the hierarchy of~\cite{SMKGS-spectre}, with nine \emph{kinds}
+$\K=\{\Gamma,\Delta,\Theta,\Lambda,\Xi,\Pi,\Sigma,\Phi,\Psi\}$. A \emph{level-$0$ supertile} of kind $K\neq\Gamma$ is a
+single tile; one of kind $\Gamma$ is a \emph{Mystic}~\cite[Fig.~2.1]{SMKGS-spectre}, the pair of tiles
+$\{\Tile,\ g(\Tile)\}$ with $g(z)=\rho z+v_8$, or a congruent copy, with \emph{first} tile $\Tile$. The first tile is
+determined by the pair, since the Mystic has no non-trivial proper symmetry: one exchanging its tiles would be an
+involution taking $\Tile$ to $g(\Tile)$, but the only proper motion doing so is $g$, a rotation by $30^\circ$. A
+level-$(m+1)$ supertile is the union of level-$m$ supertiles, its \emph{children}: eight, or seven for kind $\Gamma$, of
+the kinds listed in \cref{tab:children}. A level-$1$ supertile has the kind of its cluster
+in~\cite[Fig.~4.1]{SMKGS-spectre}, which is determined by the positions of its six vertices~\cite[proof of
+Thm.~4.1]{SMKGS-spectre}; a level-$(m+1)$ supertile, $m\ge1$, has kind $T$ if its children form the panel $T$
+of~\cite[Fig.~5.1]{SMKGS-spectre}. Children are numbered as in \cref{fig:level1} at level $1$, and by their positions in
+the last row of \cref{tab:children} above. A single tile gets the kind of its position in its level-$1$ supertile; only
+the distinction between $\Gamma$ and the other kinds is used at level~$0$. Child~$1$ of every supertile is a $\Delta$
+and the last child a $\Gamma$; at levels $m\ge1$ a $\Delta$ occurs only as child~$1$.
 
 \begin{table}[t]
 \centering\small
@@ -359,13 +297,11 @@ left, G the $\Gamma$.}
 \label{tab:children}
 \end{table}
 
-The nine level-$1$ supertiles are the Spectre clusters ($9$ tiles) and the Mystic cluster ($8$ tiles, kind $\Gamma$)
-of~\cite[Fig.~2.1]{SMKGS-spectre}, with the markings of~\cite[Fig.~4.1]{SMKGS-spectre}, up to reflection: \cite[Fig.~2.1]{SMKGS-spectre}
-draws the clusters with tiles of the opposite handedness to its single Spectre, and so to $\Tile$. They are drawn,
-with tiles of the handedness of $\Tile$, in \cref{fig:level1}. We number levels so that our level-$m$ supertiles are made of level-$(m-1)$ supertiles. In the
-language of~\cite{SMKGS-spectre}, the level-$1$ supertiles are the clusters, which are combinatorially the marked
-hexagons of~\cite[Fig.~4.2]{SMKGS-spectre}, and the level-$n$ supertiles of hexagons of~\cite[\S5]{SMKGS-spectre} are
-our level-$(n+1)$ supertiles.
+The level-$1$ supertiles are the Spectre clusters ($9$ tiles) and the Mystic cluster ($8$ tiles, kind $\Gamma$)
+of~\cite[Fig.~2.1]{SMKGS-spectre}, with the markings of~\cite[Fig.~4.1]{SMKGS-spectre}, up to reflection
+(\cite[Fig.~2.1]{SMKGS-spectre} draws them with tiles of the opposite handedness to $\Tile$, \cref{fig:level1} with
+that of $\Tile$). They are combinatorially the marked hexagons of~\cite[Fig.~4.2]{SMKGS-spectre}, and
+the level-$n$ supertiles of hexagons of~\cite[\S5]{SMKGS-spectre} are our level-$(n+1)$ supertiles.
 
 The following theorem restates, in our language, results of~\cite{SMKGS-spectre}.
 
@@ -387,11 +323,10 @@ in~\cite[Fig.~5.1]{SMKGS-spectre}.
 \end{enumerate}
 \end{theorem}
 
-In (a), \cite[Thm.~4.1]{SMKGS-spectre} gives the grouping into clusters; its uniqueness, like that of the higher
-levels, is part of~\cite[Thm.~2.2]{SMKGS-spectre}, and we use it only to speak of \emph{the} hierarchy of $\T$. In (b),
-the handedness is that of our level-$1$ supertiles, which are the mirror images of the clusters drawn
-in~\cite[Figs.~2.1, 4.1]{SMKGS-spectre} (see the base case of ($\ast$) in the proof of \cref{prop:pattern}); it
-alternates with $m$ by~\cite[Thm.~5.1]{SMKGS-spectre}.
+In (a), \cite[Thm.~4.1]{SMKGS-spectre} gives the clusters and~\cite[Thm.~2.2]{SMKGS-spectre} the uniqueness at every
+level, which we use only to speak of \emph{the} hierarchy of $\T$. In (b), the handedness is that of our level-$1$
+supertiles, the mirror images of the clusters in~\cite[Figs.~2.1, 4.1]{SMKGS-spectre} (see the base case of ($\ast$) in
+the proof of \cref{prop:pattern}); it alternates with $m$ by~\cite[Thm.~5.1]{SMKGS-spectre}.
 
 In particular every level-$m$ supertile ($m\ge1$) is a closed topological disc whose boundary, its \emph{rim}, is a
 simple closed polygon made of tile edges. Its \emph{vertices} are the six points of the rim where it meets two other
@@ -403,25 +338,27 @@ shared, as a path of tile edges, with exactly one neighbouring supertile.
 
 \subsection{Own orientation, side numbering and the crossover corner}\label{sec:own}
 By~\cite[Thm.~5.1]{SMKGS-spectre}, the supertiles composed from a tiling by marked hexagons are combinatorially
-equivalent to the \emph{mirror images} of those hexagons. So, at each level, the cyclic order of the labelled sides is
-reversed, and it is convenient to orient supertiles alternately.
+equivalent to the \emph{mirror images} of those hexagons. So the cyclic order of the labelled sides reverses at each
+level, and we orient supertiles alternately.
 
 \begin{definition}[Own orientation]\label{def:own}
 The \emph{own orientation} of a level-$m$ supertile is counter-clockwise if $m$ is even and clockwise if $m$ is odd.
 We write $\omega_m=(-1)^m$.
 \end{definition}
 
-Thus a child and its parent are always oriented oppositely. Each supertile has a distinguished rim vertex $A$, its
-\emph{crossover corner}, defined recursively: for a tile, $A=v_0$; for a Mystic, $A$ is the vertex $v_0$ of its first
-tile $\Tile$; for a level-$(m+1)$ supertile, $A$ is the crossover corner of its $\Gamma$ child. (That this point lies
-on the rim is computed for levels $0$ and $1$ and follows from \cref{prop:pattern}(d) at higher levels.) The second corner $B$, adjacent to $A$, appears in \cref{thm:signature};
-we call $A$ and $B$ the \emph{crossover corners}. The vertices of a level-$m$ supertile ($m\ge1$) are numbered
-$0,\dots,5$ in own order, starting with the first vertex at or after $A$; side $j$ runs from vertex $j$ to vertex
-$j+1$. \Cref{fig:level1} shows this numbering for the level-$1$ supertiles.
+Thus a child and its parent are always oriented oppositely. Each supertile of level $m\ge1$ has a distinguished rim
+vertex $A$, its \emph{crossover corner}, defined recursively: for a level-$1$ supertile, $A$ is the vertex $v_0$ of the
+first tile of its Mystic; for a level-$(m+1)$ supertile, $A$ is the crossover corner of its $\Gamma$ child. (That this
+point lies on the rim is computed at level $1$ and follows from \cref{prop:pattern}(d) at higher levels.) The second corner $B$,
+adjacent to $A$, appears in \cref{thm:signature}; we call $A$ and $B$ the \emph{crossover corners}. The vertices of a
+level-$m$ supertile ($m\ge1$) are numbered $0,\dots,5$ in own order, starting with the first vertex at or after $A$; side
+$j$ runs from vertex $j$ to vertex $j+1$ (\cref{fig:level1}).
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\textwidth]{figs/level1.pdf}
+\newcommand{\lone}[1]{\includegraphics[viewport=#1,clip,width=0.18\textwidth]{figs/level1.pdf}}%
+\lone{4.0 330.2 136.0 471.2}\hfill\lone{155.2 330.2 287.2 471.2}\hfill\lone{306.4 330.2 438.4 471.2}\hfill\lone{4.0 171.8 136.0 312.8}\hfill\lone{155.2 171.8 287.2 312.8}\\[2pt]
+\hspace*{0.1\textwidth}\lone{306.4 171.8 438.4 312.8}\hfill\lone{4.0 13.4 136.0 154.4}\hfill\lone{155.2 13.4 287.2 154.4}\hfill\lone{306.4 13.4 438.4 154.4}\hspace*{0.1\textwidth}
 \caption{The nine level-$1$ supertiles, with true handedness. The Mystic is the darker pair of tiles. Grey numbers:
 the children (\cref{tab:children}); black dots: the six vertices; blue numbers: the sides, numbered clockwise (the own orientation at level~$1$); open circle: the
 crossover corner $A$, which is vertex~$0$ except for $\Sigma$; filled square: the corner $B$ (\cref{thm:signature}). For $\Sigma$, $A$ lies inside side~$5$.}
@@ -429,38 +366,35 @@ crossover corner $A$, which is vertex~$0$ except for $\Sigma$; filled square: th
 \end{figure}
 
 \subsection{The composition pattern}\label{sec:pattern}
-\Cref{thm:smkgs}(b) says that every level of the hierarchy is assembled in the same combinatorial way. We record this
-in our numbering.
+By \cref{thm:smkgs}(b), every level of the hierarchy is assembled in the same combinatorial way. We record this in our
+numbering.
 
 \begin{definition}[Composition pattern]\label{def:pattern}
-The \emph{composition pattern} $\Cpat$ consists of the following data for each parent kind $T$, given in
-\cref{tab:children,tab:sides,tab:psides} and drawn in \cref{fig:pattern}.
-\begin{enumerate}[label=(\roman*)]
-\item The kinds $K_0,\dots,K_{n_T-1}$ of the children (\cref{tab:children}).
-\item For each child $c$ and each side $j$ of $c$, either the sibling $c'$ and its side $j'$ that lie across side
-$j$, or the symbol $\rim$ if side $j$ lies on the parent's rim (\cref{tab:sides}).
-\item For each parent side $J$, the sequence of child sides $(c,j)$ that make up side $J$, in the parent's own order
-(\cref{tab:psides}).
-\end{enumerate}
+The \emph{composition pattern} gives, for each parent kind $T$, the kinds $K_0,\dots,K_{n_T-1}$ of the children
+(\cref{tab:children}); for each side of each child, the sibling's side across it, or $\rim$ if it lies on the parent's
+rim (\cref{tab:sides}); and for each side of the parent, the children's sides that make it up, in the parent's own order
+(\cref{tab:psides}). \Cref{fig:pattern} draws it.
 \end{definition}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figs/pattern.pdf}
-\caption{The composition pattern $\Cpat$ for $\Delta$ (left; the same for all kinds except $\Gamma$, with the children's
-kinds as in \cref{tab:children}) and for $\Gamma$ (right), in the layout of~\cite[Fig.~5.1]{SMKGS-spectre}. Each
-hexagon is a child: its kind, its number (grey), and its sides $0$--$5$ (blue). Thick black: the parent's rim; black
-dots: the parent's vertices; vermilion numbers: the parent's sides; circled: the parent's crossover corner, which is vertex~$0$ of
-the $\Gamma$ child. Children's sides are numbered in one rotational sense and the parent's in the other.}
+\includegraphics[width=0.66\textwidth]{figs/pattern.pdf}
+\caption{The composition pattern for $\Delta$ (left; the same for every kind but $\Gamma$, with the children's kinds
+of \cref{tab:children}) and for $\Gamma$ (right), in the layout of~\cite[Fig.~5.1]{SMKGS-spectre}. Each hexagon is a
+child: kind, number (grey), sides $0$--$5$ (blue). Thick black: the parent's rim; dots: its vertices; vermilion: its
+sides; circled: its crossover corner, vertex~$0$ of the $\Gamma$ child. Children's sides are numbered in one rotational
+sense, the parent's in the other.}
 \label{fig:pattern}
 \end{figure}
 
 \begin{table}[t]
 \centering\small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{c|cccccc}
+\setlength{\tabcolsep}{3.6pt}
+\begin{tabular}[t]{c|cccccc}
 \toprule
-child & side 0 & side 1 & side 2 & side 3 & side 4 & side 5\\
+\multicolumn{7}{c}{every parent kind except $\Gamma$}\\
+\midrule
+child & side 0 & 1 & 2 & 3 & 4 & 5\\
 \midrule
 0 & 7.1 & $\rim$ & $\rim$ & $\rim$ & $\rim$ & 1.1\\
 1 & 7.2 & 0.5 & $\rim$ & 2.0 & 3.0 & 4.0\\
@@ -472,9 +406,11 @@ child & side 0 & side 1 & side 2 & side 3 & side 4 & side 5\\
 7 & $\rim$ & 0.0 & 1.0 & 4.5 & 6.5 & $\rim$\\
 \bottomrule
 \end{tabular}\qquad
-\begin{tabular}{c|cccccc}
+\begin{tabular}[t]{c|cccccc}
 \toprule
-child & side 0 & side 1 & side 2 & side 3 & side 4 & side 5\\
+\multicolumn{7}{c}{parent kind $\Gamma$}\\
+\midrule
+child & side 0 & 1 & 2 & 3 & 4 & 5\\
 \midrule
 0 & 6.1 & $\rim$ & $\rim$ & $\rim$ & $\rim$ & 1.1\\
 1 & 6.2 & 0.5 & $\rim$ & $\rim$ & 2.0 & 3.0\\
@@ -486,8 +422,7 @@ child & side 0 & side 1 & side 2 & side 3 & side 4 & side 5\\
 \bottomrule
 \end{tabular}
 \caption{Adjacency of the children's sides: the entry $c'.j'$ in row $c$, column $j$ means that side $j$ of child $c$
-is side $j'$ of child $c'$; $\rim$ means that it lies on the parent's rim. Upper table: every parent kind except
-$\Gamma$. Lower table: $\Gamma$.}
+is side $j'$ of child $c'$; $\rim$ means that it lies on the parent's rim.}
 \label{tab:sides}
 \end{table}
 
@@ -556,61 +491,34 @@ lies inside side $5$ of $Y$ if $T=\Sigma$.
 \end{proposition}
 
 \begin{proof}[Justification]
-By \cref{thm:smkgs}(b), the level-$m$ supertiles inside $Y$ are combinatorially the hexagons of the corresponding
-panel of~\cite[Fig.~5.1]{SMKGS-spectre}: hexagon edges correspond to sides and hexagon vertices to vertices. We use
-the following dictionary between the labels of~\cite[Fig.~4.2]{SMKGS-spectre} and our side numbers:
+By \cref{thm:smkgs}(b), the level-$m$ supertiles inside $Y$ are combinatorially the hexagons of the panel $T$
+of~\cite[Fig.~5.1]{SMKGS-spectre}, with hexagon edges as sides and hexagon vertices as vertices. We use the dictionary
 \begin{itemize}[leftmargin=*]
 \item[($\ast$)] side $j$ of a level-$m$ supertile of kind $K$ carries the label of the edge of hexagon $K$ in direction
-W, SW, SE, E, NE, NW for $j=0,\dots,5$ respectively (\cref{tab:letters}); its crossover corner $A$ is vertex~$0$ if
-$K\neq\Sigma$; if $K=\Sigma$, $A$ is not a vertex, so it lies in the relative interior of side~$5$.
+W, SW, SE, E, NE, NW for $j=0,\dots,5$ (\cref{tab:letters}); its crossover corner $A$ is vertex~$0$ if $K\neq\Sigma$; if
+$K=\Sigma$, $A$ is not a vertex, and lies in the relative interior of side~$5$,
 \end{itemize}
-We show ($\ast$) by induction on $m$. For $m=1$ it is a computation on the level-$1$ supertiles, which have
-$E_1=44$ rim edges for $\Gamma$ and $46$ for the other kinds; their vertices lie at the rim positions, counted from
-$A$ in own order,
-\[
-\begin{array}{lll}
-\Gamma: 0,7,14,24,34,39 & \Delta: 0,10,15,23,30,40 & \Theta: 0,10,15,26,31,41\\
-\Lambda: 0,10,15,23,30,41 & \Xi: 0,7,15,26,31,41 & \Pi: 0,7,15,23,30,41\\
-\Sigma: 4,10,15,23,30,40 & \Phi: 0,10,15,23,31,41 & \Psi: 0,7,15,23,31,41.
-\end{array}
-\]
-Drawn with the edges in odd directions lengthened to $\sqrt3$, which turns the tiles into hats and
-turtles~\cite[\S3]{SMKGS-spectre}, and in the handedness of~\cite[Fig.~4.1]{SMKGS-spectre}, the nine level-$1$
-supertiles coincide with the nine marked clusters there: the same outlines, the vertices at the marked dots, and the
-labels of \cref{tab:letters} in the places where that figure has them; $A$ is the dot between the sides labelled W and NW
-(for $\Sigma$, a point of the NW side), on the light tile of the Mystic. A script checks this against a render of the
-figure (\cref{app:computations}): for each cluster it finds the six dots, fits our six vertices to them by a proper
-similarity with residual below $1\%$ of an edge (any other matching, or the vertices of any other kind, fits at least
-$40$ times worse), finds our whole rim on the printed outline and our first Mystic tile on the lighter shaded tile, and
-compares the labels, read from the figure by hand, with \cref{tab:letters}. Suppose ($\ast$) holds for the children of $Y$. The panel does not label the inner
-hexagons, but the matching rules fix the rotation of each of them, and there is exactly one consistent choice (it is
-found by the script of \cref{rem:patterncheck}). With this dictionary, \cref{tab:sides,tab:psides} are then a
-transcription of the panel of~\cite[Fig.~5.1]{SMKGS-spectre} for $T$, including its vertices (the six marked points
-on its outline); this gives (a)--(c). The crossover corner of $Y$ is that of its $\Gamma$ child, which is the child's
-vertex~$0$ by ($\ast$), and \cref{tab:psides} places this vertex at the start of the parent's side~$0$ if $T\neq\Sigma$
-and inside side~$5$ if $T=\Sigma$; this is (d). Finally, the labels that the panel assigns to the parent's sides,
-numbered from this point in the parent's own order, are those of \cref{tab:letters} for every $T$. So ($\ast$) holds
-for $Y$. In particular $A$ always lies on the rim.
+and show ($\ast$) by induction on $m$. For $m=1$ it is a computation on the level-$1$ supertiles, whose vertices and
+corner $A$ are marked in \cref{fig:level1}. Drawn with the edges in odd directions lengthened to $\sqrt3$, which turns the tiles into hats and
+turtles~\cite[\S3]{SMKGS-spectre}, and in the handedness of~\cite[Fig.~4.1]{SMKGS-spectre}, they coincide with the nine
+marked clusters there: the same outlines, the vertices at the marked dots, the labels of \cref{tab:letters} where that
+figure has them, and $A$ the dot between the sides labelled W and NW (for $\Sigma$, a point of the NW side), on the light
+tile of the Mystic (checked by a script; \cref{app:computations}). Suppose ($\ast$) holds for the children of $Y$. The
+panel does not label its inner hexagons, but the matching rules fix the rotation of each, and there is exactly one
+consistent choice (\cref{app:computations}). With it, \cref{tab:sides,tab:psides} transcribe the panel, including its six
+marked vertices; this gives (a)--(c). The crossover corner of $Y$ is that of its $\Gamma$ child, the child's vertex~$0$
+by ($\ast$), which \cref{tab:psides} places at the start of the parent's side~$0$ if $T\neq\Sigma$ and inside side~$5$ if
+$T=\Sigma$; this is (d). Finally, the labels that the panel assigns to the parent's sides, numbered from this point in
+the parent's own order, are those of \cref{tab:letters} for every $T$. So ($\ast$) holds for $Y$, and in particular $A$
+lies on the rim.
 \end{proof}
 
 \begin{remark}[Computer cross-checks of the pattern]\label{rem:patterncheck}
-Since \cref{tab:sides,tab:psides} carry the whole weight of the citation, we checked them in two independent ways.
-First, we built the actual supertiles of levels $1$ to $8$ with the key-point construction of~\cite[App.~A]{SMKGS-spectre}
-and extracted the pattern of each composition $m\to m+1$ for $m=1,\dots,7$. For $m\le4$ the vertices were found as the points where three level-$m$ supertiles meet, observed inside larger
-supertiles. For $m=5,\dots,8$ they were propagated by the rule of \cref{prop:pattern}(c), learnt at the observed level
-of the same parity; at levels $5$ and $6$ the propagated vertices agree with the observed ones (for $\Psi$, with the
-four of its six vertices that were observed). So for $m=6,7$ the rule (c) is an input of the extraction rather than
-something it tests. All seven extracted patterns are identical to each other and
-to \cref{tab:sides,tab:psides}; for $m\le3$ this was done in exact arithmetic (\cref{app:computations}). Second, the
-nine panels of~\cite[Fig.~5.1]{SMKGS-spectre} were encoded: kinds, positions and edge labels by hand, and the marked
-vertices (with the centre of each panel's $\Gamma$ hexagon) by a script from a render of the figure, which re-runs from
-the PDF. A script then confirmed, for all nine kinds, that the encoding agrees with \cref{tab:sides,tab:psides}, and
-that the side-to-label dictionary above is the same in all $71$ placements of a child. Two deliberately corrupted encodings (two outer labels
-exchanged; one wrong label in~\cite[Fig.~4.2]{SMKGS-spectre}) were rejected. We also checked that the tiles of every supertile of levels $1$ to $7$ (up to $2{,}147{,}679$ tiles) have
-disjoint interiors and exactly fill its rim.
+Since \cref{tab:sides,tab:psides} carry the whole weight of the citation, we also checked them on actual supertiles
+(evidence, not used in the proof): the patterns of the compositions $m\to m+1$, $m\le7$, extracted from them equal the
+tables, and Kaplan's implementation of the substitution~\cite{KaplanSpectrePage} gives \cref{tab:children} and the
+same supertiles, tile for tile, up to level~$4$.
 \end{remark}
-
-We shall use one consequence of \cref{thm:smkgs}(a) and \cref{prop:pattern} repeatedly.
 
 \begin{lemma}[Rigidity]\label{lem:rigid}
 Any two level-$m$ supertiles of the same kind, in possibly different homochiral tilings, are related by a rotation
@@ -619,19 +527,16 @@ to the tiles), and it is the only such motion. For $m\ge1$ it maps the six verti
 \end{lemma}
 
 \begin{proof}
-Induction on $m$. For $m=0$ this is clear, since the Mystic is a fixed pair of tiles without proper symmetry. For
-$m=1$, the level-$1$ supertiles of a homochiral tiling are congruent copies of the clusters of
-\cref{fig:level1}~\cite[Fig.~2.1, \S4]{SMKGS-spectre}, with their vertices at the points marked
-in~\cite[Fig.~4.1]{SMKGS-spectre}; the numbers of their children are those of the reference clusters of
-\cref{fig:level1}, and $A$ is fixed by the Mystic. Let $m\ge1$. By induction, the children of two level-$(m+1)$
-supertiles $Y,Y'$ of kind $T$ are pairwise related by unique proper motions $g_c$, which map the vertices of child $c$
-of $Y$ onto those of child $c$ of $Y'$ with their numbers. If side $j$ of child $c$ is glued to side $j'$ of child
-$c'$, then by \cref{prop:pattern}(b), applied to $Y$ and to $Y'$, vertices $j$ and $j+1$ of $c$ coincide with vertices
-$j'+1$ and $j'$ of $c'$, in $Y$ and in $Y'$. So $g_c$ and $g_{c'}$ agree on two distinct points; being proper motions,
-they are equal. The children's adjacency graph is connected, so all the $g_c$ are one motion $g$. By
-\cref{prop:pattern}(c),(d), the vertices and the corner $A$ of $Y$ are vertices and the corner $A$ of children, so $g$
-maps them, and hence the sides, onto those of $Y'$. Since $g$ agrees with each $g_c$, it maps descendants to
-descendants with their numbers. Any proper motion that does so maps the first tile of the Mystic at the bottom of the
+Induction on $m$. For $m=0$ this is clear, since a tile and a Mystic have no non-trivial proper symmetry. For $m=1$,
+the level-$1$ supertiles are congruent copies of the clusters of \cref{fig:level1}~\cite[Fig.~2.1, \S4]{SMKGS-spectre},
+with their vertices at the points marked in~\cite[Fig.~4.1]{SMKGS-spectre}, their children numbered as in
+\cref{fig:level1}, and $A$ fixed by the Mystic. Let $m\ge1$ and let $Y,Y'$ be level-$(m+1)$ supertiles of kind $T$. By
+induction, child $c$ of $Y$ is mapped onto child $c$ of $Y'$, with its numbered vertices, by a unique proper motion
+$g_c$. If side $j$ of child $c$ is glued to side $j'$ of child $c'$, then by \cref{prop:pattern}(b), in $Y$ and in $Y'$,
+vertices $j$ and $j+1$ of $c$ are vertices $j'+1$ and $j'$ of $c'$; so $g_c$ and $g_{c'}$ agree on two distinct points
+and are equal. The children's adjacency graph is connected, so all the $g_c$ are one motion $g$; it maps descendants to
+descendants with their numbers and, by \cref{prop:pattern}(c),(d), the vertices, sides and corner $A$ of $Y$ onto those
+of $Y'$. A proper motion that maps descendants to descendants maps the first tile of the Mystic at the bottom of the
 chain of last ($\Gamma$) children to its counterpart, so it equals $g$, since a tile has no symmetry.
 \end{proof}
 
@@ -661,179 +566,16 @@ The \emph{decoration} joins the $28$ ports of $\Tile$ in pairs by fourteen \emph
 Every tile of a homochiral tiling carries the image of this decoration.
 \end{definition}
 
-In our drawing the two crossover pieces cross exactly once, transversally, and this is the only crossing inside the
-tile (\cref{rem:overunder}). Each hook turns
-back round one vertex. \Cref{fig:tileports} shows the pieces and their ports, and \cref{fig:tile} the ribbons as drawn. The drawing uses cubic
-B\'ezier curves, with the crossing point of edge $e_i$ at distance $0.5+0.15(-1)^i$ from $v_i$. Only the pairing of
+Each hook turns back round one vertex; the two crossover pieces cross once inside the tile. Only the pairing of
 \cref{def:decoration} matters for the theorems; any drawing that realises it may be used.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.62\textwidth]{figs/tileports.pdf}
-\caption{The decoration on the true geometry (centre lines of the ribbons of \cref{fig:tile}). Each edge carries one
-crossing point (dot), at which two pieces of the tile end: one leaves towards each end of the edge. On $e_i$ these two
-ends are the ports $\Rp(v_i)$ (towards $v_i$) and $\Lp(v_{i+1})$ (towards $v_{i+1}$); the labels show them round the
-crossover corners. Green: the twelve hooks $\Lp(v_i)\leftrightarrow\Rp(v_i)$. Vermilion:
-$\Rp(v_0)\leftrightarrow\Rp(v_1)$; blue: $\Lp(v_0)\leftrightarrow\Lp(v_1)$, the crossover at the corners $A=v_0$ and
-$B=v_1$.}
-\label{fig:tileports}
-\end{figure}
-
-\subsection{The straight-through rule}
-Let $\T$ be a homochiral tiling, and let $e$ be an edge shared by tiles $t$ and $t'$, with endpoints $x$ and $y$.
-
-\begin{definition}[Straight-through rule]\label{def:rule}
-The port of $t$ on $e$ near $x$ is \emph{joined} to the port of $t'$ on $e$ near $y$, and the port of $t$ near $y$ to
-the port of $t'$ near $x$.
-\end{definition}
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[scale=1.2]
-\fill[tilefill] (-2,0) rectangle (2,1.1); \fill[tilefill!70!white] (-2,0) rectangle (2,-1.1);
-\draw[thick] (-2,0)--(2,0); \fill (-2,0) circle (1.2pt) node[left] {$x$}; \fill (2,0) circle (1.2pt) node[right] {$y$};
-\node at (-1.5,0.8) {$t$}; \node at (-1.5,-0.8) {$t'$};
-\draw[ribedge,line width=2.2pt] (-0.9,0.9)--(0.9,-0.9); \draw[ribfill,line width=1.2pt] (-0.9,0.9)--(0.9,-0.9);
-\draw[ribedge,line width=2.2pt] (0.9,0.9)--(-0.9,-0.9); \draw[ribfill,line width=1.2pt] (0.9,0.9)--(-0.9,-0.9);
-\node[font=\scriptsize,align=center] at (-1.05,1.25) {$t$ near $x$}; \node[font=\scriptsize] at (1.05,1.25) {$t$ near $y$};
-\node[font=\scriptsize] at (-1.05,-1.25) {$t'$ near $x$}; \node[font=\scriptsize] at (1.05,-1.25) {$t'$ near $y$};
-\end{tikzpicture}
-\caption{The straight-through rule at the crossing point of an edge $xy$: the end of $t$ heading towards $x$ continues
-as the end of $t'$ heading towards $y$.}
-\label{fig:rule}
-\end{figure}
-
-This is what a ribbon does when it continues straight through the crossing point (\cref{fig:rule}). In the drawing
-the two tiles' crossing points on $e$ coincide. The reason is that tiles in a homochiral tiling traverse a shared edge
-in opposite directions, and an edge $e_i$ of one tile is always glued to an edge $e_j$ of the other with $i+j$ odd;
-this follows from the vertex colouring of~\cite[proof of Lemma~2.1]{SMKGS-spectre}: the interior angles of $\Tile$
-alternate between multiples of $90^\circ$ and of $120^\circ$, and these classes must agree where vertices meet. As
-$v_i$ of one tile meets $v_{j+1}$ of the other, $i$ and $j+1$ have the same parity. We verified it on all supertiles up to level~$4$.
-We also checked that the drawn ribbons realise the pairing on all supertiles up to level~$3$
-(\cref{app:computations}). The proofs use only \cref{def:decoration,def:rule}.
-
-\subsection{Strands}
-\begin{definition}[Strand graph]\label{def:strandgraph}
-Let $\T$ be a homochiral tiling. The \emph{strand graph} $\G(\T)$ is the multigraph with one vertex for each piece of
-each tile and one edge for each pair of ports joined by the straight-through rule, between the two pieces having
-these ports as ends. A \emph{strand} is a connected component of $\G(\T)$; a strand is \emph{closed} if it is finite.
-\end{definition}
-
-\begin{lemma}\label{lem:degree2}
-Every vertex of $\G(\T)$ has degree $2$. Hence every strand is either a finite cycle (a closed strand) or a two-way
-infinite path.
-\end{lemma}
-
-\begin{proof}
-A piece has two ends, each a port of its tile on some edge $e$. In a tiling of the plane, $e$ is shared by exactly one
-other tile, so each end is joined to exactly one port, an end of a piece of that neighbour. So every vertex has degree exactly $2$;
-joins always link pieces of different tiles, so $\G(\T)$ has no loops. A connected, locally finite
-multigraph with all degrees $2$ is a finite cycle (possibly of length $2$) or a two-way infinite path.
-\end{proof}
-
-\begin{remark}[A single strand needs a non-periodic tiling]\label{rem:periodic}
-Let $\T'$ be any edge-to-edge tiling of the plane by compact decorated tiles (not necessarily copies of $\Tile$),
-each carrying at least one piece, with one crossing point on each edge, and with strands defined as above by the
-straight-through rule. Suppose that $\T'$, decoration
-included, is invariant under a translation $\tau\ne0$, and that its strand graph is a single two-way infinite path,
-with vertices $x\in\ZZ$. Then $\tau$ acts on the path by a graph automorphism, and freely, since a non-zero translation
-moves every tile. An automorphism of the path is $x\mapsto x+k$ or $x\mapsto c-x$. A reflection $x\mapsto c-x$
-satisfies $\tau^2=\mathrm{id}$ on the path, but $\tau^2$ is again a non-zero translation and fixes no piece; so $\tau$
-is $x\mapsto x+k$ with $k\ne0$, and the pieces fall into $|k|$ orbits under $\langle\tau\rangle$. But the tiles fall
-into infinitely many orbits: the images of one tile from each orbit cover the cylinder $\RR^2/\langle\tau\rangle$,
-which has infinite area. Since every tile has a piece, the pieces also fall into infinitely many orbits. This contradiction shows that the ribbons of a decorated tiling with a translational
-symmetry never form a single strand. Every tiling by $\Tile$ of one handedness is
-non-periodic~\cite[Thm.~2.2]{SMKGS-spectre}, so this obstruction does not arise there.
-\end{remark}
-
-\begin{remark}[Over and under]\label{rem:overunder}
-Draw the pieces of every tile as in \cref{fig:tile}. We checked numerically that each piece stays inside its tile away
-from its ends, that the two crossover pieces cross exactly once, transversally (at about $90^\circ$), and that no other two pieces of a
-tile meet except at their common ends on the edges; and that at each crossing point the two pieces of a tile meet the
-edge at $\pm45^\circ$ (\cref{app:computations}). So a ribbon
-continues smoothly across an edge, and the curves in the plane cross only transversally, in pairs: once inside each
-tile and at right angles at each edge. Colour each region of the complement of the curves by the parity of the number
-of crossings of a generic path from a fixed region. This is well defined: the parity of the number of crossings of a
-generic closed loop does not change when the loop is moved across an arc of the curves, or across a crossing point,
-where four arcs meet; and every closed loop in the plane can be shrunk to a point. Adjacent regions get different
-colours. The usual checkerboard rule then makes over and under alternate along every strand~\cite{CromwellKnots}. With
-such a choice the single strand of \cref{thm:B} becomes an alternating diagram of a line, as in Celtic knotwork. None
-of this affects which pieces lie on which strand.
-\end{remark}
-
-% ---------------------------------------------------------------------------------------------------------
-\section{Boxes and the signature}\label{sec:boxes}
-
-\subsection{Patches and boxes}
-A \emph{patch} is a finite set $P$ of tiles of a homochiral tiling whose union is a closed disc with a simple polygonal
-boundary, the \emph{rim} $\rim P$. Every supertile of level $\ge1$ is a patch (\cref{thm:smkgs}), and so are a tile and a Mystic (whose two tiles
-share four consecutive edges, $e_6,\dots,e_9$ of the first tile; its rim has $20$ edges). Every rim edge
-belongs to exactly one tile of $P$. Let $E=E(P)$ be the number of rim edges, and number the rim vertices
-$u_0,\dots,u_{E-1}$ in a chosen orientation of the rim, indices mod $E$. For a supertile we always use its own
-orientation (\cref{def:own}). For a rim vertex $u_k$ define the \emph{rim ports}
-\[
-\Rp(u_k)=\text{the port on } u_ku_{k+1} \text{ near } u_k,\qquad \Lp(u_k)=\text{the port on } u_{k-1}u_k \text{ near } u_k,
-\]
-where the port belongs to the tile of $P$ containing that edge. There are $2E$ rim ports. For the tile itself, with
-its counter-clockwise orientation, these are the ports $\Rp(v_i),\Lp(v_i)$ of \cref{sec:decoration}. Reversing the
-orientation exchanges $\Rp$ and $\Lp$ at every vertex.
-
-\begin{lemma}[The box of a patch]\label{lem:box}
-Start at a rim port of $P$ and follow the pieces of the tiles of $P$, crossing every interior edge of $P$ by the
-straight-through rule. The path ends at a different rim port. This defines an involution $\pi_P$ on the rim ports
-without fixed points. The pieces of $P$ that are not reached from any rim port form finitely many cycles, the
-\emph{closed strands of $P$}; write $\kappa(P)$ for their number.
-\end{lemma}
-
-\begin{proof}
-The pieces of $P$ and the joins across interior edges form a finite graph in which every piece has degree $2$, except
-that a piece end at a rim port has no partner. Its components are therefore paths, whose two ends are rim ports, and
-cycles. Paths have two distinct ends.
-\end{proof}
-
-We call the paths of \cref{lem:box} the \emph{arcs} of $P$; there are exactly $E$ of them. The triple $(\rim P,\pi_P,\kappa(P))$ is the \emph{box} of $P$. Everything we need about the inside of $P$ is in its box, as the next
-lemma shows.
-
-\begin{lemma}[Gluing]\label{lem:gluing}
-Let a patch $P$ be the union of patches $P_1,\dots,P_n$ with pairwise disjoint interiors. Then the box of $P$ is
-determined by the boxes of the $P_i$ together with the identification of their shared rim edges. More precisely,
-$\pi_P$ is computed by alternately applying the $\pi_{P_i}$ and the straight-through rule across shared edges, until a
-rim port of $P$ is reached. The closed strands of $P$ are those of the $P_i$ together with the cycles of this
-alternation that contain no rim port of $P$.
-\end{lemma}
-
-\begin{proof}
-Every arc or closed strand of $P$ (\cref{lem:box}) is a concatenation of arcs and closed strands of the $P_i$, joined
-across edges shared by two of the $P_i$.
-\end{proof}
-
-\subsection{The signature}
-\begin{definition}[Signature]\label{def:signature}
-Let $A$ and $B$ be adjacent rim vertices of a patch $P$. We say that $P$ has the \emph{signature at $(A,B)$} if
-\begin{enumerate}[label=(\roman*)]
-\item $\pi_P(\Lp(u))=\Rp(u)$ for every rim vertex $u\notin\{A,B\}$ (a \emph{hook} at $u$);
-\item $\pi_P(\Rp(A))=\Rp(B)$ and $\pi_P(\Lp(A))=\Lp(B)$ (the \emph{crossover});
-\item $\kappa(P)=0$.
-\end{enumerate}
-\end{definition}
-
-The definition is symmetric in $A$ and $B$ and does not depend on the orientation of the rim, since reversing it
-exchanges $\Lp$ and $\Rp$. A patch with the signature has $E-2$ hook arcs, one at each rim vertex other than
-$A$ and $B$, and two crossover arcs. \Cref{fig:signature} is a picture. By \cref{def:decoration}:
-
-\begin{lemma}\label{lem:tilesig}
-A tile has the signature at $(v_0,v_1)$, and a Mystic has the signature at the vertices $v_0,v_1$ of its first tile.
-\end{lemma}
-
-\begin{proof}
-For the tile this is \cref{def:decoration}. For the Mystic it is a finite computation with \cref{lem:gluing}:
-there is no closed strand, the $18$ rim vertices other than these two are hooks, and the crossover persists
-(\cref{app:computations}).
-\end{proof}
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[scale=1.25]
+\begin{minipage}[c]{0.47\textwidth}\centering
+\includegraphics[width=\textwidth]{figs/tileports.pdf}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.42\textwidth}\centering
+\begin{tikzpicture}[scale=0.78]
 \def\n{14}
 \fill[tilefill] (0,0) circle (2);
 \draw[thick] (0,0) circle (2);
@@ -854,35 +596,138 @@ there is no closed strand, the $18$ rim vertices other than these two are hooks,
 \draw[oiverm,line width=1.3pt] (RA) .. controls (80:1.0) and (55:1.2) .. (RB);
 \draw[oiblue,line width=1.3pt] (LA) .. controls (95:1.2) and (70:1.0) .. (LB);
 \node at (90:2.3) {$A$}; \node at ({90-360/14}:2.3) {$B$};
-\node[font=\scriptsize,oiverm] at ({\aA-360/14*0.3+3}:2.62) {$\Rp(A)$};
-\node[font=\scriptsize,oiblue] at ({\aB+360/14*0.3-6}:2.62) {$\Lp(B)$};
-\node[font=\scriptsize,oiblue] at ({\aA+360/14*0.3+6}:2.55) {$\Lp(A)$};
-\node[font=\scriptsize,oiverm] at ({\aB-360/14*0.3-3}:2.6) {$\Rp(B)$};
+\node[font=\scriptsize,oiblue] at (110:2.95) {$\Lp(A)$};
+\node[font=\scriptsize,oiverm] at (89:3.0) {$\Rp(A)$};
+\node[font=\scriptsize,oiblue] at (69:3.0) {$\Lp(B)$};
+\node[font=\scriptsize,oiverm] at (48:2.95) {$\Rp(B)$};
 \end{tikzpicture}
-\caption{The signature at $(A,B)$, drawn for a rim with $14$ vertices oriented clockwise: a hook at every rim vertex
-except $A$ and $B$, and the two crossover arcs $\Rp(A)\leftrightarrow\Rp(B)$ and $\Lp(A)\leftrightarrow\Lp(B)$.}
-\label{fig:signature}
+\end{minipage}
+\caption{Left: the decoration (centre lines of the ribbons of \cref{fig:tile}). Each edge carries one crossing point
+(dot); on $e_i$ the two pieces ending there leave from the ports $\Rp(v_i)$ (towards $v_i$) and $\Lp(v_{i+1})$ (towards
+$v_{i+1}$). Green: the twelve hooks $\Lp(v_i)\leftrightarrow\Rp(v_i)$; vermilion $\Rp(v_0)\leftrightarrow\Rp(v_1)$ and
+blue $\Lp(v_0)\leftrightarrow\Lp(v_1)$: the crossover at $A=v_0$, $B=v_1$. Right: the \emph{signature} at $(A,B)$
+(\cref{def:signature}) on a rim of $14$ vertices oriented clockwise: a hook at every rim vertex but $A$ and $B$, and the
+crossover arcs $\Rp(A)\leftrightarrow\Rp(B)$, $\Lp(A)\leftrightarrow\Lp(B)$. The tile has it (\cref{lem:tilesig}); so
+does every supertile of level $m\ge1$, seen as a black box (\cref{thm:signature}).}
+\label{fig:tileports}\label{fig:signature}
 \end{figure}
 
+\subsection{The straight-through rule}
+Let $\T$ be a homochiral tiling, and let $e$ be an edge shared by tiles $t$ and $t'$, with endpoints $x$ and $y$.
+
+\begin{definition}[Straight-through rule]\label{def:rule}
+The port of $t$ on $e$ near $x$ is \emph{joined} to the port of $t'$ on $e$ near $y$, and the port of $t$ near $y$ to
+the port of $t'$ near $x$.
+\end{definition}
+
+This is what a ribbon does when it continues straight through the crossing point. In our drawing the crossing point of
+$e_i$ is at distance $0.5+0.15(-1)^i$ from $v_i$, so the two tiles' crossing points on $e$ coincide: $e_i$ is always
+glued to some $e_j$ with $i+j$ odd, by the vertex colouring of~\cite[proof of Lemma~2.1]{SMKGS-spectre}. The proofs use only
+\cref{def:decoration,def:rule}.
+
+\subsection{Strands}\label{sec:strands}
+\begin{definition}[Strand graph]\label{def:strandgraph}
+Let $\T$ be a homochiral tiling. The \emph{strand graph} $\G(\T)$ is the multigraph with one vertex for each piece of
+each tile and one edge for each pair of ports joined by the straight-through rule, between the two pieces having
+these ports as ends. A \emph{strand} is a connected component of $\G(\T)$; a strand is \emph{closed} if it is finite.
+\end{definition}
+
+\begin{lemma}\label{lem:degree2}
+Every vertex of $\G(\T)$ has degree $2$. Hence every strand is either a finite cycle (a closed strand) or a two-way
+infinite path.
+\end{lemma}
+
+\begin{proof}
+A piece has two ends, each a port of its tile on some edge $e$. In a tiling of the plane, $e$ is shared by exactly one
+other tile, so each end is joined to exactly one port, an end of a piece of that neighbour. So every vertex has degree exactly $2$;
+joins always link pieces of different tiles, so $\G(\T)$ has no loops. A connected, locally finite
+multigraph with all degrees $2$ is a finite cycle (possibly of length $2$) or a two-way infinite path.
+\end{proof}
+
+Equivalently, in a tiling of the plane the ends of the pieces and the straight-through rule pair the ports of all the
+tiles by two involutions without fixed points, and the ports of a strand form an orbit of the group they generate. This
+is how the formalisation describes strands.
+
 % ---------------------------------------------------------------------------------------------------------
-\section{The Zigzag Lemma and the skeleton}\label{sec:reduce}
+\section{Boxes and the signature}\label{sec:boxes}
 
-This section studies how the ribbons of glued boxes join. \Cref{sec:zigzag} proves the Zigzag Lemma, on which the
-proofs in \cref{sec:induction,sec:strand} rest. \Cref{sec:skeleton} condenses a composition to its \emph{skeleton} and
-follows ribbons on it (\cref{prop:reduce}); the Lean formalisation uses \cref{prop:reduce}, and the second routes of
-\cref{rem:skeleton,rem:labels} use the skeleton.
+\subsection{Patches and boxes}
+A \emph{patch} is a finite set $P$ of tiles of a homochiral tiling whose union is a closed disc with a simple polygonal
+boundary, the \emph{rim} $\rim P$. Every supertile of level $\ge1$ is a patch (\cref{thm:smkgs}), and so is a tile.
+Every rim edge belongs to exactly one tile of $P$. Let $E=E(P)$ be the number of rim edges, and number the rim vertices
+$u_0,\dots,u_{E-1}$ in a chosen orientation of the rim, indices mod $E$; for a supertile we always use its own
+orientation. For a rim vertex $u_k$ define the \emph{rim ports}
+\[
+\Rp(u_k)=\text{the port on } u_ku_{k+1} \text{ near } u_k,\qquad \Lp(u_k)=\text{the port on } u_{k-1}u_k \text{ near } u_k,
+\]
+where the port belongs to the tile of $P$ containing that edge. There are $2E$ rim ports. For the tile itself, with
+its counter-clockwise orientation, these are the ports $\Rp(v_i),\Lp(v_i)$ of \cref{sec:decoration}. Reversing the
+orientation exchanges $\Rp$ and $\Lp$ at every vertex.
 
-Throughout this section a patch $P$ is the union of patches (\emph{children}) $X_0,\dots,X_{n-1}$ with disjoint
-interiors, all of them oriented in the same rotational sense, and $P$ is oriented in that sense too. Each child $X_c$
-has the signature at $(A_c,B_c)$. When $P$ is a supertile and the $X_c$ are its children, the children carry their
-own orientation, so $P$ is oriented opposite to its own orientation. This does not matter for the signature, which
-does not depend on the orientation (\cref{sec:boxes}); but it does exchange $\Lp$ and $\Rp$ at the parent's rim
-vertices.
+\begin{lemma}[The box of a patch]\label{lem:box}
+Start at a rim port of $P$ and follow the pieces of the tiles of $P$, crossing every interior edge of $P$ by the
+straight-through rule. The path ends at a different rim port. This defines an involution $\pi_P$ on the rim ports
+without fixed points. The pieces of $P$ that are not reached from any rim port form finitely many cycles, the
+\emph{closed strands of $P$}.
+\end{lemma}
 
-\subsection{Runs and the Zigzag Lemma}\label{sec:zigzag}
-Two children $c\neq c'$ oriented in the same sense traverse a common rim path in opposite directions. For a rim vertex
-$u$ of $X_c$ we write $\Rp_c(u),\Lp_c(u)$ for the rim ports of $X_c$ in the common orientation fixed above (for
-supertiles, their own orientation).
+\begin{proof}
+The pieces of $P$ and the joins across interior edges form a finite graph in which every piece has degree $2$, except
+that a piece end at a rim port has no partner. Its components are therefore paths, whose two ends are rim ports, and
+cycles. Paths have two distinct ends.
+\end{proof}
+
+We call the paths of \cref{lem:box} the \emph{arcs} of $P$; there are exactly $E$ of them. The rim of $P$ with the
+pairing $\pi_P$ is the \emph{box} of $P$. Everything we need about the inside of $P$ is in its box, together with
+whether $P$ has a closed strand:
+
+\begin{lemma}[Gluing]\label{lem:gluing}
+Let a patch $P$ be the union of patches $P_1,\dots,P_n$ with pairwise disjoint interiors. Then the box of $P$ is
+determined by the boxes of the $P_i$ together with the identification of their shared rim edges. More precisely,
+$\pi_P$ is computed by alternately applying the $\pi_{P_i}$ and the straight-through rule across shared edges, until a
+rim port of $P$ is reached. The closed strands of $P$ are those of the $P_i$ together with the cycles of this
+alternation that contain no rim port of $P$.
+\end{lemma}
+
+\begin{proof}
+Every arc or closed strand of $P$ (\cref{lem:box}) is a concatenation of arcs and closed strands of the $P_i$, joined
+across edges shared by two of the $P_i$.
+\end{proof}
+
+We use \cref{lem:gluing} in two ways: to define the box of a composition, glued from boxes alone (\cref{sec:comp}), and
+to compute the box of a supertile from those of its children.
+
+\subsection{The signature}
+\begin{definition}[Signature]\label{def:signature}
+Let $A$ and $B$ be adjacent rim vertices of a patch $P$. We say that $P$ has the \emph{signature at $(A,B)$} if
+\begin{enumerate}[label=(\roman*)]
+\item $\pi_P(\Lp(u))=\Rp(u)$ for every rim vertex $u\notin\{A,B\}$ (a \emph{hook} at $u$);
+\item $\pi_P(\Rp(A))=\Rp(B)$ and $\pi_P(\Lp(A))=\Lp(B)$ (the \emph{crossover});
+\item $P$ has no closed strand: the ribbon followed from any port of $P$ reaches the rim.
+\end{enumerate}
+\end{definition}
+
+The definition is symmetric in $A$ and $B$ and does not depend on the orientation of the rim, since reversing it
+exchanges $\Lp$ and $\Rp$. A patch with the signature has $E-2$ hook arcs, one at each rim vertex other than
+$A$ and $B$, and two crossover arcs. \Cref{fig:signature} is a picture.
+
+\begin{lemma}\label{lem:tilesig}
+A tile has the signature at $(v_0,v_1)$.
+\end{lemma}
+
+\begin{proof}
+A tile has no interior edge, so $\pi$ is the pairing of \cref{def:decoration}, and every piece has both ends on the rim.
+\end{proof}
+
+
+% ---------------------------------------------------------------------------------------------------------
+\section{The Zigzag Lemma}\label{sec:reduce}
+
+In this section a patch $P$ is the union of patches (\emph{children}) $X_0,\dots,X_{n-1}$ with disjoint interiors, each
+$X_c$ having the signature at some $(A_c,B_c)$. All are oriented in the same rotational sense, so two children traverse
+a common rim path in opposite directions; $\Rp_c(u),\Lp_c(u)$ are the rim ports of $X_c$ at $u$ in this orientation.
+(For a supertile and its children in their own orientation, $P$ is oriented opposite to its own orientation, which
+exchanges $\Lp$ and $\Rp$ at the parent's rim vertices but does not affect the signature.)
 
 \begin{lemma}[Zigzag Lemma]\label{lem:zigzag}
 Let $u_0u_1\cdots u_n$ ($n\ge1$) be a path of $n$ edges lying on the rims of both $X_c$ and $X_{c'}$, traversed by $X_c$
@@ -893,36 +738,32 @@ $X_{c'}$ at $u_1,\dots,u_{n-1}$, the ports at the two ends of the path are joine
 n \text{ even:}\quad & \Rp_c(u_0)\leftrightarrow \Lp_c(u_n), && \Rp_{c'}(u_n)\leftrightarrow \Lp_{c'}(u_0);\\
 n \text{ odd:}\quad & \Rp_c(u_0)\leftrightarrow \Rp_{c'}(u_n), && \Lp_c(u_n)\leftrightarrow \Lp_{c'}(u_0).
 \end{align*}
-These two connections use every port on the edges of the path, so no closed strand lies along the path. Moreover, for
-$0<k<n$, the hook of $X_c$ at $u_k$ lies on the connection through $\Rp_c(u_0)$ if $k$ is even. If $k$ is odd, it lies on
-the connection through $\Lp_c(u_n)$ when $n$ is odd, and on the connection through $\Rp_{c'}(u_n)$ when $n$ is even.
+These two connections use every port on the edges of the path, so no closed strand lies along the path.
 \end{lemma}
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[scale=1.0]
-\begin{scope}
-\fill[tilefill] (0,0) rectangle (4,0.9); \fill[tilefill!65!white] (0,0) rectangle (4,-0.9);
-\draw[thick] (0,0)--(4,0);
-\foreach \k in {0,...,4} { \fill (\k,0) circle (1.3pt); \node[font=\scriptsize] at (\k,-1.1) {$u_{\k}$}; }
-\node at (-0.35,0.5) {$X_c$}; \node at (-0.35,-0.5) {$X_{c'}$};
-% the two connections: quarter sine waves (cos/sin path operations), so the curves are smooth throughout
-\draw[oiorange,line width=1.4pt] (0,0.42) cos (0.5,0) sin (1,-0.42) cos (1.5,0) sin (2,0.42) cos (2.5,0) sin (3,-0.42) cos (3.5,0) sin (4,0.42);
-\draw[oiblue,line width=1.4pt] (0,-0.42) cos (0.5,0) sin (1,0.42) cos (1.5,0) sin (2,-0.42) cos (2.5,0) sin (3,0.42) cos (3.5,0) sin (4,-0.42);
-\node[font=\small] at (2,1.25) {$n=4$};
-\end{scope}
-\begin{scope}[xshift=6cm]
-\fill[tilefill] (0,0) rectangle (3,0.9); \fill[tilefill!65!white] (0,0) rectangle (3,-0.9);
-\draw[thick] (0,0)--(3,0);
-\foreach \k in {0,...,3} { \fill (\k,0) circle (1.3pt); \node[font=\scriptsize] at (\k,-1.1) {$u_{\k}$}; }
-\draw[oiorange,line width=1.4pt] (0,0.42) cos (0.5,0) sin (1,-0.42) cos (1.5,0) sin (2,0.42) cos (2.5,0) sin (3,-0.42);
-\draw[oiblue,line width=1.4pt] (0,-0.42) cos (0.5,0) sin (1,0.42) cos (1.5,0) sin (2,-0.42) cos (2.5,0) sin (3,0.42);
-\node[font=\small] at (1.5,1.25) {$n=3$};
-\end{scope}
+\newcommand{\zz}[3]{% #1 = n, #2 = x offset, #3 = label
+\begin{scope}[xshift=#2cm]
+\fill[tilefill] (0,0) rectangle (#1,0.75); \fill[tilefill!65!white] (0,0) rectangle (#1,-0.75);
+\draw[thick] (0,0)--(#1,0);
+\foreach \k in {0,...,#1} { \fill (\k,0) circle (1.2pt); }
+\node[font=\scriptsize] at (0,-0.95) {$u_0$}; \node[font=\scriptsize] at (#1,-0.95) {$u_{#1}$};
+\draw[oiorange,line width=1.3pt] (0,0.36) \foreach \k in {1,...,#1} { cos ({\k-0.5},0) sin (\k,{0.36*(-1)^\k}) };
+\draw[oiblue,line width=1.3pt] (0,-0.36) \foreach \k in {1,...,#1} { cos ({\k-0.5},0) sin (\k,{-0.36*(-1)^\k}) };
+\node[font=\small] at ({#1/2},1.0) {#3};
+\end{scope}}
+\begin{tikzpicture}[scale=0.72]
+\node[font=\small] at (-0.55,0.4) {$X_c$}; \node[font=\small] at (-0.55,-0.4) {$X_{c'}$};
+\zz{1}{0}{$n=1$}
+\zz{3}{1.8}{$n=3$}
+\zz{2}{6.1}{$n=2$}
+\zz{4}{8.9}{$n=4$}
 \end{tikzpicture}
 \caption{The Zigzag Lemma. Along a shared path whose interior corners are hooks on both sides, the ribbons cross the
-path at every edge and turn back at every corner, alternately in $X_c$ (above) and $X_{c'}$ (below). For even $n$
-each connection returns to the side it started from; for odd $n$ it ends on the other side.}
+path at every edge and turn back at every corner, alternately in $X_c$ (above) and $X_{c'}$ (below). For odd $n$ each
+connection ends on the other side; for even $n$ it returns to the side it started from. Only the parity of $n$ matters,
+so lengthening a shared path by two edges changes nothing (\cref{lem:lengthen}).}
 \label{fig:zigzag}
 \end{figure}
 
@@ -940,105 +781,14 @@ hooks. Each connection crosses each of the $n$ edges once, using two of its four
 different ports, so together they use all of them.
 \end{proof}
 
-\subsection{Marks, runs and the skeleton}\label{sec:skeleton}
-\begin{definition}[Marks and runs]\label{def:marks}
-A \emph{mark} is a point that is a rim vertex of some child and is either
-\begin{enumerate}[label=(\roman*)]
-\item a \emph{junction}: a rim vertex of a child $X_c$ at which the two rim edges of $X_c$ have different neighbours,
-where a neighbour is a sibling or ``outside $P$''; or
-\item one of the crossover corners $A_c$, $B_c$ of some child.
-\end{enumerate}
-A \emph{run} of $X_c$ is a path along the rim of $X_c$ between two consecutive marks lying on that rim. (The corners $A_c\neq B_c$ are marks on the rim of $X_c$, so runs are arcs with distinct ends.)
-\end{definition}
-
-Along a run the neighbour of $X_c$ does not change. So a run either lies on the rim of $P$ (a \emph{rim run}) or is
-shared with exactly one sibling $X_{c'}$ (an \emph{interior run}). In the second case it is also a run of $X_{c'}$, its
-\emph{partner}, traversed in the opposite direction, because marks are points and the same marks bound it on both
-sides. At an interior vertex $u$ of an interior run, $X_c$ and $X_{c'}$ share both edges at $u$, so the full angle at $u$
-is filled by these two children and no third child touches $u$. Since crossover corners are marks, the Zigzag Lemma
-applies to every interior run.
-
-\begin{definition}[Skeleton]\label{def:skeleton}
-The \emph{skeleton} $\Sk$ of the composition $P=\bigcup X_c$ consists of the following data: the children and their
-kinds; for each child, the cyclic sequence of its marks and runs, and which of its marks are $A_c$ and $B_c$; for each
-interior run, its partner run and the parity of its length; the cyclic order of the rim runs round $\rim P$.
-\end{definition}
-
-Two skeletons of compositions with the same children (by number and kind) are \emph{equal} if there is a bijection of
-their marks that preserves, for each child, the cyclic order of its marks and the labels $A_c,B_c$, and preserves
-partner runs, the parities of interior runs and the cyclic order of the rim runs. The maps $\tau$ and $\sigma$ and the
-parent ports below are defined from these data alone, so such a bijection carries them, and hence the conclusions of
-\cref{prop:reduce}, from one composition to the other.
-
-The \emph{reduced ports} are the ports $\Rp_c(u)$ and $\Lp_c(u)$ for every child $c$ and every mark $u$ on its rim. The
-port $\Rp_c(u)$ lies on the run of $X_c$ that starts at $u$, and $\Lp_c(u)$ on the run that ends at $u$. Define two
-involutions on reduced ports.
-\begin{itemize}[leftmargin=*]
-\item \emph{Inside a child}: $\tau(\Lp_c(u))=\Rp_c(u)$ if $u\notin\{A_c,B_c\}$; $\tau(\Rp_c(A_c))=\Rp_c(B_c)$ and
-$\tau(\Lp_c(A_c))=\Lp_c(B_c)$.
-\item \emph{Across an interior run} from $u$ to $u'$ of $X_c$, of length $n$, with partner in $X_{c'}$: if $n$ is
-even, $\sigma(\Rp_c(u))=\Lp_c(u')$ and $\sigma(\Rp_{c'}(u'))=\Lp_{c'}(u)$; if $n$ is odd, $\sigma(\Rp_c(u))=\Rp_{c'}(u')$
-and $\sigma(\Lp_c(u'))=\Lp_{c'}(u)$.
-\end{itemize}
-Both $\tau$ and $\sigma$ are determined by $\Sk$. The \emph{parent ports} are the reduced ports on rim runs. They are
-exactly the rim ports $\Rp(u),\Lp(u)$ of $P$ at the rim vertices $u$ of $P$ that are marks (the \emph{parent marks}),
-since $X_c$ and $P$ induce the same orientation on a rim run.
-
-\begin{proposition}[Reduced composition]\label{prop:reduce}
-Let $P=\bigcup X_c$, with every child having the signature. Then:
-\begin{enumerate}[label=\textup{(\alph*)}]
-\item every rim vertex of $P$ that is not a mark is a hook of $P$;
-\item for every reduced port $p$, the ribbon of $P$ followed from $p$ (first through its child) reaches the rim of
-$P$ at the first parent port among $\tau(p),\ \tau\sigma\tau(p),\ \tau\sigma\tau\sigma\tau(p),\dots$, if there
-is one (the ports $\sigma\tau(p),\dots$ in between lie on interior runs); for a parent port $p$ this is $\pi_P(p)$;
-\item $\kappa(P)$ is the number of cycles of the alternation of $\sigma$ and $\tau$ (none contains a parent port,
-since $\sigma$ is not defined there).
-\end{enumerate}
-In particular, $\pi_P$ at the parent marks and $\kappa(P)$ are determined by the skeleton.
-\end{proposition}
-
-\begin{proof}
-(a) Let $u$ be a rim vertex of $P$ that is not a mark. The rim edge of $P$ after $u$ lies in some $X_c$; if the
-other rim edge of $X_c$ at $u$ were shared with a sibling, $u$ would be a junction. So both rim edges of $P$ at $u$
-belong to $X_c$, and $u$ lies inside a rim run of $X_c$ and is not a crossover corner of $X_c$. Hence
-$\pi_{X_c}(\Lp_c(u))=\Rp_c(u)$, and both ports are rim ports of $P$. (b) and (c) follow from \cref{lem:gluing}:
-the ribbon starting at $p$ runs through $X_c$ to a reduced port $\tau(p)$, since by the signature of $X_c$ the arc of
-$X_c$ starting at a port at a mark ends at a port at a mark. If $\tau(p)$ lies on an interior run, the ribbon then follows
-that run, by the Zigzag Lemma, to $\sigma\tau(p)$. A closed strand of $P$ not inside a child must cross some shared
-edge, and by the Zigzag Lemma it then passes through a reduced port; following it from there gives a cycle of the
-alternation. Conversely each such cycle, read as arcs of children joined by zigzag connections, is a closed strand
-of $P$, and distinct cycles give distinct strands. The children have no closed strands.
-\end{proof}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.62\textwidth]{figs/skeleton.pdf}
-\caption{Marks and runs for the composition of a level-$2$ $\Delta$-supertile from its eight level-$1$ children
-(subscripts are child numbers). Dots: the $24$ marks (open circles and squares: the children's crossover corners $A_c$
-and $B_c$). Shared runs are coloured by the parity of their length: blue odd, orange even. Black: rim runs. The
-skeleton records this picture up to the lengths of the runs, keeping only the parities of the shared runs.}
-\label{fig:skeleton}
-\end{figure}
-
-\begin{corollary}[Where a hook goes]\label{cor:placement}
-In the situation of \cref{prop:reduce}, let $u$ be a rim vertex of $X_c$ that is not a mark. If $u$ lies inside a rim
-run, the hook of $X_c$ at $u$ is a hook of $P$. If $u$ lies inside an interior run, traversed by $X_c$ from $u_0$ to $u_n$, at distance $k$
-from $u_0$, then the hook of $X_c$ at $u$ lies on the same arc or closed strand of $P$ as the reduced port $\Rp_c(u_0)$
-if $k$ is even; if $k$ is odd, as $\Lp_c(u_n)$ when $n$ is odd and as $\Rp_{c'}(u_n)$ when $n$ is even.
-\end{corollary}
-
-\begin{proof}
-This is the last part of \cref{lem:zigzag}, together with \cref{prop:reduce}(a).
-\end{proof}
-
 % ---------------------------------------------------------------------------------------------------------
 \section{Side lengths}\label{sec:lengths}
 
 \subsection{Letters}
 Every side of a level-$m$ supertile ($m\ge1$) carries one of the edge labels of~\cite[Fig.~4.2]{SMKGS-spectre}
 (\cref{tab:letters}). Ignoring the signs, there are eight \emph{letters}, $\alpha,\beta,\gamma,\delta,\epsilon,\zeta,\eta,\theta$.
-Two sides that are glued to each other carry labels $x^+$ and $x^-$ (or $\eta$ and $\eta$), and so the same letter; this is the
-matching rule of~\cite[\S4]{SMKGS-spectre}, and for sides glued inside a supertile it can be read off
+Two sides that are glued to each other carry labels $x^+$ and $x^-$ (or $\eta$ and $\eta$), and so the same letter; this
+is the matching rule of~\cite[\S4]{SMKGS-spectre}, and for sides glued inside a supertile it can be read off
 \cref{tab:children,tab:sides,tab:letters}.
 
 \begin{table}[t]
@@ -1086,8 +836,7 @@ $\Delta$ (letter $\gamma$) is made of $7.5,6.4,6.3,6.2,5.4$, with letters $\beta
 claim follows by induction on $m$.
 \end{proof}
 
-The recurrence~\eqref{eq:rec} has a surprisingly simple solution. Let $\Fib_n$ be the Fibonacci numbers,
-$\Fib_1=\Fib_2=1$.
+The recurrence~\eqref{eq:rec} has a closed form. Let $\Fib_n$ be the Fibonacci numbers, $\Fib_1=\Fib_2=1$.
 
 \begin{proposition}[Fibonacci side lengths]\label{prop:fib}
 For every $m\ge1$,
@@ -1116,9 +865,6 @@ Since $\Fib_n$ is even exactly when $3\mid n$:
 For every $m\ge1$ the lengths $\alpha_m$, $\beta_m$, $\theta_m$ are odd and $\gamma_m$, $\delta_m$, $\epsilon_m$,
 $\zeta_m$, $\eta_m$ are even.
 \end{corollary}
-
-For example, the rim of a level-$m$ $\Delta$-supertile has length
-$E_m(\Delta)=\alpha_m+\beta_m+2\gamma_m+\epsilon_m+\zeta_m$, which is $46,182,758,3198,13534,\dots$.
 
 \subsection{The crossover corner}
 \begin{lemma}[Position of $A$]\label{lem:Apos}
@@ -1151,50 +897,41 @@ $\delta_m-d_m=2\Fib_{3m}\ge 2\Fib_3=4$.
 % ---------------------------------------------------------------------------------------------------------
 \section{The signature at every level}\label{sec:induction}
 
-This section proves the Signature Theorem and \cref{thm:A}. \Cref{sec:comp} describes how a supertile is glued from its
-children purely in terms of the side lengths $\ell_m$ and the offset $d_m$ of \cref{sec:lengths}. \Cref{sec:lengthen}
-shows, with the Zigzag Lemma, that lengthening a side by two edges preserves the signature of such a composition, and
-that the lengths at every level are reached from those at level~$1$ by such steps; so one finite computation at
-level~$1$ suffices. \Cref{sec:induct} runs the induction on the level, and \cref{sec:noclosed} deduces \cref{thm:A}.
+We prove the Signature Theorem by induction on the level, reducing every step to a finite computation at level~$1$.
 
 \subsection{Compositions as a function of side lengths}\label{sec:comp}
-Fix a parent kind $T$, with children $c=0,\dots,n_T-1$ of kinds $K_c$ (\cref{tab:children}); exactly one of them, $c_\Sigma$,
-is a $\Sigma$. Let $L$ assign a positive integer $L(c,j)$ to each child $c$ and side $j\in\{0,\dots,5\}$, so that
-sides glued by \cref{tab:sides} have the same length; let $d$ be an integer with $2\le d\le L(c_\Sigma,5)-2$; and let
-$\omega\in\{\pm1\}$. The \emph{composition} $C_T(L,d,\omega)$ is the following abstract patch of boxes. Child $c$ has
-a rim of $E_c=\sum_jL(c,j)$ vertices, numbered $0,\dots,E_c-1$ in its own order; side $j$ runs from vertex
-$V_c(j)=\sum_{i<j}L(c,i)$ to vertex $V_c(j+1)$. Its crossover corner $A_c$ is vertex $0$, or for $c=c_\Sigma$ the
-vertex at distance $d$ from vertex $5$ along side $5$, and $B_c=A_c+\omega$. Each child is a box with the signature at
-$(A_c,B_c)$ (\cref{def:signature}). Sides are glued in pairs as in \cref{tab:sides}, reversing direction: the $o$-th
-edge of side $j$ of $c$ is the $o$-th edge from the end of side $j'$ of $c'$. The sides marked $\rim$ form the rim of
-the composition, in the order of \cref{tab:psides} read backwards (the table lists them in the parent's own order); a rim vertex of the composition is the point between two
-consecutive rim edges, and its ports $\Rp$ and $\Lp$ are the ports, on these two edges, of the children they belong
-to. Ribbons are followed as in \cref{lem:gluing}: alternately through
-a child, by its signature, and straight across a glued edge, until the rim is reached. This defines the box of the
-composition: the pairing of its rim ports and its closed strands. \Cref{lem:zigzag,prop:reduce,cor:placement} and their
-proofs apply unchanged to compositions (with marks, runs and skeletons defined as in \cref{def:marks,def:skeleton}),
-since they use only the signatures of the children and the straight-through rule. The two facts that
-\cref{sec:skeleton} reads off the angles at a vertex hold here by construction: the edges of glued sides are glued in
-reverse order, so a run of one child is a run of its partner; and the two sides of a child at one of its six vertices
-face different siblings, or the rim (\cref{tab:sides}), so no third child meets the inside of a run. We say that $C_T(L,d,\omega)$ \emph{has the
-signature} if it has no closed strand, and every rim vertex is a hook except the crossover corners $A_\Gamma,B_\Gamma$
-of its $\Gamma$ child, which are adjacent rim vertices ($B_\Gamma$ following $A_\Gamma$ in the children's order if
-$\omega=+1$, and preceding it if $\omega=-1$) and carry the crossover.
+Fix a parent kind $T$, with children $c=0,\dots,n_T-1$ of kinds $K_c$ (\cref{tab:children}), one of which, $c_\Sigma$, is
+a $\Sigma$. Let $L$ assign a positive integer $L(c,j)$ to each child $c$ and side $j\in\{0,\dots,5\}$, equal on sides
+glued by \cref{tab:sides}; let $d$ be an integer with $2\le d\le L(c_\Sigma,5)-2$, and $\omega\in\{\pm1\}$. The
+\emph{composition} $C_T(L,d,\omega)$ is the following abstract patch of boxes. Child $c$ has a rim of
+$E_c=\sum_jL(c,j)$ vertices, numbered $0,\dots,E_c-1$ in its own order, with side $j$ running from vertex
+$V_c(j)=\sum_{i<j}L(c,i)$ to vertex $V_c(j+1)$; its crossover corner $A_c$ is vertex $0$, or for $c=c_\Sigma$ the
+vertex at distance $d$ from vertex $5$ along side $5$; $B_c=A_c+\omega$; and it is a box with the signature at
+$(A_c,B_c)$. Sides are glued in pairs as in \cref{tab:sides}, reversing direction: the $o$-th edge of side $j$ of $c$ is
+the $o$-th edge from the end of side $j'$ of $c'$. The sides marked $\rim$ form the rim of the composition, in the order
+of \cref{tab:psides} read backwards (the table lists them in the parent's own order); the ports of a rim vertex are those
+of the children on its two rim edges. Following ribbons alternately through a child, by its signature, and straight
+across a glued edge, as in \cref{lem:gluing}, defines the box of the composition. The Zigzag Lemma and its proof apply
+unchanged to compositions, since they use only the signatures of the children and the straight-through rule. We say that
+$C_T(L,d,\omega)$ \emph{has the signature} if it has no closed strand, and every rim vertex is a hook except the
+crossover corners $A_\Gamma,B_\Gamma$ of its $\Gamma$ child, which are adjacent rim vertices ($B_\Gamma$ following
+$A_\Gamma$ in the children's order if $\omega=+1$, and preceding it if $\omega=-1$) and carry the crossover.
 
-Write $\ell_m$ also for the function $(c,j)\mapsto\ell_m(K_c,j)$. By \cref{prop:pattern,prop:letters,lem:Apos}, if
-the children of a level-$(m+1)$ $T$-supertile have the signature at $(A_c,A_c+\omega_m)$ in their own orientation,
-then the supertile is glued from its children as $C_T(\ell_m,d_m,\omega_m)$ is (with all children in their own
-orientation).
-Indeed: (i) by \cref{prop:pattern}(a),(b) and \cref{prop:letters} the children have the kinds and side lengths of the
-composition, and side $j$ of $X_c$ is side $j'$ of $X_{c'}$ traversed oppositely, so points are matched as above;
-(ii) the rims of two children meet only in the closed sides they share: at a point inside a side both rim edges are
-shared with the partner, so the two children fill a neighbourhood, and a vertex lies on exactly three level-$m$
-supertiles, any two of which share a side ending there (\cref{thm:smkgs}(b)); (iii) so each side of a child is wholly
-shared with one sibling or wholly on the rim, as in \cref{tab:sides}; (iv) $A_c$ is placed by \cref{lem:Apos}, and
-$B_c=A_c+\omega_m$ by hypothesis; (v) the rim of the parent is given by \cref{tab:psides} (\cref{prop:pattern}(c)).
-Hence the children's rims, their corners and the gluing of their sides are those of $C_T(\ell_m,d_m,\omega_m)$. By
-\cref{lem:gluing}, the strands of the supertile, followed from child to child, are then those of the composition; in
-particular the box of the supertile is the box of $C_T(\ell_m,d_m,\omega_m)$.
+Write $\ell_m$ also for the function $(c,j)\mapsto\ell_m(K_c,j)$. If the children of a level-$(m+1)$ $T$-supertile have
+the signature at $(A_c,A_c+\omega_m)$ in their own orientation, then the supertile is glued from them as
+$C_T(\ell_m,d_m,\omega_m)$ is. Indeed: (i)~by \cref{prop:pattern}(a),(b) and \cref{prop:letters} the children have the
+kinds and side lengths of the composition, and side $j$ of $X_c$ is side $j'$ of $X_{c'}$ traversed oppositely; (ii)~the
+rims of two children meet only in the closed sides they share: at a point inside a side both rim edges are shared with
+the partner, so the two children fill a neighbourhood, and a vertex lies on exactly three level-$m$ supertiles, any two
+of which share a side ending there (\cref{thm:smkgs}(b)); (iii)~so each side of a child is wholly shared with one
+sibling or wholly on the rim, as in \cref{tab:sides}; (iv)~$A_c$ is placed by \cref{lem:Apos}, and $B_c=A_c+\omega_m$ by
+hypothesis; (v)~the rim of the parent is given by \cref{tab:psides} (\cref{prop:pattern}(c)). By \cref{lem:gluing}, the
+strands of the supertile are then those of the composition, and its box is the box of $C_T(\ell_m,d_m,\omega_m)$.
+Step~(ii) is the one geometric step; with \cref{thm:smkgs,prop:pattern} it is part of the assumption~(M1) of
+\cref{app:ai}. The compositions themselves are built from the tables alone, which agree with each other:
+\cref{tab:psides} lists each side that \cref{tab:sides} puts on the rim exactly once, and turning about the end of each
+entry, across the sides that \cref{tab:sides} glues, leads to the start of the next (a finite check, made in the
+formalisation).
 
 \subsection{Lengthening}\label{sec:lengthen}
 Let $(L,d)$ be as above. A \emph{move} lengthens one side of one child by two edges, together with the side glued to it
@@ -1209,27 +946,27 @@ If $C_T(L,d,\omega)$ has the signature, then so does $C_T(L',d',\omega)$, for ev
 \end{lemma}
 
 \begin{proof}
-Write $C=C_T(L,d,\omega)$ and $C'=C_T(L',d',\omega)$, and let $u_0u_1$ be the edge $e$. In $C'$ it is replaced by the
-path $u_0v_1v_2u_1$; positions after $e$ on the rim of each child containing it move on by two, and every vertex of $C$
-has an image vertex in $C'$. The corners of $C'$ are the images of those of $C$: for $A_\Sigma$ this is the choice of
-$d'$, and $B_c=A_c\pm1$ stays next to $A_c$, because the edge between them (the first edge of side $0$, the last of
-side $5$, or an edge at $A_\Sigma$) is never cut. In particular $v_1$ and $v_2$ are not crossover corners. Let $\varphi$
-map each port of $C$ to the port of $C'$ of the same hand at the image vertex. Then $\varphi$ commutes with the
-pairings inside the children, since the corners correspond, and with the straight-through rule across every glued edge
-other than $e$. If $e$ is shared by children $c$ and $c'$, crossing it joins $\Rp_c(u_0)$ to $\Rp_{c'}(u_1)$ and
-$\Lp_c(u_1)$ to $\Lp_{c'}(u_0)$ (the Zigzag Lemma, \cref{lem:zigzag}, with $n=1$); in $C'$, by \cref{lem:zigzag} with $n=3$, whose
-interior vertices $v_1,v_2$ are hooks of both children, the ribbon from $\varphi(\Rp_c(u_0))$ runs along the new path
-to $\varphi(\Rp_{c'}(u_1))$, and the ribbon from $\varphi(\Lp_c(u_1))$ to $\varphi(\Lp_{c'}(u_0))$. If $e$ lies on the
-rim, $v_1$ and $v_2$ are hooks of the child, and so new rim vertices of $C'$ that are hooks of $C'$.
+Write $C=C_T(L,d,\omega)$ and $C'=C_T(L',d',\omega)$, and let $e=u_0u_1$. Then $C'$ is $C$ with $e$ cut into three: in
+each child that contains it, $e$ is replaced by the path $u_0v_1v_2u_1$, and every vertex of $C$ has an image vertex in
+$C'$ (positions after $e$ move on by two). The conditions on $e$ make the corners of $C'$ the images of those of $C$:
+for $A_\Sigma$ by the choice of $d'$, and $B_c=A_c\pm1$ stays next to $A_c$ because the edge between them (the first edge
+of side $0$, the last of side $5$, or an edge at $A_\Sigma$) is never cut. In particular $v_1$ and $v_2$ are not crossover
+corners. Let $\varphi$ map each port of $C$ to the port of $C'$ of the same hand at the image vertex. Then $\varphi$
+commutes with the pairings inside the children, since the corners correspond, and with the straight-through rule across
+every glued edge other than $e$. If $e$ is shared by children $c$ and $c'$, crossing it joins $\Rp_c(u_0)$ to
+$\Rp_{c'}(u_1)$ and $\Lp_c(u_1)$ to $\Lp_{c'}(u_0)$ (\cref{lem:zigzag} with $n=1$); in $C'$, by \cref{lem:zigzag} with
+$n=3$, the ribbons run along the new path from $\varphi(\Rp_c(u_0))$ to $\varphi(\Rp_{c'}(u_1))$ and from
+$\varphi(\Lp_c(u_1))$ to $\varphi(\Lp_{c'}(u_0))$. If $e$ lies on the rim, $v_1$ and $v_2$ are hooks of the child, and so
+new rim vertices of $C'$ that are hooks of $C'$.
 
 Hence, for every port $x$ of $C$, the ribbon of $C'$ from $\varphi(x)$ passes through the images of the ports met from
-$x$ in $C$, and reaches the rim at the image of the rim port reached in $C$. So the pairing of the rim ports of $C'$ at
-the images of the rim vertices of $C$ is the image of that of $C$: a hook at every one of them except $A_\Gamma$ and
-$B_\Gamma$, which are adjacent as before and carry the crossover; and the new rim vertices, if any, are hooks. Finally,
-$C'$ has no closed strand. Every port of $C'$ at an old vertex is some $\varphi(x)$, whose ribbon reaches the rim. A
-strand through a port at $v_1$ or $v_2$ either is a hook of the rim (if $e$ lies on the rim), or follows one of the two
+$x$ in $C$, and reaches the rim at the image of the rim port reached in $C$. So $C'$ has a hook at the image of every rim
+vertex of $C$ except $A_\Gamma$ and $B_\Gamma$, and a hook at each new rim vertex; $A_\Gamma$ and $B_\Gamma$ are adjacent
+as before, are still rim vertices, since the rim edges of the $\Gamma$ child at them stay on the rim, and carry the
+crossover. Finally, $C'$ has no closed strand: every port of $C'$ at an old vertex is some $\varphi(x)$, whose
+ribbon reaches the rim; and a strand through a port at $v_1$ or $v_2$ is a hook of the rim, or follows one of the two
 connections of \cref{lem:zigzag} along $u_0v_1v_2u_1$, which use every port on these edges and end at ports at $u_0$
-and $u_1$; so it too reaches the rim.
+and $u_1$, so it too reaches the rim.
 \end{proof}
 
 Call $(L,d)$ \emph{admissible} if sides glued by \cref{tab:sides} have the same
@@ -1245,7 +982,8 @@ $\sum_{c,j}L_0(c,j)<\sum_{c,j}L(c,j)$. The move can be chosen so that its edge $
 ends of its side, in each child that contains it, unless that side is side $5$ of the $\Sigma$ child or is glued to
 it.
 \end{enumerate}
-Hence every admissible pair is reached from $(\ell_1,d_1)$ by finitely many such moves through admissible pairs.
+Hence a property of pairs that holds at $(\ell_1,d_1)$ and is kept by the moves of \textup{(b)} holds at every
+admissible pair, in particular at $(\ell_m,d_m)$ for every $m\ge1$.
 \end{lemma}
 
 \begin{proof}
@@ -1254,35 +992,31 @@ not decrease with $m$, and by \cref{cor:parity} their parities do not change. By
 6=d_1$ is even, and $\ell_m(c_\Sigma,5)-d_m=\delta_m-d_m=2\Fib_{3m}\ge4$.
 
 (b) If $L=\ell_1$, then $L(c_\Sigma,5)=\delta_1=10$ and $d_1\le d\le 10-4$, so $d=d_1$. Hence $L\neq\ell_1$, and by the
-parity condition some side $j$ of some child $c$ has $L(c,j)\ge\ell_1(c,j)+2$. We undo a move on that side. If the side
+parity condition some side $j$ of some child $c$ has $L(c,j)\ge\ell_1(c,j)+2$; we undo a move on that side. If the side
 is neither side $5$ of $\Sigma$ nor glued to it, take $d_0=d$ and the move whose edge is the third edge of the side (the
-third from the end in the partner); before the move the side has length at least $\ell_1(c,j)\ge5$
-(\cref{lem:bounds}), so this edge lies at least two edges from both ends, in either child. Otherwise we undo a move on side $5$ of the
-$\Sigma$ child (and the side glued to it, which belongs to another child), measuring positions along side $5$ from its
-vertex $5$. If $d\ge d_1+2$, take $d_0=d-2$ and the move whose edge is the second edge of the side, before
-$A_\Sigma$; it does not touch $A_\Sigma$, since $d_0\ge6$. If $d=d_1$, take $d_0=d$ and the second edge after
-$A_\Sigma$: before the move the side has $L(c_\Sigma,5)-2-d\ge\ell_1(c_\Sigma,5)-d_1=4$ edges after $A_\Sigma$, so
-this edge is at least two edges from the end of the side. In each case $(L_0,d_0)$ is admissible, and $\sum L_0=\sum L-2$ or $\sum L-4$.
+third from the end in the partner): before the move the side has length at least $\ell_1(c,j)\ge5$ (\cref{lem:bounds}),
+so this edge lies at least two edges from both ends, in either child. Otherwise, measure positions along side $5$ of the
+$\Sigma$ child from its vertex $5$. If $d\ge d_1+2$, take $d_0=d-2$ and the move whose edge is the second edge of the
+side, before $A_\Sigma$; it does not touch $A_\Sigma$, since $d_0\ge6$. If $d=d_1$, take $d_0=d$ and the second edge
+after $A_\Sigma$: before the move the side has $L(c_\Sigma,5)-2-d\ge\ell_1(c_\Sigma,5)-d_1=4$ edges after $A_\Sigma$,
+so this edge is at least two edges from the end of the side. In each case $(L_0,d_0)$ is admissible, and
+$\sum L_0=\sum L-2$ or $\sum L-4$. The last statement follows by induction on $\sum_{c,j}L(c,j)$.
 \end{proof}
 
 \begin{computation}[The compositions at the level-$1$ lengths]\label{comp:compose}
 For each of the nine kinds $T$ and both signs $\omega$, the composition $C_T(\ell_1,d_1,\omega)$ has the signature.
 \end{computation}
 
-This was computed twice: by a program that builds the $18$ compositions from \cref{tab:children,tab:sides,tab:psides}
-and the lengths alone, follows the ribbon from every one of their ports and checks each condition of the signature
-(\cref{app:computations}), and in the kernel of the Lean proof assistant (\cref{sec:intro}, \emph{Formal
-verification}). Each composition has $8$ children ($7$ for $\Gamma$), $732$ ports ($640$) and a rim of $182$ edges
-($160$). As a negative control, with each child's corner $B_c$ placed two vertices from $A_c$ instead of one, all
-$18$ checks fail, in both programs.
+This was computed by a program that builds the $18$ compositions from \cref{tab:children,tab:sides,tab:psides} and the
+lengths alone and follows the ribbon from every port, and again in the kernel of Lean (\cref{app:computations}).
 
 \begin{proposition}[Compositions at every level]\label{prop:compose}
 For every $m\ge1$, every kind $T$ and both signs $\omega$, the composition $C_T(\ell_m,d_m,\omega)$ has the signature.
 \end{proposition}
 
 \begin{proof}
-By \cref{comp:compose} and \cref{lem:lengthen}, every composition reached from $(\ell_1,d_1)$ by moves has the
-signature. By \cref{lem:reach} this includes $C_T(\ell_m,d_m,\omega)$.
+Fix $T$ and $\omega$. The property that $C_T(L,d,\omega)$ has the signature holds at $(\ell_1,d_1)$ by
+\cref{comp:compose}, and is kept by every move by \cref{lem:lengthen}. By \cref{lem:reach} it holds at $(\ell_m,d_m)$.
 \end{proof}
 
 \subsection{The induction}\label{sec:induct}
@@ -1291,22 +1025,17 @@ Every level-$1$ supertile has the signature at $(A,B)$, where $A$ is as in \cref
 order. Moreover $\ell_1$ and $d_1$ are as stated in \cref{prop:letters,lem:Apos}.
 \end{computation}
 
-This was computed from the tiles, using \cref{lem:gluing}, in exact arithmetic; the program checks the statement as
-worded: the two non-hooks are the crossover corners of the $\Gamma$ child (the Mystic), they are adjacent,
-$B=A+\omega_1$, they carry the crossover, and there is no closed strand. A second, separate program, in floating
-point, confirms it (\cref{app:computations}). The level-$1$ supertiles, as glued patches of tiles, are also the input
-of the Lean formalisation, whose kernel checks the statement again, with $A$ placed as in \cref{lem:Apos} (the
-formalisation does not single out the Mystic). The rims have $E_1=44$ edges for $\Gamma$ and
-$46$ for the other kinds.
+This was computed from the tiles in exact arithmetic, with \cref{lem:gluing}, checking the statement as worded, and again
+by a second program and in the kernel of Lean (\cref{app:computations}).
 
 \begin{theorem}[Signature Theorem]\label{thm:signature}
-In every homochiral tiling by $\Tile$, every level-$m$ supertile of every kind has the signature at $(A,B)$, where $A$
-is its crossover corner (\cref{sec:own}; placed as in \cref{lem:Apos} for $m\ge1$) and $B=A+\omega_m$ in its own
-order. In particular no supertile contains a closed strand.
+In every homochiral tiling by $\Tile$, for every $m\ge1$, every level-$m$ supertile of every kind has the signature at
+$(A,B)$, where $A$ is its crossover corner (\cref{sec:own}), placed as in \cref{lem:Apos}, and $B=A+\omega_m$ in its own
+order. In particular no such supertile contains a closed strand.
 \end{theorem}
 
 \begin{proof}
-For $m=0$ this is \cref{lem:tilesig}, and for $m=1$ it is \cref{comp:base}. Let $m\ge1$, assume the theorem for level
+For $m=1$ this is \cref{comp:base}. Let $m\ge1$, assume the theorem for level
 $m$, and let $Y$ be a level-$(m+1)$ supertile of kind $T$. Its children have the signature at $(A_c,A_c+\omega_m)$, so
 by \cref{sec:comp} its box is that of $C_T(\ell_m,d_m,\omega_m)$, which has the signature by \cref{prop:compose}.
 Hence $Y$ has no closed strand, and hooks at all its rim vertices except the crossover corners $A_\Gamma,B_\Gamma$ of
@@ -1315,50 +1044,27 @@ $Y$, placed as in \cref{lem:Apos}. Finally $B_\Gamma=A_\Gamma+\omega_m$ in the c
 that of $Y$; so $B=A-\omega_m=A+\omega_{m+1}$ in the own order of $Y$.
 \end{proof}
 
-\begin{remark}\label{rem:ccw}
-Since the own orientation alternates with $m$ and so does $\omega_m$, in absolute terms $B$ is always the
-counter-clockwise neighbour of $A$ on the rim, as it is for the tile ($B=v_1$).
-\end{remark}
-
-\begin{remark}[Other checks of the signature]\label{rem:skeleton}
-Of the computations in this section the proof uses only \cref{comp:compose,comp:base}. The following computations
-and arguments agree with them, and are not used. (1)~The compositions $C_T(\ell_m,d_m,\pm1)$ were built and followed port by port for $m\le4$; each of the
-$1{,}792$ single moves from $(\ell_1,d_1)$ was checked to keep the signature, with both signs $\omega$; and the moves
-that the proof of \cref{lem:reach} chooses were followed from $(\ell_2,d_2)$ and $(\ell_3,d_3)$ back to
-$(\ell_1,d_1)$ for every kind, each one checked to be a move and, from $(\ell_2,d_2)$, every composition on the way
-checked to have the signature. (2)~The signature of the actual
-supertiles was computed from the tiles at levels $1$ to $3$ (and $4$) in exact arithmetic, and at levels $1$ to $9$ in
-floating point, by the two programs of \cref{app:computations}. (3)~A second route to \cref{prop:compose} uses the
-skeleton (\cref{def:skeleton}). For letter lengths $\lambda$ (and $C_T(\lambda,d,\omega)$ the composition
-with $L(c,j)=\lambda$ of the letter of side $j$ of $K_c$) with $\lambda(x)\ge3$ and $3\le d\le\lambda(\delta)-3$,
-the marks on each side of a child lie at the symbolic positions $0<1<d-1<d<d+1<\ell-1<\ell$ or
-$0<1<\ell-d-1<\ell-d<\ell-d+1<\ell-1<\ell$, whose order does not depend on the lengths, and the length of a run is a
-sum of side lengths plus a difference of symbolic positions. So the skeleton of $C_T(\lambda,d,\omega)$ depends only on
-$\lambda\bmod2$, $d\bmod2$ and $\omega$, and by \cref{prop:reduce} so do its pairing at the parent marks and its
-closed strands (every other parent rim vertex is a hook). The $18$
-skeletons at $(\ell_1,d_1,\pm1)$ have $24$ marks ($21$ for $\Gamma$) and $52$ runs ($45$), of which $10$ ($9$) lie on
-the rim; their reduced walks give the signature, and they coincide with the skeletons of the actual supertiles at
-every level from $2$ to $9$ (a comparison that does not distinguish the parent's $A$ from its $B$; the children's are
-distinguished).
-\end{remark}
-
 \subsection{No closed strands}\label{sec:noclosed}
 \begin{proof}[Proof of \cref{thm:A}]
 Let $\T$ be a homochiral tiling whose hierarchy covers the plane: for some tile $t$, the supertiles
-$X_0(t)\subset X_1(t)\subset\cdots$ containing $t$ have union $\RR^2$. Every tile $t'$ lies in some $X_m(t)$: a
-point $x$ of the interior of $t'$ lies in $X_m(t)$ for some $m$, hence in some tile $s$ of $X_m(t)$. Every neighbourhood
-of $x$ meets the interior of $s$, so the interiors of $s$ and $t'$ meet, and $s=t'$. A closed strand consists of finitely many pieces in finitely many tiles, so it lies in a single $X_m(t)$, and
-all its joins are across interior edges of $X_m(t)$. It is then a closed strand of $X_m(t)$, contradicting
-\cref{thm:signature}. (Equally, each edge of a tile is shared with exactly one other tile, and the two lie in some
-$X_m(t)$, inside which the edge is interior. This is the form the formalisation uses.) By \cref{lem:degree2}, every strand is a two-way infinite path.
+$X_0(t)\subset X_1(t)\subset\cdots$ containing $t$ have union $\RR^2$. Write $X_m=X_m(t)$. First, about points of the
+plane: every tile $t'$ lies in some $X_m$, and every edge of $t'$ is shared by two tiles of some $X_m$. Indeed, a point
+$x$ of the interior of $t'$ lies in $X_m$ for some $m$, hence in some tile $s$ of $X_m$. Every neighbourhood of $x$ meets
+the interior of $s$, so the interiors of $s$ and $t'$ meet, and $s=t'$. An edge of $t'$ is shared with exactly one other
+tile (\cref{lem:degree2}), and the two tiles lie in some $X_m$.
+
+The rest is combinatorial. Let $X_1\subset X_2\subset\cdots$ be supertiles, each a child of the next, such that every
+edge of every tile of their union is shared by two tiles of some $X_m$; we show that every strand of the union is a
+two-way infinite path. A closed strand has finitely many pieces, in finitely many tiles, and is joined across finitely
+many edges, so these all lie in a single $X_m$, each edge shared by two of its tiles. It is then a closed strand of
+$X_m$, contradicting \cref{thm:signature}. By the argument of \cref{lem:degree2}, every strand is a two-way infinite
+path. This second step is \cref{thm:A} as the formalisation states it (\cref{app:ai}).
 \end{proof}
 
 % ---------------------------------------------------------------------------------------------------------
 \section{The nest tiling}\label{sec:nest}
 
-This section builds the nest tiling $\N$, grown from one tile by taking each block as child $1$ of the next, and shows
-that it is a tiling of the plane with no closed strand (\cref{prop:nesttiling}). Child $1$ of every supertile is a
-$\Delta$ (\cref{tab:children}).
+Child~$1$ of every supertile is a $\Delta$ (\cref{tab:children}).
 
 \begin{construction}[The nest]\label{con:nest}
 Let $\T$ be a homochiral tiling~\cite[Thm.~2.2]{SMKGS-spectre}. For each $h\ge0$, let $Y^{(h)}$ be a level-$h$ $\Delta$-supertile
@@ -1380,7 +1086,7 @@ $Y_0$. So $g_{h'}f$ and $g_h$ both take the tile $Y^{(h)}_0$ onto $\Tile$, and s
 are equal. Thus $N^{(h')}_b=g_{h'}f(Y^{(h)}_b)=N^{(h)}_b$.
 \end{proof}
 
-The \emph{nest tiling} is $\N=\bigcup_{b\ge0}N_b$, a set of tiles. \Cref{fig:nest} shows three consecutive blocks.
+The \emph{nest tiling} is $\N=\bigcup_{b\ge0}N_b$, a set of tiles.
 
 \begin{lemma}[Grandparent Lemma]\label{lem:gap}
 Let $b\ge1$. \textup{(a)} The block $N_b$ does not meet the rim of $N_{b+2}$. \textup{(b)} Every edge of a tile of
@@ -1388,36 +1094,21 @@ $N_b$ is shared by two tiles of $N_{b+2}$.
 \end{lemma}
 
 \begin{proof}
-(a) $N_b$ is child $1$ of $N_{b+1}$ (\cref{prop:nestwell}). By \cref{tab:sides}, the sides $0,1,3,4,5$ of child $1$ face the siblings $7,0,2,3,4$, and side $2$ lies on the parent's
-rim. A point of $N_b$ that is not on its closed side $2$ is therefore an interior point of $N_{b+1}$. This is clear
-for interior points of $N_b$ and for interior points of the other sides, where $N_b$ and one sibling together fill a
-neighbourhood. At the vertices $0,1,4,5$ of $N_b$, exactly three level-$b$ supertiles meet; two of them are the
-distinct siblings across the adjacent sides, and together they fill a neighbourhood. Hence
-\begin{equation}\label{eq:side2}
-N_b\cap\rim N_{b+1}=\text{closed side } 2 \text{ of } N_b .
-\end{equation}
-By \cref{tab:psides} (the $\Delta$ row: positions $14$ to $18$), side $4$ of the parent is the concatenation of
-$2.2,2.1,1.2,0.4,0.3$. Since $1.2$ is neither first nor last, the closed side $2$ of $N_b$ lies in the relative
-interior of side $4$ of $N_{b+1}$. Now let $p\in N_b\cap\rim N_{b+2}$. Then $p\in\rim N_{b+1}$, for otherwise $p$ would be
-interior to $N_{b+1}\subset N_{b+2}$. So $p$ lies on side $4$ of $N_{b+1}$ by the above, and, by~\eqref{eq:side2} for
-$N_{b+1}$, on the closed side $2$ of $N_{b+1}$. But the closed sides $2$ and $4$ of $N_{b+1}$ are disjoint: they are
-arcs of a simple closed curve separated by side $3$ on one side and by sides $5,0,1$ on the other.
+(a) $N_b$ is child $1$ of $N_{b+1}$ (\cref{prop:nestwell}). By \cref{tab:sides}, the sides $0,1,3,4,5$ of child $1$ face
+the siblings $7,0,2,3,4$, and side $2$ lies on the parent's rim. A point of $N_b$ that is not on its closed side $2$ is
+therefore an interior point of $N_{b+1}$. This is clear for interior points of $N_b$ and for interior points of the
+other sides, where $N_b$ and one sibling together fill a neighbourhood. At the vertices $0,1,4,5$ of $N_b$, exactly three
+level-$b$ supertiles meet; two of them are the distinct siblings across the adjacent sides, and together they fill a
+neighbourhood. It remains to treat the closed side $2$ of $N_b$. By \cref{tab:psides} (the $\Delta$ row: positions $14$
+to $18$), side $4$ of the parent is the concatenation of $2.2,2.1,1.2,0.4,0.3$. Since $1.2$ is neither first nor last,
+the closed side $2$ of $N_b$ lies in the relative interior of side $4$ of $N_{b+1}$. In $N_{b+2}$, side $4$ of its child
+$N_{b+1}$ faces the sibling $3$, so, as above one level up, the points of its relative interior are interior points of
+$N_{b+2}$.
 
-(b) follows from (a). It also follows from the tables alone, and this is how the formalisation proves it: a rim
-edge of $N_b$ lies on a side $j\ne2$ of $N_b$, which faces a sibling inside $N_{b+1}$, or on side $2$, which lies on
-side $4$ of $N_{b+1}$ (position $16$ of \cref{tab:psides}); and side $4$ of child $1$ faces sibling $3$ inside $N_{b+2}$
-(\cref{tab:sides}).
+(b) A rim edge of $N_b$ lies on a side $j\ne2$ of $N_b$, which faces a sibling inside $N_{b+1}$, or on side $2$, which
+lies on side $4$ of $N_{b+1}$ (position $16$ of \cref{tab:psides}); and side $4$ of child $1$ faces sibling $3$ inside
+$N_{b+2}$ (\cref{tab:sides}). Any other edge of a tile of $N_b$ is shared by two tiles of $N_b$.
 \end{proof}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figs/nest.pdf}
-\caption{Three consecutive blocks of the nest: (a) $N_1\subset N_2\subset N_3$ and (b) $N_2\subset N_3\subset N_4$. Vermilion:
-side $2$ of the two smaller blocks, which is the only side of each block on the rim of the next. Blue: side $4$ of the
-middle block. Since the vermilion side of the smallest block lies inside the blue side, and the blue side faces a sibling
-inside the largest block, the smallest block does not reach the rim of the largest (\cref{lem:gap}).}
-\label{fig:nest}
-\end{figure}
 
 \begin{proposition}\label{prop:nesttiling}
 $\N$ is a homochiral tiling of the plane, and every tile of $\N$ lies in some $N_b$.
@@ -1439,24 +1130,22 @@ $h\ge 1+2k_0$. Since $N_{1+2k_0}$ does not depend on $h$, $x$ is covered by $\N$
 \end{proof}
 
 The blocks $N_b$ are supertiles in the sense of \cref{sec:spectre}: each is congruent, with all its structure, to a
-level-$b$ $\Delta$-supertile of $\T$. So \cref{thm:signature} applies to them. In particular $\N$ has no closed strand: a closed strand passes through
-finitely many tiles, which lie in a common block $N_b$ by \cref{prop:nesttiling}, and would be a closed strand of
-$N_b$.
+level-$b$ $\Delta$-supertile of $\T$. So \cref{thm:signature} applies to them. In particular $\N$ has no closed strand: a
+closed strand passes through finitely many tiles, which lie in a common block $N_b$, $b\ge1$, by \cref{prop:nesttiling};
+by \cref{lem:gap}(b) every edge of these tiles is shared by two tiles of $N_{b+2}$, so it would be a closed strand of
+$N_{b+2}$.
 
 % ---------------------------------------------------------------------------------------------------------
 \section{Merging and the single strand}\label{sec:strand}
 
-This section shows that the arcs of every block of the nest merge within three or four levels (\cref{sec:merging}),
-and proves \cref{thm:B} (\cref{sec:onestrand}). The merging uses the device of \cref{sec:induction}: a map computed
-once at the level-$1$ lengths and carried to every level by the moves of \cref{lem:reach}.
-
 \subsection{Merging}\label{sec:merging}
 For $b\ge1$ and $k\ge0$, every arc of $N_b$ is contained in a unique arc of $N_{b+k}$, because $N_{b+k}$ has no closed
 strand. Let $\mathcal P_k(b)$ be the partition of the $E_b(\Delta)$ arcs of $N_b$ in which two arcs are in the same block
-when they lie on the same arc of $N_{b+k}$. The blocks only merge as $k$ increases.
+when they lie on the same arc of $N_{b+k}$. The blocks only merge as $k$ increases; \cref{tab:merge} gives their numbers.
 
 \begin{theorem}[Merging]\label{thm:merge}
-For every $b\ge1$, $\mathcal P_4(b)$ has a single block; if $b$ is even, so does $\mathcal P_3(b)$.
+For every $b\ge1$, $\mathcal P_4(b)$ has a single block; if $b$ is even, so does $\mathcal P_3(b)$. These bounds are
+exact: $\mathcal P_2(b)$ has two blocks, and so does $\mathcal P_3(b)$ if $b$ is odd.
 \end{theorem}
 
 \begin{table}[t]
@@ -1484,22 +1173,17 @@ arithmetic, up to level $7$). Last two rows: the proof of \cref{thm:merge}, for 
 \label{tab:merge}
 \end{table}
 
-\Cref{tab:merge} shows the numbers. The proof looks one level up at a time. In $N_{m+1}$, every arc of its child
-$N_m$ lies on one of a few hooks of $N_{m+1}$, and which one depends only on where the arc leaves $N_m$: for most of
-the rim, only on the side of $N_m$. We compute this map once, at the level-$1$ lengths, and carry it to every level
-by the moves of \cref{sec:induction}.
 
 \subsubsection*{Junctions}
 Let $m\ge1$. The rim of $N_{m+1}$, in its own order from its corner $A$, is the concatenation of the $22$ children's
 sides listed in \cref{tab:psides} for eight children, at positions $q=0,\dots,21$, with its sides starting where the
-$\Delta$ row says. The \emph{junction} $q$ is the rim
-vertex of $N_{m+1}$ at which the side at position $q$ starts (not to be confused with the junctions of
-\cref{def:marks}(i)). The junctions $9,12,16,17,21$ lie inside sides of
-$N_{m+1}$ (\cref{lem:junctions} below), so they are hooks of $N_{m+1}$ (\cref{thm:signature}); we write $H_q$ for the
-hook arc of $N_{m+1}$ at junction $q$. The side at position $16$ is $1.2$, side $2$ of $N_m$, so junctions $16$ and
-$17$ are its two ends: vertices $3$ and $2$ of $N_m$. Positions on the rim of $N_m$ are taken in its own order from
-its corner $A$, so that its vertices $0,\dots,5$ lie at positions $0=V_0<V_1<\dots<V_5<E$, where $E=E_m(\Delta)$; its
-corner $B=A+\omega_m$ is at position $1$ if $m$ is even and $E-1$ if $m$ is odd.
+$\Delta$ row says. The \emph{junction} $q$ is the rim vertex of $N_{m+1}$ at which the side at position $q$ starts. The
+junctions $9,12,16,17,21$ lie inside sides of $N_{m+1}$ (\cref{lem:junctions} below), so they are hooks of $N_{m+1}$
+(\cref{thm:signature}); we write $H_q$ for the hook arc of $N_{m+1}$ at junction $q$. The side at position $16$ is
+$1.2$, side $2$ of $N_m$, so junctions $16$ and $17$ are its two ends: vertices $3$ and $2$ of $N_m$. Positions on the
+rim of $N_m$ are taken in its own order from its corner $A$, so that its vertices $0,\dots,5$ lie at positions
+$0=V_0<V_1<\dots<V_5<E$, where $E=E_m(\Delta)$; its corner $B=A+\omega_m$ is at position $1$ if $m$ is even and $E-1$
+if $m$ is odd.
 
 \begin{table}[t]
 \centering\small
@@ -1524,15 +1208,12 @@ of $N_{m+1}$. Hooks are listed by the position $u$ of their rim vertex, which is
 
 \begin{computation}[The junction map at the level-$1$ lengths]\label{comp:junction}
 In $C_\Delta(\ell_1,d_1,\omega)$, for both signs $\omega$, with child $1$ in the place of $N_m$ and positions and
-junctions defined in the same way: every rim vertex of child $1$ strictly inside its side $2$ is a hook of the
-composition; and the ribbon from every other port of child $1$ reaches the rim of the composition at junction $q$,
-where $q$ is given by \cref{tab:junction} with $\omega_m=\omega$.
+junctions defined in the same way, the ribbon from every port of child $1$, except those at rim vertices strictly inside
+its side $2$, reaches the rim of the composition at junction $q$, where $q$ is given by \cref{tab:junction} with
+$\omega_m=\omega$.
 \end{computation}
 
-This was computed twice, like \cref{comp:compose}: by the program of \cref{app:computations}, and in the kernel of the
-Lean proof assistant (its second part; the formalisation proves the first for every level, at the level of tiles).
-As a negative control, exchanging the junctions $12$ and $16$ in \cref{tab:junction} makes the check fail for both
-signs, in both programs.
+This was computed like \cref{comp:compose}, by a program and in the kernel of Lean.
 
 \begin{lemma}[The junction map]\label{lem:junctionmap}
 Let $m\ge1$. In $N_{m+1}$, every hook of $N_m$ at a rim vertex strictly inside side $2$ of $N_m$ is a hook of
@@ -1541,38 +1222,41 @@ $N_{m+1}$, and every other arc of $N_m$ lies on the hook $H_q$ of $N_{m+1}$, whe
 \end{lemma}
 
 \begin{proof}
-Say that $(L,d)$ has the \emph{junction property} if the statement of \cref{comp:junction} holds for
-$C_\Delta(L,d,\omega)$ for both $\omega$. The children of $N_{m+1}$ have the signature (\cref{thm:signature}), so by
-\cref{sec:comp} $N_{m+1}$ is glued from them as $C_\Delta(\ell_m,d_m,\omega_m)$ is, with $N_m$ as child $1$; and a ribbon of the composition from a port $p$ of child $1$
-runs through child $1$ along the arc of $N_m$ ending at $p$, and on along the arc of $N_{m+1}$ that contains it. A hook
-arc has both its ends at the same rim vertex. So the lemma says that $(\ell_m,d_m)$ has the junction property. By
-\cref{comp:junction}, $(\ell_1,d_1)$ has it. By \cref{lem:reach}, $(\ell_m,d_m)$ is reached from $(\ell_1,d_1)$ by
-moves as in \cref{lem:reach}(b) through admissible pairs, so it suffices to show that such a move keeps the junction
-property. Child $1$ is a $\Delta$, and the side glued to side $5$ of the $\Sigma$ child (child $4$) belongs to child $7$
-(\cref{tab:sides}); so a move whose edge lies on the rim of child $1$ keeps it at least two edges from both ends of its
-side.
+The first part needs no computation. Side $2$ of $N_m$ is the side at position $16$ of \cref{tab:psides}, so it lies on
+the rim of $N_{m+1}$, and a rim vertex $u$ of $N_m$ strictly inside it is a rim vertex of $N_{m+1}$, with the same two
+rim ports. By \cref{lem:junctions}, $u$ lies inside side $4$ of $N_{m+1}$, so it is not a crossover corner, and by
+\cref{thm:signature} it is a hook of $N_{m+1}$; this hook is the hook of $N_m$ at $u$.
 
-Let $C$, $C'$ and $\varphi$ be as in the proof of \cref{lem:lengthen}. Both have the signature (by the proof of
-\cref{prop:compose}), and the junctions of $C'$
-are the images of those of $C$, since junctions are vertices of children; so are the vertices $V_j$ of child $1$, and
-$\varphi$ keeps the order of positions on its rim. For a port $x$ of child $1$ at an old vertex, the ribbon from
-$\varphi(x)$ reaches the rim at the image of the rim port reached from $x$, and $\varphi(x)$ lies in the same row of
-\cref{tab:junction} as $x$. It remains to consider the new vertices $v_1,v_2$ when the edge $e=u_0u_1$ lies on the rim
-of child $1$. Then $v_1,v_2,u_0,u_1$ lie strictly inside the same side of child $1$, at least two edges from its ends,
-so in the same row of \cref{tab:junction}, and none is a crossover corner. If $e$ lies on the rim of the composition
-(that is, on side $2$ of child $1$), $v_1$ and $v_2$ are hooks of $C'$, as the table says. Otherwise, by the last part
-of the Zigzag Lemma (\cref{lem:zigzag}, with $n=3$), the hooks of child $1$ at $v_1$ and $v_2$ lie on the strands of $C'$ through
-$\varphi$ of the ports of child $1$ at $u_1$ and $u_0$. Those ports lie in the same row, so these strands are arcs of
-$C'$ with an end at the junction that the row names; an arc with an end at a hook is that hook, and both its ends are
-at the junction (junction $q$ is a hook of $C'$: $C'$ has the signature, and junction $q$ is at least one child side,
-so at least five edges, along the rim from junction $0$, which is $A_\Gamma$, so it is neither $A_\Gamma$ nor
-$B_\Gamma$). So the ribbons from the ports at $v_1$ and $v_2$ reach the rim there too.
+For the rest, say that $(L,d)$ has the \emph{junction property} if the statement of \cref{comp:junction} holds for
+$C_\Delta(L,d,\omega)$ for both $\omega$. By \cref{thm:signature} and \cref{sec:comp}, $N_{m+1}$ is glued from its
+children as $C_\Delta(\ell_m,d_m,\omega_m)$ is, with $N_m$ as child $1$; a ribbon of the composition from a port $p$ of
+child $1$ runs along the arc of $N_m$ ending at $p$, and on along the arc of $N_{m+1}$ that contains it; and a hook arc
+has both its ends at one rim vertex. So the rest of the lemma says that $(\ell_m,d_m)$ has the junction property. By
+\cref{comp:junction}, $(\ell_1,d_1)$ has it, so by \cref{lem:reach} it suffices to show that the moves of
+\cref{lem:reach}(b) keep it. Since child $1$ is a $\Delta$, and the side glued to side $5$ of the $\Sigma$ child
+(child $4$) belongs to child $7$ (\cref{tab:sides}), such a move whose edge lies on the rim of child $1$ keeps it at
+least two edges from both ends of its side.
+
+Let $C$, $C'$ and $\varphi$ be as in the proof of \cref{lem:lengthen}. Junctions and the vertices $V_j$ of child $1$ are
+vertices of children, so those of $C'$ are the images of those of $C$, and $\varphi$ keeps the order of positions on the
+rim of child $1$. For a port $x$ of child $1$ at an old vertex, the ribbon from $\varphi(x)$ reaches the rim at the image
+of the rim port reached from $x$, and $\varphi(x)$ lies in the same row of \cref{tab:junction} as $x$. It remains to
+consider the new vertices $v_1,v_2$ when the edge $e=u_0u_1$ lies on the rim of child $1$. Then $v_1,v_2,u_0,u_1$ lie
+strictly inside the same side of child $1$, at least two edges from its ends, so in the same row of
+\cref{tab:junction}, and none of them is a crossover corner. If that side is side $2$, the property says nothing about
+$v_1$ and $v_2$. Otherwise $e$ is shared with a sibling $c'$. Write $\Rp_1,\Lp_1$ and $\Rp_{c'},\Lp_{c'}$ for the rim
+ports of the two children, and let child $1$ run from $u_0$ to $u_1$. From $\Lp_1(v_2)$, the hook of child $1$ at $v_2$
+and one crossing lead to $\Rp_{c'}(u_1)$, as in $C$ the hook at $u_0$ and the crossing of $e$ lead there from
+$\Lp_1(u_0)$. From $\Rp_1(v_2)$, the hook of child $1$ at $v_2$, the hook of $c'$ at $v_1$ and two crossings lead to
+$\Rp_1(u_0)$. In both cases the ribbon then runs on as in $C$, under $\varphi$, so it reaches the rim where the ribbon of
+$C$ from the port of the same hand at $u_0$ does. Likewise at $v_1$, with $u_1$ in place of $u_0$. Those ports lie in
+the same row, so the property holds at $v_1$ and $v_2$ too.
 \end{proof}
 
 \begin{lemma}[Where the junctions lie]\label{lem:junctions}
 Let $m\ge1$. The junctions $9$, $12$, $16$, $17$ and $21$ of $N_{m+1}$ lie on its sides $2$, $3$, $4$, $4$ and $5$
-respectively, at least five edges from both ends of the side. Every rim vertex strictly inside side $2$ of $N_m$ lies on
-side $4$ of $N_{m+1}$, at least five edges from both ends.
+respectively, at least two edges from both ends of the side. Every rim vertex strictly inside side $2$ of $N_m$ lies on
+side $4$ of $N_{m+1}$, at least two edges from both ends.
 \end{lemma}
 
 \begin{proof}
@@ -1588,7 +1272,7 @@ A rim vertex of $N_m$ at least two edges from both ends of its side $J$ is not a
 \cref{lem:junctionmap} its hook lies on the hook of $N_{m+1}$ that \cref{tab:junction} names for side $J$: for even
 $m$, junction $17$, $17$, $16$, $12$, $9$ for $J=0,1,3,4,5$; for odd $m$, junction $21$, $17$, $16$, $16$, $16$; and
 for $J=2$, the vertex is itself a hook of $N_{m+1}$, on its side $4$. By \cref{lem:junctions}, each of these hooks of
-$N_{m+1}$ lies at least five edges inside a side of $N_{m+1}$, so the same rule applies to it one level up.
+$N_{m+1}$ lies at least two edges inside a side of $N_{m+1}$, so the same rule applies to it one level up.
 
 Let $b\ge1$ be even, so that $\omega_b=+1$. By \cref{lem:junctionmap} every arc of $N_b$ lies on $H_{17}$, $H_{16}$,
 $H_{12}$ or $H_9$ of $N_{b+1}$, or on a hook of $N_{b+1}$ strictly inside side $2$ of $N_b$; by \cref{lem:junctions}
@@ -1604,31 +1288,13 @@ first lie on $H_{16}$ of $N_{b+3}$, and the second are hooks of $N_{b+3}$ inside
 $N_{b+3}$, and since $b+3$ is even they lie on $H_{12}$ of $N_{b+4}$. So $\mathcal P_4(b)$ has a single block. Once
 $\mathcal P_k(b)$ has a single block, so does $\mathcal P_{k'}(b)$ for every $k'\ge k$.
 
-The same steps give the last two rows of \cref{tab:merge}. For even $b$ the arcs of $N_b$ lie on two arcs of
-$N_{b+2}$: $H_{16}$, and the hook at junction $9$ of $N_{b+1}$, which lies inside side $2$ of $N_{b+1}$ and so is not
-junction $16$ of $N_{b+2}$ (an end of that side). For odd $b$ they lie on $H_{12}$ and $H_9$ of $N_{b+2}$, and on
-$H_{16}$ of $N_{b+3}$ and the hook at junction $9$ of $N_{b+2}$, which for the same reason is not junction $16$ of
-$N_{b+3}$. Both arcs are reached in each case (for instance from
-vertices well inside sides $4$ and $5$ of $N_b$, or sides $4$ and $0$), and distinct hooks are distinct arcs.
+The same steps give the exactness. For even $b$ the arcs of $N_b$ lie on two arcs of $N_{b+2}$: $H_{16}$, and the hook
+at junction $9$ of $N_{b+1}$, which lies inside side $2$ of $N_{b+1}$ and so is not junction $16$ of $N_{b+2}$ (an end of
+that side). For odd $b$ they lie on $H_{12}$ and $H_9$ of $N_{b+2}$, and on $H_{16}$ of $N_{b+3}$ and the hook at
+junction $9$ of $N_{b+2}$, which for the same reason is not junction $16$ of $N_{b+3}$. Both arcs are reached in each
+case (for instance from vertices well inside sides $4$ and $5$ of $N_b$, or sides $4$ and $0$), and distinct hooks are
+distinct arcs.
 \end{proof}
-
-\begin{remark}[Other checks of \cref{thm:merge}]\label{rem:labels}
-Besides \cref{comp:compose,comp:base}, the proof of \cref{thm:merge} uses only \cref{comp:junction}.
-The following agree with it, and are not used. (1)~\Cref{tab:merge} was computed on the actual blocks for $b\le6$, following every ribbon up to level $9$, and
-for $b\le3$ by a second program in exact arithmetic up to level $7$. (2)~The junction map was checked directly on
-$C_\Delta(\ell_m,d_m,\pm1)$ for $m\le4$, after each of the $190$ single moves from $(\ell_1,d_1)$ on the $\Delta$
-composition whose edge, if it lies on child $1$, is at least two edges from the ends of its side (with both signs),
-and on the actual blocks $N_1\subset N_2$, $N_2\subset N_3$, $N_3\subset N_4$, built from the tiles in exact
-arithmetic. (3)~A second proof follows the arcs
-of $N_b$ up the nest with \emph{label states}: finite records of which hooks and crossover arcs of $N_{b+k}$ carry arcs
-of $N_b$, advanced one level at a time with the reduced walk (\cref{prop:reduce}) and \cref{cor:placement}, with every
-position written as an integer affine function of $\ell_{b-1}$. Run symbolically over $8$ relative levels, once for each
-parity of $b$, its branch decisions are $2{,}106$ linear conditions on the side lengths ($1{,}407$ distinct). For every
-$b\ge2$, $1{,}980$ of them hold because every side has at least $5$ edges, and the other $126$ were certified twice:
-from \cref{prop:fib} with Binet's formula, and by exact rational certificates on the space spanned by the side-length
-vectors $\ell_1,\ell_2,\ell_3$, which contains every $\ell_{b-1}$. With $b=1$ computed directly, this gives
-\cref{thm:merge} and the last two rows of \cref{tab:merge} again.
-\end{remark}
 
 \subsection{One strand}\label{sec:onestrand}
 \begin{proof}[Proof of \cref{thm:B}]
@@ -1642,191 +1308,110 @@ so $p$ and $q$ are on the same strand. The strand passes through every tile, sin
 % ---------------------------------------------------------------------------------------------------------
 \section{Scope and open questions}\label{sec:scope}
 
-\subsection*{Other tilings}
-\Cref{thm:A} holds for every tiling whose hierarchy covers the plane. \Cref{thm:B} is proved for the nest tiling, whose
-chain of supertiles is $\Delta\subset\Delta\subset\cdots$ with child number $1$ at every step. Every tiling whose
-hierarchy covers the plane has some such chain $(K_m,c_m)_{m\ge1}$, where $X_m$ is a level-$m$ supertile of kind $K_m$
-and child $c_m$ of $X_{m+1}$. The induction of \cref{sec:induction} does not see the chain, but the merging of
-\cref{sec:strand} does: its finite part depends on the sequence $(K_m,c_m)$, and so may its outcome.
+\Cref{thm:B} is proved for the nest tiling, whose chain of supertiles is $\Delta\subset\Delta\subset\cdots$ with child
+number $1$ at every step. Every tiling whose hierarchy covers the plane has some chain $(K_m,c_m)_{m\ge1}$, where $X_m$
+is a level-$m$ supertile of kind $K_m$ and child $c_m$ of $X_{m+1}$. The induction of \cref{sec:induction} does not see
+the chain, but the merging of \cref{sec:strand} does.
+Computations, not used here, indicate that the outcome depends on it. Along the chain $K_m=\Theta$, $c_m=2$ (odd $m$),
+$K_m=\Gamma$, $c_m=7$ (even $m$), built as in \cref{con:nest} and covering the plane by the argument of
+\cref{lem:gap,prop:nesttiling}, the arcs of $X_1$ lie on exactly three arcs of $X_m$ for $3\le m\le8$ (exact
+arithmetic), and still on three at $m=20$ (a symbolic count); we have not proved that this persists. Along $90{,}000$ chains chosen at random, the arcs of $X_b$ ($b\le3$) lay on a
+single arc of $X_m$ for some $m\le20$ in all but five (folder \code{experiments/}).
+Which tilings whose hierarchy covers the plane carry a single strand, and which numbers of strands occur, is open.
 
-\begin{remark}[Three strands: a computation, not a theorem]\label{rem:three}
-Let $K_m=\Theta$ for odd $m$ and $K_m=\Gamma$ for even $m$, with $c_m=2$ for odd $m$ and $c_m=7$ for even $m$
-(\cref{tab:children}). A tiling with this chain is constructed as in \cref{con:nest}, and its hierarchy covers the plane:
-the argument of \cref{lem:gap} and \cref{prop:nesttiling}, applied with \cref{tab:sides,tab:psides}, shows that no
-$X_m$ meets the rim of $X_{m+2}$. In this tiling, following the ribbons through the actual supertiles in exact
-arithmetic, the arcs of $X_1$ lie on exactly three arcs of $X_m$ for $3\le m\le8$, and the same holds for the arcs
-of $X_2$ and of $X_3$ for $5\le m\le 8$. The label bookkeeping of \cref{rem:labels}, run along this chain, agrees and
-still gives three at $m=20$. If this persists for every block and every level, the pieces of this tiling form exactly
-three strands, each a two-way infinite path by \cref{thm:A}. We have not proved this, and the paper does not use it.
-For the other alignment ($K_m=\Gamma$, $c_m=7$ for odd $m$ and $K_m=\Theta$, $c_m=2$ for even $m$) the arcs of
-$X_1$ lie on a single arc of $X_4$. Along $90{,}000$ chains chosen at random step by step ($30{,}000$ for each
-$b\le3$), the label bookkeeping put the arcs of $X_b$ on a single arc of $X_m$ for some $m\le20$ in all but five. The programs are in \code{experiments/}, with logs; the label bookkeeping along a chain is \code{hierarchy/chains\_label.js},
-which agrees with exact strand following on $60$ chains up to level~$8$.
-\end{remark}
+In a tiling with a \emph{fault}, the supertiles containing a tile fill only part of the plane, an \emph{infinite
+supertile}~\cite[\S5]{TathamTransducers}, and two or more of these meet along the fault; Tatham~\cite[\S7.3]{TathamTransducers}
+gives an example. A closed strand inside one infinite supertile is ruled out by \cref{thm:signature}: its finitely many
+tiles lie in one supertile, and every edge it crosses is shared by two of them, so it is a closed strand of that
+supertile. One crossing the fault is not reached by the argument. Whether such a strand can occur is open.
+\Cref{thm:B} is not affected, since the nest tiling has no fault (\cref{prop:nesttiling}).
 
-\begin{enumerate}[leftmargin=*,label=(\arabic*)]
-\item Which homochiral tilings whose hierarchy covers the plane carry a single strand? Is the number of strands
-always finite, and which numbers occur?
-\end{enumerate}
-
-\subsection*{Faults}
-\Cref{thm:A} assumes that the hierarchy covers the plane. This subsection says what that leaves out, and why.
-
-Take a tile $t$ and the supertiles $X_0(t)\subset X_1(t)\subset\cdots$ that contain it. If the hierarchy covers the plane,
-they grow until they cover the whole plane. Then every closed strand, being made of finitely many pieces, lies inside one of them, and
-the Signature Theorem (\cref{thm:signature}) rules it out: that is the whole proof of \cref{thm:A}
-(\cref{sec:noclosed}). In a tiling with a \emph{fault} they grow for ever but fill only part of the plane, an
-\emph{infinite supertile} (Tatham's term~\cite[\S5]{TathamTransducers}; Goodman-Strauss~\cite{GoodmanStrauss1999}
-speaks of infinitely large supertiles). The rest of the plane is filled by other infinite supertiles, built in the same way from
-other tiles. Two infinite supertiles do not overlap, and no supertile of any level reaches from one into another. The
-boundaries between them run along tile edges, and they are the fault (\cref{fig:fault}).
-
-A closed strand that stays inside one infinite supertile lies in a single supertile, and is ruled out as before. A
-closed strand that crossed the fault, with pieces on both sides, would lie in no single supertile, and the argument
-does not reach it. So \cref{thm:A} is stated only for tilings without a fault, and this paper makes no claim about
-closed strands in tilings with a fault: it neither proves that there are none nor exhibits one. \Cref{thm:B} is not
-affected, since the nest tiling has no fault (\cref{prop:nesttiling}).
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[scale=0.62, line join=round]
-\foreach \w/\h/\f in {4.6/2.2/tilefill!45!white, 3.2/1.5/tilefill!75!white, 1.9/0.85/tilefill} {
-  \filldraw[fill=\f, draw=black!65, line width=0.6pt] (-\w,-\h) rectangle (0,\h);
-  \filldraw[fill=\f!70!oisky!35!white, draw=black!65, line width=0.6pt] (0,-\h) rectangle (\w,\h);
-}
-\draw[black, line width=1.8pt] (0,-2.5) \foreach \y in {-2.2,-1.8,...,2.2} { -- ++(0.12,0.2) -- ++(-0.12,0.2) } -- (0,2.5);
-\draw[oiverm, line width=1.3pt, densely dashed] (0,0.1) ellipse (1.05 and 0.42);
-\node[font=\small, anchor=north east] at (-0.35,-2.3) {infinite supertile};
-\node[font=\small, anchor=north west] at (0.35,-2.3) {another infinite supertile};
-\node[font=\small, above] at (0,2.5) {fault};
-\draw[black!70, line width=0.5pt] (-3.9,1.85) -- (-5.3,2.6);
-\node[font=\scriptsize, align=right, anchor=south east] at (-5.2,2.55) {supertiles around a tile: they grow\\[-1pt] for ever, but stay on this side};
-\draw[oiverm!80!black, line width=0.5pt] (0.98,0.3) -- (5.25,1.0);
-\node[font=\scriptsize, oiverm!80!black, align=left, anchor=west] at (5.3,1.0) {a closed strand\\[-1pt] across the fault?};
-\end{tikzpicture}
-\caption{A fault, drawn schematically (supertiles as rectangles). The supertiles around a tile grow for ever but stay
-on one side; together they form an infinite supertile, and the boundary between two infinite supertiles, made of tile
-edges that no supertile crosses, is the fault. A closed strand inside one infinite supertile lies in a single
-supertile and is ruled out by the Signature Theorem. A closed strand crossing the fault (dashed) would lie in no single
-supertile; \cref{thm:A} does not cover tilings with a fault, and this paper makes no claim about them.}
-\label{fig:fault}
-\end{figure}
-
-Tilings with faults do exist, by the usual compactness argument; we sketch it. For each $m\ge1$, apply a proper motion to a homochiral tiling so that every tile is $\rho^k\Tile+t$
-($k\in\ZZ$, $t\in\ZZ[\rho]$) and the origin is a vertex of a level-$m$ supertile; call the result $\T_m$. The origin
-is then where three level-$m$ supertiles meet~\cite[Thm.~5.1]{SMKGS-spectre}, and it lies on the boundary of a
-level-$n$ supertile for every $n\le m$. For fixed $r$ and $n$, since the tiles meet edge to edge, the origin is a tile vertex, and boundedly
-many tiles meet the disc of radius $r$ about the origin, there are only finitely many possibilities for these tiles,
-together with their grouping into level-$n'$ supertiles for $n'\le n$,
-the kinds of these supertiles and their child numbers. By a diagonal argument, some subsequence of the $\T_m$ has all
-these data eventually constant, for every $r$ and $n$. The limit is a homochiral tiling whose level-$n'$ groupings are
-compositions as in \cref{prop:pattern}; by the uniqueness in \cref{thm:smkgs}(a) they are its supertiles. In it the origin lies on the boundary of a level-$n$
-supertile for every $n$. The finitely many tiles at the origin cover a neighbourhood of it, so they never all lie in one
-supertile, and they meet at least two different infinite supertiles. Tatham~\cite[\S7.3]{TathamTransducers} gives an
-explicit example: a tiling with two infinite supertiles side by side, with addresses
-$\Xi\xleftarrow{7}\Pi\xleftarrow{7}\Xi\xleftarrow{7}\cdots$ and $\Pi\xleftarrow{7}\Xi\xleftarrow{7}\Pi\xleftarrow{7}\cdots$
-in his numbering of the children, almost all of which is invariant under a rotation by $60^\circ$.
-
-\begin{enumerate}[leftmargin=*,label=(\arabic*),resume]
-\item Are there homochiral tilings by $\Tile$, necessarily with faults (\cref{thm:A}), in which the decoration has a
-closed strand?
-\end{enumerate}
-
-\subsection*{Other drawings and designs}
-The theorems concern only the pairing of ports (\cref{def:decoration}) and the straight-through rule. They therefore
-apply to any drawing that realises these, including drawings on the curved Spectre, whose tilings correspond to the
-homochiral tilings by $\Tile$~\cite[\S2]{SMKGS-spectre}. The method uses the decoration only through the signature of the tile (\cref{lem:tilesig}), the position of the
-crossover, which fixes $A$ (\cref{lem:Apos}), the level-$1$ computations (\cref{comp:compose,comp:base}) and,
-for \cref{thm:B}, the junction map (\cref{comp:junction}). For any other decoration in which
-the tile has the signature at some edge, the same finite computations can be run; their outcome may differ.
+The theorems use only the pairing of ports (\cref{def:decoration}) and the straight-through rule, so they hold for any
+drawing that realises these, including on the curved Spectre. For another decoration with the signature, the same
+finite computations can be run; their outcome may differ.
 
 % ---------------------------------------------------------------------------------------------------------
 \appendix
 \section{The computations}\label{app:computations}
 
-All programs and their logs are in the ancillary files of this paper, folder \code{code/}. One command,
-\code{./run\_all.sh}, re-runs everything the proof needs, with the quicker corroborating computations, in about twelve
-minutes on a four-core machine; \code{./run\_all.sh -{}-all} adds the corroborating computations to level~$9$, and
-takes about an hour in all (with the memory of the JavaScript programs capped at $6.5$\,GB). The file
-\code{code/README.md} maps every statement of this paper to the script that checks it. The Lean formalisation is in the
-folder \code{lean/}; its \code{build.sh} builds and checks it in about ten minutes, and its \code{README.md} maps the
-statements of this paper to the formal ones.
+All programs and their logs are in the ancillary files of this paper, folder \code{code/}: \code{./run\_all.sh}
+re-runs everything the proof needs, and \code{code/README.md} maps every statement of this paper to the script that
+checks it. The Lean formalisation is in the folder \code{lean/} (\cref{app:ai}).
 
-\subsection*{What the proof computes, and how}
-Besides the comparisons with~\cite[Figs.~4.1, 5.1]{SMKGS-spectre} in the proof of \cref{prop:pattern}, the proof uses
-two kinds of computation. The geometric computations on actual supertiles are the Mystic
-(\cref{lem:tilesig}), the level-$1$ data (vertex positions, $\ell_1$, $d_1$, the position of $A$, and the signature of
-the level-$1$ supertiles, \cref{comp:base}) and the patterns of the compositions $m\to m+1$ for $m\le3$. All of them
-are done in exact arithmetic by \code{exact/exact.py}, in Python. It represents every vertex exactly as an element
-$a+b\rho+c\rho^2+d\rho^3$ of $\ZZ[\rho]$, $\rho=e^{i\pi/6}$, with integers $a,b,c,d$, and every motion as
-$z\mapsto\rho^kz+t$ (or $\rho^k\bar z+t$ in reflected frames). Floating point is used only to read off the sign of the
-area of a polygon whose area exceeds $8$ in absolute value. The computations on compositions
-(\cref{comp:compose,comp:junction}) use only \cref{tab:children,tab:sides,tab:psides} and the integers $\ell_1$, $d_1$.
-The program \code{hierarchy/compositions.py} builds each composition, follows the ribbon from every port, and checks
-the statement as worded. The Lean formalisation repeats \cref{comp:compose} and the second part of \cref{comp:junction}
-in its kernel, from the same tables, runs both negative controls as tests, and re-checks \cref{comp:base} on the level-$1$ supertiles exported by \code{exact.py} (in the table below, the Lean files
-named are in \code{lean/SpectreKnot/}).
+\emph{What the proof computes.} The geometric computations on actual supertiles (the level-$1$ data and
+\cref{comp:base}; the patterns of the compositions $m\to m+1$ for $m\le3$) are done in exact
+arithmetic by \code{exact/exact.py}, with every vertex in $\ZZ[\rho]$ and every motion $z\mapsto\rho^kz+t$; floating
+point is used only to read off the sign of an area exceeding $8$ in absolute value. The computations on compositions
+(\cref{comp:compose,comp:junction}) use only \cref{tab:children,tab:sides,tab:psides} and the integers $\ell_1$, $d_1$:
+\code{hierarchy/compositions.py} builds each composition, follows the ribbon from every port and checks the statement
+as worded. The Lean kernel repeats \cref{comp:compose,comp:junction,comp:base}, and
+runs two negative controls as tests, which the programs run too: with each child's corner $B_c$ two vertices from
+$A_c$, all $18$ checks of \cref{comp:compose} fail; with the junctions $12$ and $16$ exchanged in \cref{tab:junction},
+\cref{comp:junction} fails for both signs. For \cref{prop:pattern}, a script fits our level-$1$ supertiles to a render
+of~\cite[Fig.~4.1]{SMKGS-spectre} (the six dots of each cluster by a proper similarity with residual below $1\%$ of an
+edge, every other matching or kind at least $40$ times worse; the outline, the Mystic's shading; the labels, read by
+hand), and another encodes the nine panels of~\cite[Fig.~5.1]{SMKGS-spectre}, finds the one consistent rotation of each
+inner hexagon and checks the encoding against \cref{tab:sides,tab:psides}.
 
-The JavaScript programs in \code{core/} and most of \code{hierarchy/} repeat the geometric computations independently
-and extend them: the patterns for $m\le7$, the signature up to level $9$, the merging for $b\le6$ up to level $9$.
-These extensions corroborate the proof but are not used in it. So do the skeleton walks, the symbolic run of the label
-states and its certificates (\cref{rem:skeleton,rem:labels}). They work with integers and rationals only; the
-integers involved are below $2\cdot10^7$ in absolute value, far below $2^{53}$, so the parts written in JavaScript are
-exact as well. The inputs of the symbolic run (the pattern, the matrix $M$ and $\ell_1$) are read from the JavaScript
-programs and checked equal to the exact ones. The programs share no code with \code{exact.py}, although
-both implement the key-point construction of~\cite[App.~A]{SMKGS-spectre} and so the same table of placements. They
-work in double-precision floating point and identify points by rounding coordinates to $10^{-2}$ or $10^{-3}$. We do
-not bound their rounding error. A separate check (\code{crosscheck/overlap.js}), which builds the supertiles of levels $1$
-to $7$ in the same way, finds distinct vertices at distance at least $0.89$, and points that it identifies within
-$4\times10^{-12}$ of each other; and up to level~$9$ every rim found has exactly $E_m$ edges (\cref{prop:fib}) and every
-rim vertex has degree $2$, which a wrongly identified point would break. All programs compose the ribbon pairings with
-\cref{lem:gluing} and nothing else. (In the programs the sign $\omega_m$ is called \texttt{beta}.)
+\emph{Evidence, not proof.} Besides \cref{rem:patterncheck}, separate programs, mostly in JavaScript, sharing no code
+with \code{exact.py} and working in floating point (we do not bound their rounding error), agree with the proof:
+the actual supertiles up to level~$9$ have the signature;
+following every ribbon through the actual blocks up to level~$9$ gives the numbers of \cref{tab:merge}, and
+\cref{tab:junction} holds on $N_1,\dots,N_4$ (exact arithmetic);
+and second routes, through \emph{skeletons} of the compositions (only the parities of the shared runs)
+and a symbolic computation with certified linear inequalities, give \cref{thm:signature,thm:merge} again.
+The drawn ribbons realise the pairing of \cref{def:decoration} on all supertiles up to level~$3$; each piece stays
+inside its tile, the two crossover pieces cross once, transversally, and the pieces meet each edge at $\pm45^\circ$, so
+the curves cross only in pairs.
 
-\subsection*{Sizes}
-The script \code{hierarchy/sizes.py} computes these numbers from \cref{tab:children} and \cref{prop:fib}. They
-agree with the supertiles built by the programs (tile counts up to level~$7$, rim lengths up to level~$9$).
-\begin{center}\small
-\begin{tabular}{r|rrrrrrrrr}
-\toprule
-level $m$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9\\
-\midrule
-tiles in a $\Delta$ & 9 & 71 & 559 & 4401 & 34649 & 272791 & 2147679 & 16908641 & 133121449\\
-rim $E_m(\Delta)$ & 46 & 182 & 758 & 3198 & 13534 & 57318 & 242790 & 1028462 & 4356622\\
-shortest side $\beta_m$ & 5 & 15 & 57 & 235 & 989 & 4183 & 17713 & 75027 & 317813\\
-\bottomrule
-\end{tabular}
-\end{center}
+% ---------------------------------------------------------------------------------------------------------
+\section{Use of AI, formal verification and tools}\label{app:ai}
 
-\clearpage
-\subsection*{What was computed}
-\begin{center}\footnotesize
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.3cm}}
-\toprule
-statement & computation & script\\
-\midrule
-\Cref{def:decoration,lem:tilesig} & the tile's pairing; the Mystic & \code{core/}\allowbreak\code{tile.js}, \code{exact/}\allowbreak\code{exact.py}\\
-\Cref{prop:pattern}, \cref{rem:patterncheck} & vertices of levels $1$--$6$ (points where three supertiles meet); the pattern of compositions $m\to m+1$, $m=1,\dots,7$, all identical; exact for $m\le3$ & \code{hierarchy/}\allowbreak\code{vertices.js}, \code{combin.js}, \code{exact/}\allowbreak\code{exact.py}\\
-\Cref{prop:pattern} (base of ($\ast$)) & the level-$1$ supertiles as hat/turtle clusters, fitted to~\cite[Fig.~4.1]{SMKGS-spectre} (dots, outline, shading; labels read by hand) & \code{crosscheck/}\allowbreak\code{fig41\_compare.py}, \code{fig41\_render.py}\\
-\Cref{tab:children}, \cref{prop:pattern} (base of ($\ast$)) & \cref{tab:children} and every tile of every supertile, levels $0$--$4$, against Kaplan's implementation~\cite{KaplanSpectrePage} (downloaded when run, not included); from its tiles alone, the level-$1$ vertices, $\ell_1$ and $d_1$; two altered copies rejected & \code{crosscheck/}\allowbreak\code{kaplan\_compare.py}, \code{kaplan\_run.js}\\
-\Cref{rem:patterncheck} & agreement with an encoding of~\cite[Fig.~5.1]{SMKGS-spectre}, all nine kinds; its dots re-found from the PDF; two corrupted encodings rejected & \code{crosscheck/}\allowbreak\code{fig51\_compare.py}, \code{fig51\_raster.py}\\
-\Cref{rem:patterncheck} & tiles of every supertile, levels $1$--$7$, have disjoint interiors and fill its rim & \code{crosscheck/}\allowbreak\code{overlap.js}\\
-\Cref{prop:letters,prop:fib,cor:parity,lem:Apos} & letters, recurrence, lengths at levels $1$--$8$, closed forms & \code{hierarchy/}\allowbreak\code{recur.js}, \code{letters.py}\\
-\Cref{comp:compose} & the $18$ compositions $C_T(\ell_1,d_1,\pm1)$ from the tables, every port followed; negative control & \code{hierarchy/}\allowbreak\code{compositions.py}; Lean: \code{CompFull.lean}\\
-\Cref{comp:base} & signature of the level-$1$ supertiles: exact, and in floating point (both also at levels $2$--$3$, and $4$) & \code{exact/}\allowbreak\code{exact.py}, \code{hierarchy/}\allowbreak\code{checks.js}; Lean: \code{PatchSig.lean}\\
-\Cref{comp:junction} & the junction map in $C_\Delta(\ell_1,d_1,\pm1)$; negative control & \code{hierarchy/}\allowbreak\code{compositions.py}; Lean: \code{StepMap.lean}\\
-\Cref{rem:skeleton}~(1), \cref{rem:labels}~(2) & the compositions and the junction map at $(\ell_m,d_m,\pm1)$, $m\le4$; every single move from $(\ell_1,d_1)$ & \code{hierarchy/}\allowbreak\code{compositions.py}\\
-\Cref{rem:skeleton} (1) & the moves of \cref{lem:reach} followed back from levels $2$ and $3$, checked step by step & \code{crosscheck/}\allowbreak\code{chain\_check.py}\\
-\Cref{rem:labels} (2) & \cref{tab:junction} on the actual blocks $N_1,\dots,N_4$, exact arithmetic; negative control & \code{crosscheck/}\allowbreak\code{junction\_actual.py}\\
-\Cref{rem:skeleton} (3) & the $18$ skeleton walks; parity lemma for skeletons; equal to the actual skeletons at levels $2$--$9$ (the computed skeletons record slightly more than \cref{def:skeleton}, e.g.\ rim-run parities) & \code{hierarchy/}\allowbreak\code{induction.js}\\
-\Cref{prop:reduce} (check) & reduced walk equals direct composition at all $1{,}424$ parent ports, levels $1$--$8$ & \code{hierarchy/}\allowbreak\code{checks.js}\\
-\Cref{rem:labels} (3) & symbolic label computation, $1{,}068+1{,}038$ obligations; certificates & \code{hierarchy/}\allowbreak\code{certnest.js}, \code{certify\_fib.py}, \code{certify.py}\\
-\Cref{tab:merge}, \cref{rem:labels} (1) & strand following in exact arithmetic for $b\le3$ to level $7$; in floating point for $b\le6$ to level $9$; label computation for $b=1,2,3$ & \code{exact/}\allowbreak\code{exact.py}, \code{core/}\allowbreak\code{hier2.js}, \code{core/}\allowbreak\code{nest.js}\\
-corroboration & signature and skeleton periodicity at levels $1$--$9$, all kinds; $0$ closed strands at every level & \code{core/}\allowbreak\code{reduce.js}, \code{hierarchy/}\allowbreak\code{synth.js}\\
-\Cref{sec:decoration} (drawing) & the drawn ribbons realise the pairing, levels $1$--$3$; shared edges glue $e_i$ to $e_j$ with $i+j$ odd, levels $1$--$4$ & \code{drawing/}\allowbreak\code{checkmodel.js}, \code{exact/}\allowbreak\code{exact.py}\\
-\Cref{rem:overunder} & the drawn pieces: containment, the single crossing, angles at the edges & \code{drawing/}\allowbreak\code{drawcheck.py}\\
-\bottomrule
-\end{tabularx}
-\end{center}
+\subsection*{How the work was done}
+The author came up with the original idea of looking for a mono-stranded aperiodic knot, and then used an AI system
+(Claude, by Anthropic) to search for it; from the $34$ candidates found, the author chose design $0.1{:}01$ and drew its
+ribbons by hand. From then on the author and the AI system worked together: the AI system did the detailed work (the
+programs, the proof, the Lean formalisation and this paper), and the author directed, guided and corrected it. The
+author has read parts of this paper and spot-checked figures and counts; no professional mathematician has reviewed
+it. The AI system reviewed its own argument in several passes. A program or check called \emph{independent} or
+\emph{separate} here is a separate implementation by the same AI system. A fuller account:
+\url{https://cortado-j.github.io/SPECTRE_KNOT/made.html}.
+
+\subsection*{Formal verification}
+The combinatorial part of the proof is formalised in the Lean~4 proof assistant~\cite{Lean4}, using its core library
+only (folder \code{lean/}). In a combinatorial form, in which a patch, or a whole tiling, is described by which edge of
+which tile is glued to which, Lean's kernel has checked \cref{thm:signature} for every level $m\ge1$; \cref{thm:A} for
+the union of any chain of supertiles, each a child of the next, in which every edge is eventually glued (the second step
+of its proof; the nest is such a chain); \cref{thm:B} for the nest tiling built as the union of the blocks $N_b$, with
+\cref{thm:merge}, its exactness included; and \cref{lem:gap}, part (a) at the vertices of tiles. The formal statements
+rest on \cref{tab:children,tab:sides,tab:psides} and on the nine level-$1$ supertiles as glued patches of tiles, computed
+in exact arithmetic. The link with tilings of the plane is a stated assumption, in three parts: (M1)~the supertiles of an
+actual tiling are glued as the tables say (\cref{thm:smkgs}, \cref{prop:pattern,lem:rigid}, and step~(ii) of
+\cref{sec:comp}); (M2)~a tiling whose hierarchy covers the plane is the union of such a chain (the first step of the
+proof of \cref{thm:A}); (M3)~\cref{prop:nestwell,prop:nesttiling}, with the step of \cref{lem:gap}(a) from the
+vertices of tiles to the points of the plane. The formal proofs follow
+\cref{sec:decoration,sec:boxes,sec:reduce,sec:lengths,sec:induction,sec:nest,sec:strand} step by step
+(\code{lean/README.md} maps each result to its formal counterpart), with differences of bookkeeping only: strands are
+orbits of ports (\cref{sec:strands}); the signature is stated by following ribbons (\cref{def:signature}); and inside the
+proofs of \cref{lem:lengthen,prop:compose} a composition's rim vertices are found by turning about a vertex of a child,
+which cutting an edge leaves unchanged, with the positions of \cref{tab:psides} and the adjacency of $A$ and $B$
+recovered at the end. The formalisation also proves that a lengthened composition is the one with an edge cut into
+three, and facts the paper takes from the geometry: every supertile is a disc at its rim, and its gluing is symmetric and
+glues no tile to itself. The proofs use only Lean's standard axioms. The formalisation was written by the AI system as well; its statement file
+(\code{lean/SpectreKnot/Statement.lean}) contains every definition that the formal theorems depend on, with comments in
+plain English. No human has checked that these formal statements say what the theorems of this paper say.
+
+\subsection*{Tool and computational resource disclosure}
+\emph{AI system:} Claude, by Anthropic (various Claude models, primarily Opus), used in the Claude app and through
+Claude Code from August to October 2026; no other AI or machine-learning system was used. \emph{Proof assistant:}
+Lean~4, version 4.34.1, core library only; \code{leanchecker} replays every declaration through the kernel, and
+\code{comparator} checks that the main theorems prove exactly the statements of \code{Statement.lean}. \emph{Other
+software:} Python~3 (SymPy for \cref{sec:lengths}; NumPy and SciPy only to propose certificates, then checked in exact
+arithmetic; Matplotlib and Pillow for the comparisons with~\cite{SMKGS-spectre}), Node.js~18 or later, Poppler and
+\LaTeX; one cross-check downloads Kaplan's \code{spectre.js}, which is not included. \emph{Computing:} the computations
+the proof needs take about twelve minutes on a four-core machine, the corroborating ones to level~$9$ about an hour
+(up to $6.5$\,GB of memory), and the formalisation about ten minutes; none of the checks the proof needs uses the AI
+system or proprietary software. The AI system ran on Anthropic's servers; its computing is not known to the author.
 
 \bibliographystyle{amsplain}
 \bibliography{refs}

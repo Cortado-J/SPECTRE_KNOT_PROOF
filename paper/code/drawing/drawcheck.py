@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Checks on the hand-drawn design (paper, Remark 'Over and under'): each piece stays inside the tile away from its
+# Checks on the hand-drawn design (paper, Appendix A, the drawing): each piece stays inside the tile away from its
 # ends; apart from their common ends on the edges, the only crossing between pieces of one tile is the crossover, and
 # it is transversal; at each edge the two pieces of a tile meet the
 # crossing point at +-45 degrees to the edge, so ribbons continue smoothly across the edge and cross at right angles.

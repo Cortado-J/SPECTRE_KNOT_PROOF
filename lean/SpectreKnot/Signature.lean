@@ -3,7 +3,7 @@ The signature of a composition (the conclusion of the induction step), stated wi
 found by turning about a vertex of a child (`Rot`). The signature survives cutting an edge (`Cut.OK.sig`) and passing
 to an equivalent gluing (`Sig.congr`); that is what the parity lemma needs.
 -/
-import SpectreKnot.Subdivide
+import SpectreKnot.NewWalk
 
 namespace SpectreKnot.Gluing
 

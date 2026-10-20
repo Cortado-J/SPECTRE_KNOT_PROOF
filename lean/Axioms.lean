@@ -8,47 +8,61 @@ import SpectreKnot
 
 open SpectreKnot
 
--- §3: strands (Lemma 3.4), the decoration and the tile's signature (Def 3.1, Lemma 4.4)
+-- §3: strands (Lemma 3.4); §4: the box of a patch with the signature (Lemma 4.1), and a tile has the signature
+-- (Lemma 4.4)
 #print axioms StrandSystem.closed_or_path
+#print axioms Statement.Patch.HasSig.box
+#print axioms Statement.tile_hasSig
+-- The pilot's model of the tile, its 14 pieces as a pairing of its 28 ports (`Box.lean`, not used by the main results)
 #print axioms tileBox_proper
 #print axioms tile_signature
--- §5: the zigzag lemma (Lemma 5.1)
+-- §5: the Zigzag Lemma (Lemma 5.1), for every length
 #print axioms Zigzag.zigzag
--- §5: Prop 5.4, for every well-formed gluing
-#print axioms Gluing.prop_5_4_a
-#print axioms Gluing.prop_5_4_b
-#print axioms Gluing.prop_5_4_c
-#print axioms Gluing.fullReach_unique
--- §6: side lengths (Prop 6.1, Prop 6.2, Cor 6.3, Lemma 6.4, Lemma 6.5)
+-- §6: side lengths (Prop 6.1, Prop 6.2, Cor 6.3, Lemma 6.4, Lemma 6.5), and Prop 6.1 for the supertiles themselves
 #print axioms sideLen_eq_letterLen
 #print axioms letterLen_fib
 #print axioms letterLen_parity
 #print axioms sideLen_parity
 #print axioms dOff_fib
 #print axioms bounds
--- §7: the skeleton walks of Remark 7.8 in the kernel, agreement with the JavaScript walk, negative control
-#print axioms Skeletons.skeleton_walks
-#print axioms Skeletons.agrees_with_js
-#print axioms Skeletons.negative_control
--- §7: Computation 7.3, the 18 compositions at the level-1 lengths, from the tables alone; negative control
+#print axioms Statement.super_side_length
+-- §7: Computation 7.3, the 18 compositions at the level-1 lengths, from the tables alone, as the kernel checks it and
+-- as the paper words it; negative control
 #print axioms Compose.compositions_level1
 #print axioms Compose.compositions_level1_signature
+#print axioms Compose.sig_base
+#print axioms Compose.comp_7_3
 #print axioms Compose.negative_control
--- §7: the lengthening lemma (Lemma 7.1) and the parity lemma (Prop 7.4: Computation 7.3 at every level m ≥ 1)
+-- §7: the lengthening (Lemma 7.1): a move is a cut, and a cut keeps the signature, the new path by the Zigzag Lemma
+-- with n = 3 (`cross_three`), the new ports by the old ones (`Cut.OK.noLoops`)
+#print axioms Gluing.cross_three
 #print axioms Gluing.Cut.OK.sim
+#print axioms Gluing.Cut.OK.noLoops
 #print axioms Gluing.Cut.OK.sig
 #print axioms Gluing.Equiv.sig
 #print axioms Compose.Move.OK.equiv
-#print axioms Compose.sig_base
+#print axioms Compose.Move.OK.keep
+-- §7: reachability (Lemma 7.2, an induction principle), and Prop 7.4 (Computation 7.3 at every level m ≥ 1), as the
+-- induction uses it and as the paper words it
+#print axioms Compose.adm_level
+#print axioms Compose.adm_induct
+#print axioms Compose.adm_sig
 #print axioms Compose.parity_lemma
 #print axioms Compose.parity_lemma_adj
+#print axioms Statement.sig_of_check
+#print axioms Statement.compSig_of_sig
+#print axioms Compose.prop_7_4
 -- Theorem A (the statement file's `TheoremA`): Thm 7.6 at tile level, by induction from the level-1 clusters
+-- (Computation 7.5), the parent's corners where Table 3 puts its Γ child's; and the corner A of a supertile is that of
+-- its Γ child (§2.3)
 #print axioms Statement.good_one
 #print axioms Statement.Kids.follow_of_reach
 #print axioms Statement.Kids.noClosed
 #print axioms Statement.Kids.parent_sig
 #print axioms Statement.own_rot
+#print axioms Statement.aPos_succ
 #print axioms Statement.good
+#print axioms Statement.cornerA_succ
 #print axioms Statement.theoremA
 #print axioms Statement.loopPatch_closed
 #print axioms Statement.compose_no_default
@@ -56,13 +70,11 @@ open SpectreKnot
 -- level, then the nest
 #print axioms Statement.step_base
 #print axioms Statement.StepOK.move
-#print axioms Compose.adm_induct
 #print axioms Statement.step_level
 #print axioms Statement.super_glueSymm
 #print axioms Statement.linked_symm
 #print axioms Statement.step_tile
 #print axioms Statement.stretch_eq
-#print axioms Statement.lemma_9_4
 #print axioms Statement.chain_even
 #print axioms Statement.chain_odd
 #print axioms Statement.no_boundary
@@ -83,7 +95,8 @@ open SpectreKnot
 #print axioms Statement.grandparent
 #print axioms Statement.rim_not_surrounded
 -- The Signature Theorem (the statement file's `SignatureTheorem`, Thm 7.6): the conclusion of the induction, with the
--- corners written out, and every supertile a disc at its rim
+-- corners written out (Lemma 6.4), and every supertile a disc at its rim
+#print axioms Statement.cornerA_eq_aPos
 #print axioms Statement.signatureTheorem
 -- Theorem B, final form (the statement file's `NestModel`, `TheoremB_strand`): the nest tiling as one patch, and
 -- Lemma 3.4 applied to it

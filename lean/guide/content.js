@@ -9,7 +9,7 @@
   has changed since.
 */
 window.GUIDE = {
-writtenFor: '28a1a4ec79ba65a89e1b528e154098938433b61dc2fdc35295f2bd684b6ac849',
+writtenFor: '80934e370d6ea121da4eec2f5fd8193faaebc53543def5a7be830fb58c29c627',
 written: '19 Oct 2026',
 
 sections: [
@@ -104,10 +104,10 @@ items: [
     { tone: 'data', title: 'Where Lean stops',
       text: `Every claim in this file is about the patches and tilings the file builds. That they are glued like the
         real supertiles is (M1), which rests on the spectre paper (Thms 2.2, 3.1, 4.1, 5.1) and on the paper's
-        Prop 2.4 and Lemma 2.6. <code>Tests.lean</code> supports it: the level-2 supertiles built here equal, edge for
-        edge, those built from the tile placements in exact arithmetic, and the strand counts of the paper's Table 5
-        come out of these definitions. (M2) and (M3) are the paper's arguments about points of the plane: the first
-        half of the proof of Theorem A, and Props 8.2 and 8.4.` },
+        Prop 2.4, Lemma 2.6 and step (ii) of §7.1. <code>Tests.lean</code> supports it: the level-2 supertiles built
+        here equal, edge for edge, those built from the tile placements in exact arithmetic, and the strand counts of
+        the paper's Table 5 come out of these definitions. (M2) and (M3) are the paper's arguments about points of the
+        plane: the first half of the proof of Theorem A, and Props 8.2 and 8.4.` },
   ] },
 
 { id: 'imports', section: 's0', kind: 'import', title: 'Imports', lines: [33, 36],
@@ -509,14 +509,14 @@ items: [
     <code>A</code> and <code>B</code> given as rim vertex numbers. All seven fields must hold: the patch has a tile; the
     rim list holds exactly the unglued edges, each once (<code>rim_ok</code>, <code>rim_inj</code>,
     <code>rim_all</code>); glued edges are edges of actual tiles (<code>glue_ok</code>); no strand is closed
-    (<code>noClosed</code>, the paper's κ(P) = 0); and following the ribbon from each rim port leads to the port
+    (<code>noClosed</code>, the paper's (iii)); and following the ribbon from each rim port leads to the port
     [[btau]] pairs it with (<code>sig</code>: the hooks and the crossover).`,
   how: `A <code>structure</code> whose type is <code>Prop</code>: a claim made of named parts. <code>P.Follow p r</code>
     ([[Follow]]) says that from <code>p</code> the ribbon leaves the patch at <code>r</code>.`,
   checks: [
     { tone: 'ok', title: 'Def 4.3, all three parts',
       text: `(i) a hook at every rim vertex other than A and B, and (ii) the crossover, are <code>sig</code> with
-        [[btau]]; (iii) κ(P) = 0 is <code>noClosed</code>. The rim fields say that the rim list is the patch's
+        [[btau]]; (iii), no closed strand, is <code>noClosed</code>. The rim fields say that the rim list is the patch's
         boundary, edge for edge, which the paper takes from the geometry.` },
     { tone: 'note', title: 'Adjacency is in the claim, not here',
       text: `Def 4.3 starts from two adjacent rim vertices A and B. Here they may be any two; [[SignatureTheorem]] puts
@@ -610,9 +610,10 @@ items: [
   what: `A patch of a single tile: tile number 0, nothing glued, its 14 edges round the rim, and no hexagon corners.`,
   how: `<code>⟨1, fun _ _ => none, …, []⟩</code> gives the fields in order: one tile; a <code>glue</code> that ignores
     both arguments and returns <code>none</code>; the rim [(0,0), …, (0,13)]; an empty <code>vtx</code>.`,
-  checks: [{ tone: 'ok', title: 'Only its gluing matters',
-    text: `The <code>rim</code> and <code>vtx</code> of a single tile are never used: <code>compose</code> never takes
-      level-0 children, because level 1 comes from the data.` }] },
+  checks: [{ tone: 'ok', title: 'Its rim is used once',
+    text: `The <code>vtx</code> of a single tile is never used: <code>compose</code> never takes level-0 children,
+      because level 1 comes from the data. Its rim is used once: with it, a tile has the signature at v₀ and v₁ (the
+      paper's Lemma 4.4, checked by the kernel as <code>tile_hasSig</code> in <code>PatchSig.lean</code>).` }] },
 
 { id: 'level1', section: 's3', kind: 'def', title: 'level1', lines: [220, 223],
   summary: 'The nine level-1 supertiles, read from Data/Clusters.lean.',
@@ -700,9 +701,10 @@ items: [
   examples: [{ expr: '(cornerA 1 .Sigma, cornerA 2 .Sigma, cornerA 2 .Delta)', out: '(42, 166, 0)',
     note: 'Level 1: vertex 5 at 36, plus d₁ = 6. Level 2: vertex 5 at 140, plus d₂ = 26.' }],
   checks: [{ tone: 'ok', title: 'The paper defines A another way',
-    text: `The paper defines A recursively, as the crossover corner of the Γ child, down to v₀ of the Mystic's first
-      tile; Lemma 6.4 then finds where it lies. Here A is given by that position, and [[SignatureTheorem]] says the
-      crossover is there.` }] },
+    text: `The paper defines A recursively: v₀ of the first tile of the Mystic at level 1, and then the crossover
+      corner of the Γ child; Lemma 6.4 then finds where it lies. Here A is given by that position, and
+      [[SignatureTheorem]] says the crossover is there. That A is the Γ child's at every level above 1 is proved too
+      (<code>cornerA_succ</code> in <code>ProofA.lean</code>); at level 1 its position comes with the data.` }] },
 
 { id: 'cornerB', section: 's5', kind: 'def', title: 'cornerB', lines: [254, 258],
   summary: 'The other corner, B = A + ω_m: the next rim vertex at even levels, the previous one at odd levels.',
@@ -714,7 +716,7 @@ items: [
     note: 'Level 1 is odd: the vertex before A, round the 46-edge rim. Level 2 is even: the vertex after A.' }],
   checks: [{ tone: 'ok', title: 'Always the anticlockwise neighbour',
     text: `The own orientation alternates with the level, and so does ω<sub>m</sub>. So in absolute terms B is always
-      the anticlockwise neighbour of A, as for a single tile (the paper's Remark 7.7).` }] },
+      the anticlockwise neighbour of A, as for a single tile (B = v₁).` }] },
 
 { id: 'SignatureTheorem', section: 's5', kind: 'claim', title: 'SignatureTheorem', lines: [259, 266],
   summary: 'Every supertile of level m ≥ 1 is a disc at its rim and has the signature at A and B = A + ω_m.',
@@ -727,9 +729,9 @@ items: [
     (anticlockwise) at even levels: the own orientation of the paper's Def 2.2.`,
   checks: [
     { tone: 'ok', title: 'Thm 7.6 as the paper states it',
-      text: `Every level-m supertile of every kind has the signature at (A, B), with A placed as in Lemma 6.4 and
-        B = A + ω<sub>m</sub> in its own order. Level 0 is left out: here it is a single tile of every kind, while the
-        paper's level-0 Γ is the Mystic (Lemma 4.4).` },
+      text: `For every m ≥ 1, every level-m supertile of every kind has the signature at (A, B), with A placed as in
+        Lemma 6.4 and B = A + ω<sub>m</sub> in its own order. Level 0 is not part of it, here as in the paper; a tile
+        has the signature by Lemma 4.4 (<code>tile_hasSig</code>).` },
     { tone: 'ok', title: 'It implies TheoremA',
       text: `<code>noClosed</code>, one field of [[HasSig]], is [[TheoremA]] at each level m ≥ 1.` },
     { tone: 'data', title: 'For the supertiles built here',
@@ -779,7 +781,7 @@ items: [
         in N<sub>b+k</sub> they lie on the same strand.`,
       checks: [{ tone: 'ok', title: 'Not built into the definitions',
         text: `<code>Tests.lean</code> runs the same definitions along a different chain of supertiles (the paper's
-          Remark 10.1) and finds three strands, not one. So (3) is a real property of the nest.` }] },
+          §10) and finds three strands, not one. So (3) is a real property of the nest.` }] },
   ] },
 
 { id: 'TheoremB_sharp', section: 's5', kind: 'claim', title: 'TheoremB_sharp', lines: [281, 287],
@@ -1216,10 +1218,10 @@ trust: [
       different chain gives three strands, not one.` },
   { status: 'assumed', title: 'Assumption (M), in three parts',
     text: `(M1) real supertiles are glued like <code>super m K</code>, which rests on the spectre paper (Thms 2.2,
-      3.1, 4.1, 5.1) and on the paper's Prop 2.4 and Lemma 2.6; (M2) a tiling whose hierarchy covers the plane is the
-      union of a chain of supertiles that covers (<code>Chain</code>, <code>Covers</code>), the first half of the
-      paper's proof of Theorem A; (M3) the real nest tiling is glued like <code>nestTiling</code> and covers the plane,
-      the paper's Props 8.2 and 8.4. Not formalised: [[header]].` },
+      3.1, 4.1, 5.1) and on the paper's Prop 2.4, Lemma 2.6 and step (ii) of §7.1; (M2) a tiling whose hierarchy
+      covers the plane is the union of a chain of supertiles that covers (<code>Chain</code>, <code>Covers</code>),
+      the first half of the paper's proof of Theorem A; (M3) the real nest tiling is glued like
+      <code>nestTiling</code> and covers the plane, the paper's Props 8.2 and 8.4. Not formalised: [[header]].` },
 ],
 
 /* ---------------------------------------------------------------------------------------------------------------- */

@@ -1,4 +1,4 @@
-# Remark 10.1 (experiment, not part of the proof): exact strand following along the chain
+# §10 of the paper (experiment, not part of the proof): exact strand following along the chain
 # Theta (odd levels, child 2 of Gamma) / Gamma (even levels, child 7 of Theta), and the other alignment.
 # Prints the number of arcs of X_N that the arcs of X_b lie on, N = b+1..8. About 15 minutes, ~10 GB RAM.
 import sys, time

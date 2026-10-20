@@ -37,6 +37,7 @@ TEX = ROOT / 'paper/tex/spectre_knot.tex'
 PDF = ROOT / 'paper/spectre_knot.pdf'
 LEAN = ROOT / 'lean'
 README = LEAN / 'README.md'
+CODE_README = ROOT / 'paper/code/README.md'
 OUT = ROOT / 'out'
 
 esc = html.escape
@@ -569,18 +570,37 @@ def plain(tex):
     return s
 
 
-def computations_table(body_tex, tex):
-    """The rows of the appendix table 'What was computed', in order, and by the labels each row names."""
-    part = body_tex.split('\\subsection*{What was computed}', 1)[1]
-    part = part.split('\\midrule', 1)[1].split('\\bottomrule', 1)[0]
+# A result named in the first cell of a row of paper/code/README.md: "Prop. 6.1, 6.2", "Thm 2.1(b)", "Lemma 4.4".
+CODE_REF = re.compile(r'\b(Thm|Theorem|Lemma|Prop|Proposition|Cor|Corollary|Comp|Computation|Def|Definition|Rem|Remark|'
+                      r'Constr|Construction)\.?\s+([0-9]+\.[0-9]+(?:\([^)]*\))?(?:\s*,\s*[0-9]+\.[0-9]+(?:\([^)]*\))?)*)')
+CODE_KIND = {'Thm': 'Theorem', 'Rem': 'Remark', 'Constr': 'Construction'}
+
+
+def computations_table(by_num):
+    """The rows of the table 'Which script checks which statement' of paper/code/README.md (the map that the paper's
+    Appendix A points to), in order, and by the labels of the results each row names in its first cell. Stops on a row
+    without four cells, or naming a result the paper does not have."""
+    text = CODE_README.read_text(encoding='utf8')
+    sec = text.split('## Which script checks which statement', 1)[1].split('\n## ', 1)[0]
     rows, ordered = defaultdict(list), []
-    for row in re.split(r'\\\\\s*\n', part):
-        cells = [c.strip() for c in re.split(r'(?<!\\)&', row)]
-        if len(cells) != 3:
+    for line in sec.split('\n'):
+        if not line.startswith('|') or line.startswith('|---') or line.startswith('| statement'):
             continue
-        labs = [l.strip() for m in re.finditer(r'\\[cC]ref\{([^}]*)\}', cells[0]) for l in m.group(1).split(',')]
-        r = {'what': tex.inline(cells[1]), 'scripts': tex.inline(cells[2]), 'for': tex.inline(cells[0]),
-             'labels': labs}
+        cells = [c.strip() for c in line.strip().strip('|').split(' | ')]
+        if len(cells) != 4:
+            raise SystemExit('paper/code/README.md, "Which script checks which statement": a row with %d cells, not 4 '
+                             '(statement, what is computed, script, log): %s' % (len(cells), line[:100]))
+        labs = []
+        for kind, nums in CODE_REF.findall(cells[0]):
+            kind = CODE_KIND.get(kind, leanparse.KIND_OF.get(kind, kind))
+            for num in re.findall(r'[0-9]+\.[0-9]+', nums):
+                lab = by_num.get((kind, num))
+                if lab is None:
+                    raise SystemExit('paper/code/README.md names %s %s ("%s"), which is not in the paper' % (
+                        kind, num, cells[0]))
+                if lab not in labs:
+                    labs.append(lab)
+        r = {'what': md_inline(cells[1]), 'scripts': md_inline(cells[2]), 'for': md_inline(cells[0]), 'labels': labs}
         ordered.append(r)
         for l in labs:
             rows[l].append(r)
@@ -588,13 +608,13 @@ def computations_table(body_tex, tex):
 
 
 def script_links(cell):
-    """A cell of the table 'What was computed' with each program linked to its file on GitHub, and each Lean file to
-    its page here; and the programs' paths under paper/code/. The table names a program by its folder and file
-    (`<code>dir/</code><code>file</code>`), and the next ones of the same folder by file alone."""
+    """A script cell of the table in paper/code/README.md, with each program linked to its file on GitHub, and each
+    Lean file to its page here; and the programs' paths under paper/code/. The table names a program by its path under
+    paper/code/ (`<code>dir/file</code>`, perhaps with arguments), and the next ones of the same folder by file alone."""
     cur, paths = [''], []
 
     def repl(m):
-        d, f = m.group(1), m.group(2)
+        d, f, args = m.group(1), m.group(2), m.group(3)
         if f.endswith('.lean'):
             ok = (LEAN / 'SpectreKnot' / f).is_file()
             return '<a href="lean-%s.html"><code>%s</code></a>' % (f[:-len('.lean')], f) if ok else m.group(0)
@@ -604,8 +624,9 @@ def script_links(cell):
         if not (ROOT / 'paper/code' / path).is_file():
             return m.group(0)
         paths.append(path)
-        return '<a href="%s/blob/main/paper/code/%s"><code>%s</code></a>' % (REPO_URL, path, d + f if d else f)
-    return re.sub(r'(?:<code>([\w./-]+/)</code>)?<code>([\w.-]+\.(?:js|py|lean))</code>', repl, cell), paths
+        return '<a href="%s/blob/main/paper/code/%s"><code>%s%s</code></a>' % (REPO_URL, path, d + f if d else f,
+                                                                            esc(args))
+    return re.sub(r'<code>((?:[\w.-]+/)*)([\w.-]+\.(?:js|py|lean))((?: [^<]*)?)</code>', repl, cell), paths
 
 
 def run_logs():
@@ -690,7 +711,7 @@ def build(site_dir=None):
         for c in cs:
             lean_cited_by[c].append(k)
 
-    comp_rows, comp_ordered = computations_table(strip_body(TEX), tex)
+    comp_rows, comp_ordered = computations_table(by_num)
 
     figs = figmod.extract(PDF, OUT / 'proofmap_figs', [f['number'] for f in data['figures']])
     tex.figpages = set(figs)
@@ -967,16 +988,18 @@ def map_nav(base, current=None):
 
 
 def map_header(base, current=None):
-    """The top bar: brand, navigation, the search box (search.js and SEARCH_JS, on every page), and the link to the
-    public site."""
+    """The top bar: brand, navigation, the search box (search.js and SEARCH_JS, on every page), the link to the
+    public site, and under them the line saying the proof is a draft, not peer reviewed (owner, 19 Oct 2026)."""
     search = ('<div class="pm-search" role="search"><input id="pm-q" type="search" placeholder="Search\u2026" '
               'autocomplete="off" spellcheck="false" title="%s" aria-label="%s"><div id="pm-qr" hidden></div></div>'
               % (esc(SEARCH_LABEL), esc(SEARCH_LABEL)))
     return ('<a class="skip" href="#main">Skip to the content</a>'
             '<header class="pm-top"><div class="in"><a class="pm-brand" href="%s#map"><b>The Spectre Knot</b> '
             '<span>the proof</span></a>%s%s<a class="pm-public" href="%s">Pictures<span class="lg"> and ideas</span> '
-            '&rarr;</a></div></header>'
-            % (base, map_nav(base, current), search, PUBLIC_BASE))
+            '&rarr;</a></div>'
+            '<div class="pm-draft"><div class="in"><b>Draft proof, not peer reviewed.</b> '
+            '<a href="%smade.html#checked">What has been checked</a></div></div></header>'
+            % (base, map_nav(base, current), search, PUBLIC_BASE, PUBLIC_BASE))
 
 
 def proof_code_zip():
@@ -1054,6 +1077,9 @@ PM_CSS = """
 .pm-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--surf) 94%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); font-family: var(--font); }
 .pm-top .in, .pm-foot .in { max-width: 1120px; margin: 0 auto; padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .pm-brand { color: var(--ink); text-decoration: none; font-family: var(--serif); font-size: 1.12rem; }
+.pm-draft { background: #fbf0dc; border-top: 1px solid #e6c98f; color: #5c3b00; font-size: .9rem; }
+.pm-draft .in { padding-top: 5px; padding-bottom: 5px; gap: 4px 10px; }
+.pm-draft a { color: #5c3b00; }
 .pm-brand span { color: var(--mint); }
 .pm-nav { display: flex; gap: 0; flex-wrap: wrap; }
 .pm-nav a { color: var(--mut); text-decoration: none; padding: 5px 9px; border-radius: 6px; font-weight: 600; font-size: .93rem; }
@@ -1265,7 +1291,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
 <div class="pm-hero home-hero">
   <h1>The Spectre Knot theorems, proved</h1>
   <figure class="home-art"><img src="hero.svg" width="400" height="321" alt="The block N2 of the nest tiling, its ribbons drawn in fine lines"><figcaption><i>N</i><sub>2</sub> of the nest, with <i>N</i><sub>1</sub> dashed and the first tile shaded: no strand closes, and the first tile&rsquo;s pieces lie on just the two tinted strands.</figcaption></figure>
-  <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it.</p>
+  <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it. The paper has not been peer reviewed.</p>
 </div>
 <div class="ways">%s</div>
 <h2 class="sh">What is proved</h2>
@@ -1315,10 +1341,24 @@ def method_tex():
     return strip_body(TEX).split('\\subsection*{The method}', 1)[1].split('\\subsection*', 1)[0]
 
 
+def method_html(tex, figs_by_label):
+    """The paper's 'The method', as step 1 shows it: its text, with its figure (the road map) in place."""
+    out = []
+    for m in re.finditer(r'\\begin\{figure\}.*?\\label\{([^}]*)\}.*?\\end\{figure\}|([^\\]|\\(?!begin\{figure\}))+',
+                         method_tex(), flags=re.S):
+        if m.group(1):
+            if m.group(1) in figs_by_label:
+                out.append(fig_html(*figs_by_label[m.group(1)], tex))
+        elif m.group(0).strip():
+            out.append('<div class="prose method">%s</div>' % tex.block(m.group(0)))
+    return '\n'.join(out)
+
+
 def scope_html(R, info, tex, geo, figs_by_label):
     """The paper's last section (what is covered) in full, as step 10 shows it: its unnumbered subsections, with its
     remark as a card and its figure in place."""
     body = strip_body(TEX).split('\\label{sec:scope}', 1)[1].split('\\appendix', 1)[0]
+    body = re.split(r'\\section\*?\{', body, maxsplit=1)[0]   # not the unnumbered sections after it (the disclosure)
     n = [0]
 
     def item(m):   # the open questions are numbered straight through the section, (1), (2), ...
@@ -1327,8 +1367,10 @@ def scope_html(R, info, tex, geo, figs_by_label):
     body = re.sub(r'\\item\b', item, body)
     out = []
     pieces = re.split(r'\\subsection\*\{([^}]*)\}', body)
-    for k in range(1, len(pieces), 2):
-        out.append('<h3 class="ch">%s</h3>' % tex.inline(pieces[k]))
+    pieces = [None] + pieces   # pairs (heading, text); the text before the first unnumbered subsection has none
+    for k in range(0, len(pieces), 2):
+        if pieces[k] is not None:
+            out.append('<h3 class="ch">%s</h3>' % tex.inline(pieces[k]))
         text = pieces[k + 1]
         for m in re.finditer(r'\\begin\{(remark|figure)\}.*?\\label\{([^}]*)\}.*?\\end\{\1\}|([^\\]|\\(?!begin\{(?:remark|figure)\}))+',
                              text, flags=re.S):
@@ -1383,8 +1425,9 @@ def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label)
                      'not drawn here. Click a card for its page.</p><div class="graphbox">%s</div>' % svg)
     if k == LABELS['sec:scope']['number']:   # the last section: what is covered, in full, its remark in place
         parts.append('<h2 class="sh">What is covered, as the paper&rsquo;s &sect;%s states it</h2>'
-                     '<p class="small mut gl">The whole section; its one numbered item, %s, is in its place.</p>%s' % (
-                         k, rlink_head(labels[0], info) if labels else '', scope_html(R, info, tex, geo, figs_by_label)))
+                     '<p class="small mut gl">The whole section%s.</p>%s' % (
+                         k, '; its one numbered item, %s, is in its place' % rlink_head(labels[0], info) if labels else '',
+                         scope_html(R, info, tex, geo, figs_by_label)))
     elif labels:
         parts.append('<h2 class="sh">The results of this step <span class="mut small">(%s)</span></h2>'
                      % counts(labels, R, info))
@@ -1393,8 +1436,8 @@ def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label)
         parts.append('<h2 class="sh">The two theorems</h2><p class="small mut gl">As the paper&rsquo;s introduction '
                      'states them; they are proved in steps 7 and 9.</p>')
         parts += [thm_card(l, R, info, tex, geo) for l in ('thm:A', 'thm:B')]
-        parts.append('<h2 class="sh">The method, as the paper&rsquo;s introduction states it</h2>'
-                     '<div class="prose method">%s</div>' % tex.block(method_tex()))
+        parts.append('<h2 class="sh">The method, as the paper&rsquo;s introduction states it</h2>%s'
+                     % method_html(tex, figs_by_label))
     parts.append(step_nav(k, steps, notes))
     parts.append('</section>')
     return '\n'.join(parts)
@@ -1589,7 +1632,8 @@ def paper_view(results, info, sections, figures, tex, pdf, cites):
         if r['label']:
             by_sec[r['section'] or ''].append(r)
     mb = pdf['size'] / 1048576
-    outline = strip_body(TEX).split('\\subsection*{Outline}', 1)[1].split('\\section', 1)[0]
+    body = strip_body(TEX)   # the introduction's outline, if it has one
+    outline = body.split('\\subsection*{Outline}', 1)[1].split('\\section', 1)[0] if '\\subsection*{Outline}' in body else ''
     marks = [marks_of(r, info) for r in results if r['label']]
     out = ['<section class="view" id="v-paper" data-view="paper" hidden>',
            '<nav class="crumbs small"><a href="#map">Overview</a></nav>',
@@ -1599,8 +1643,8 @@ def paper_view(results, info, sections, figures, tex, pdf, cites):
            '&rarr;</a> <a class="badge" href="#route">the argument in ten steps</a> <a class="badge" href="#code">the '
            'programs and the Lean</a> <a class="badge" href="#cited">the works it cites</a></p></div>' % (
                esc(paper_title()), esc(paper_date()), pdf['pages'], PDF_FILE, pdf['pages'], mb),
-           '<h2 class="sh">Outline</h2><p class="small mut gl">As the paper&rsquo;s introduction gives it.</p>'
-           '<div class="prose method">%s</div>' % tex.block(outline),
+           ('<h2 class="sh">Outline</h2><p class="small mut gl">As the paper&rsquo;s introduction gives it.</p>'
+            '<div class="prose method">%s</div>' % tex.block(outline)) if outline else '',
            '<h2 class="sh">Contents</h2><p class="small mut gl">Every section of the paper, and every numbered result, '
            'definition and remark, in the paper&rsquo;s order. Each has a page here with its statement and proof as the '
            'paper gives them; the page number beside it opens the PDF there. The graph shows only the results the '
@@ -1723,8 +1767,9 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
     if comp_rows.get(l):
         lis = ''.join('<li><p>%s</p><p class="small mut">%s</p></li>' % (c['what'], script_links(c['scripts'])[0])
                       for c in comp_rows[l])
-        parts.append('<h2 class="sh">Computed by</h2><p class="small mut">From the paper&rsquo;s table '
-                     '&ldquo;What was computed&rdquo;. The programs are in <code>paper/code/</code>, their logs in '
+        parts.append('<h2 class="sh">Computed by</h2><p class="small mut">From the table &ldquo;Which script checks '
+                     'which statement&rdquo; of <code>paper/code/README.md</code>, the map the paper&rsquo;s Appendix A '
+                     'points to. The programs are in <code>paper/code/</code>, their logs in '
                      '<code>paper/code/logs/</code>: <a href="#code">the code</a>.</p><ul class="comp">%s</ul>' % lis)
     parts.append('<p class="small stepnav">%s<a href="#in-%s">In the contents</a>%s</p>' % (
         '<a href="#%s">&larr; %s</a>' % (rid(prev_), esc(info[prev_]['plain'])) if prev_ else '<span></span>', rid(l),
@@ -1889,22 +1934,20 @@ LEAN_GROUPS = [
                            'SpectreKnot/ProofChain.lean', 'SpectreKnot/ProofExact.lean',
                            'SpectreKnot/ProofGrand.lean']),
     ('Strands, boxes and gluing (§§3–5)', ['SpectreKnot/Basic.lean', 'SpectreKnot/Strands.lean', 'SpectreKnot/Box.lean',
-                                           'SpectreKnot/Gluing.lean', 'SpectreKnot/Zigzag.lean',
-                                           'SpectreKnot/Prop54.lean']),
+                                           'SpectreKnot/Gluing.lean', 'SpectreKnot/Zigzag.lean']),
     ('Side lengths (§6)', ['SpectreKnot/Lengths.lean']),
     ('Compositions and lengthening (§7)', ['SpectreKnot/Compose.lean', 'SpectreKnot/CompFull.lean',
                                            'SpectreKnot/Subdivide.lean', 'SpectreKnot/Lens.lean', 'SpectreKnot/Move.lean',
-                                           'SpectreKnot/Signature.lean', 'SpectreKnot/SigCheck.lean',
+                                           'SpectreKnot/Signature.lean', 'SpectreKnot/CompSig.lean',
                                            'SpectreKnot/Parity.lean']),
     ('Supertiles and Theorem A (§7)', ['SpectreKnot/PatchSig.lean', 'SpectreKnot/ComposeTiles.lean',
                                        'SpectreKnot/ParentRim.lean', 'SpectreKnot/Reverse.lean', 'SpectreKnot/Bridge.lean',
                                        'SpectreKnot/ParentSig.lean']),
     ('The nest and Theorem B (§§8–9)', ['SpectreKnot/NewWalk.lean', 'SpectreKnot/StepMap.lean', 'SpectreKnot/Linked.lean',
                                         'SpectreKnot/NestStep.lean', 'SpectreKnot/Turn.lean']),
-    ('Corroboration and tests', ['SpectreKnot/Skeleton.lean', 'SpectreKnot/SkeletonWalks.lean', 'Tests.lean',
-                                 'TestsSlow.lean']),
+    ('Tests', ['Tests.lean', 'TestsSlow.lean']),
     ('Generated data, and the root file', ['SpectreKnot/Data/Pattern.lean', 'SpectreKnot/Data/Clusters.lean',
-                                           'SpectreKnot/Data/Skeletons.lean', 'SpectreKnot/Data/Level2.lean',
+                                           'SpectreKnot/Data/Level2.lean',
                                            'SpectreKnot.lean']),
 ]
 ROOT_FILE_NOTE = 'The root of the library: it imports the files of the formalisation.'   # SpectreKnot.lean has no header
@@ -2447,7 +2490,7 @@ def code_view(comp_ordered, files, pdf, zip_size):
 ./run_all.sh
 ./run_all.sh --all</pre>
 <p class="small">Two steps, A17 and A18, compare the level-1 supertiles and the composition pattern with figures of the spectre paper, and run only when given its PDF, which is not included (see the README). A22 compares Table&nbsp;1 and every supertile up to level&nbsp;4 with Kaplan&rsquo;s implementation of the substitution, the program of the spectre authors&rsquo; interactive application; it downloads that program when <code>run_all.sh</code> is given <code>--kaplan</code>, since the program is published without a licence and so is not included.</p>
-<p>The paper&rsquo;s table <i>What was computed</i>, with each program and the logs of its steps:</p>
+<p>Which script checks which statement, from <code>paper/code/README.md</code> (the map the paper&rsquo;s Appendix&nbsp;A points to), with each program and the logs of its steps:</p>
 </div>
 <div class="tablebox"><table class="lt comptab"><thead><tr><th>for</th><th>computation</th><th>programs</th><th>logs</th></tr></thead><tbody>%s</tbody></table></div>
 <h2 class="sh">Every step of the run</h2>
@@ -2477,7 +2520,7 @@ def about_view(data, decls, lean_all, rows, notes, files):
 <li>statements and proofs: the paper&rsquo;s LaTeX, <code>paper/tex/spectre_knot.tex</code>, converted for the web; the numbers are checked against the built PDF, and the build stops if they differ;</li>
 <li>what a result cites: the references by number (<code>\\cref</code>) in its statement and proof;</li>
 <li>the Lean declarations of a result: the paper-to-Lean table in <code>lean/README.md</code> (%d rows); the Lean statements are quoted from the Lean files (%d declarations read, %d of them theorems);</li>
-<li>the computations: the paper&rsquo;s table &ldquo;What was computed&rdquo;, each program linked to its file, with the logs of its steps as <code>paper/code/run_all.sh</code> names them;</li>
+<li>the computations: the table &ldquo;Which script checks which statement&rdquo; of <code>paper/code/README.md</code>, each program linked to its file, with the logs of its steps as <code>paper/code/run_all.sh</code> names them;</li>
 <li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
 <li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
 <li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX; the drawing beside the overview&rsquo;s title is drawn by <code>proofmap/make_hero.py</code> from the paper&rsquo;s own figure code (the same tiles and ribbons);</li>

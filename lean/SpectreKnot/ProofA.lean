@@ -3,9 +3,14 @@
 
 The induction of Thm 7.6, at tile level: every level-`m` supertile (`m ≥ 1`) has the signature, with its corners
 `A`, `B` at the positions `aPos m K`, `bPos m K` and its vertices where the side lengths ℓ_m put them (`Good m K`).
-Level 1 is the kernel's check of the nine clusters (`good_one`). From level `m` to `m + 1`: the children have the
-signature, the composition has it by the parity lemma, so the parent has it (`Kids.parent_sig`), with its corners
-where Table 3 puts the Γ child's corners (`corners_nonSigma`, `corners_sigma`).
+Level 1 is the kernel's check of the nine clusters (`good_one`, Computation 7.5). From level `m` to `m + 1`: the
+children have the signature, the composition has it by Prop 7.4 (`prop_7_4`), so the parent has it (`Kids.parent_sig`),
+with its corners where Table 3 puts the Γ child's corners (`aPos_succ`, `bPos_succ`). Level 0 is a tile, which has the
+signature (`tile_hasSig`, Lemma 4.4).
+
+On the way, two statements in the paper's terms: side `j` of `super m K` has `ℓ_m(K, j)` edges (`super_side_length`,
+Prop 6.1 for the supertiles themselves), and the corner `A` of a supertile is that of its Γ child (`cornerA_succ`, the
+paper's definition of `A`, §2.3).
 -/
 import SpectreKnot.ParentSig
 
@@ -42,197 +47,6 @@ theorem vpos_eq {m : Nat} (m_pos : 1 ≤ m) (T : Kind) {J : Nat} (J_le : J ≤ 6
     vpos (m + 1) T J = pos (parentLen T (Lk m T)) J :=
   pos_congr J (fun i i_lt => (parentLen_eq m_pos T (by omega)).symm)
 
-/-! ### The corners of the parent -/
-
-/-- The last child is the Γ child. -/
-theorem kid_last : ∀ T : Kind, kidAt T (nk T - 1) = .Gamma := by intro T; cases T <;> rfl
-
-/-- Every kind has a child. -/
-theorem last_lt : ∀ T : Kind, 0 < nk T := by intro T; cases T <;> decide
-
-/-- For every kind but Σ, the parent's rim begins with side 5 of the Γ child and ends with its side 0. -/
-theorem pcs_nonSigma : ∀ T : Kind, T ≠ .Sigma →
-    pcs T = (nk T - 1, 5) :: ((pcs T).drop 1).dropLast ++ [(nk T - 1, 0)] := by
-  intro T not_sigma; cases T <;> first | exact absurd rfl not_sigma | decide
-
-/-- The pieces of the Σ-supertile's rim before its crossover corner. -/
-def preS : List (Nat × Nat) :=
-  [(6, 3), (6, 2), (5, 4), (5, 3), (5, 2), (5, 1), (4, 2), (3, 4), (3, 3), (3, 2), (2, 4), (2, 3), (2, 2), (2, 1),
-    (1, 2), (0, 4), (0, 3), (0, 2), (0, 1)]
-
-/-- The Σ-supertile's rim: `preS`, then sides 0 and 5 of the Γ child (child 7), then side 4 of child 6. -/
-theorem pcs_sigma : pcs .Sigma = preS ++ [(7, 0), (7, 5), (6, 4)] := by decide
-
-/-- `preS` is the pieces of the Σ-supertile's sides 0–4, then the first two pieces of its side 5. -/
-theorem preS_eq : preS = ((pside .Sigma).take 5).flatMap id ++ [(0, 2), (0, 1)] := by decide
-
-section Corners
-
-variable {T : Kind} {L : Nat → Nat → Nat} {d : Nat} {ω : Bool}
-
-/-- The Γ child's corner `A` is its vertex 0. -/
-theorem gA_last (last_lt' : nk T - 1 < nk T) : (Comp.ofLens T L d ω).toGluing.A (nk T - 1) = 0 := by
-  rw [ofLens_A last_lt', ite_eq_right (by rw [kid_last]; decide)]
-
-/-- With positive side lengths, a child's rim has at least two edges, and ends after its side 5. -/
-theorem pos6 (len_pos : ∀ c j, 1 ≤ L c j) (c : Nat) : 2 ≤ pos (L c) 6 ∧ pos (L c) 6 = pos (L c) 5 + L c 5 := by
-  -- sides 0 … 4 come before vertex 5
-  have before_5 := pos_lt_of_pos (L c) (fun i _ => len_pos c i) (show 0 < 5 by omega) (by omega)
-  -- side 5 has an edge
-  have len_5 := len_pos c 5
-  -- the rim ends after side 5
-  have pos_6 : pos (L c) 6 = pos (L c) 5 + L c 5 := pos_succ _ 5
-  -- the rim starts at vertex 0
-  have pos_0 : pos (L c) 0 = 0 := rfl
-  -- side 0 has an edge
-  have len_0 := len_pos c 0
-  exact ⟨by omega, pos_6⟩
-
-/-- The Γ child's corner `B` is its vertex 1 if `ω`, and its last rim vertex otherwise. -/
-theorem gB_last (len_pos : ∀ c j, 1 ≤ L c j) (last_lt' : nk T - 1 < nk T) :
-    (Comp.ofLens T L d ω).toGluing.B (nk T - 1) =
-      if ω then 1 else pos (L (nk T - 1)) 6 - 1 := by
-  -- the Γ child's rim has at least two edges
-  have rim_ge_two := (pos6 len_pos (nk T - 1)).1
-  rw [ofLens_B last_lt', gA_last last_lt']
-  cases ω with
-  | true => simp only [ite_true, nxt]; rw [ite_eq_right (by omega)]
-  | false => rfl
-
-/-- The corners of a non-Σ parent: `A` at its vertex 0, `B` next to it. -/
-theorem corners_nonSigma (not_sigma : T ≠ .Sigma) (len_pos : ∀ c j, 1 ≤ L c j)
-    (side0_ge_two : 2 ≤ L (nk T - 1) 0) :
-    0 < rimN T L ∧ (if !ω then nxt (rimN T L) 0 else prv (rimN T L) 0) < rimN T L ∧
-    0 ≠ (if !ω then nxt (rimN T L) 0 else prv (rimN T L) 0) ∧
-    ownGo L (pcs T) (prv (rimN T L) 0) = (nk T - 1, (Comp.ofLens T L d ω).toGluing.A (nk T - 1)) ∧
-    ownGo L (pcs T) (prv (rimN T L) (if !ω then nxt (rimN T L) 0 else prv (rimN T L) 0)) =
-      (nk T - 1, (Comp.ofLens T L d ω).toGluing.B (nk T - 1)) := by
-  -- the Γ child is an actual child
-  have last_lt' : nk T - 1 < nk T := by
-    -- every kind has a child
-    have := last_lt T
-    omega
-  -- the parent's rim begins with the Γ child's side 5 and ends with its side 0
-  have pcs_shape := pcs_nonSigma T not_sigma
-  generalize ((pcs T).drop 1).dropLast = mid at pcs_shape
-  -- the last rim position is the Γ child's edge 0
-  have at_last : ownGo L (pcs T) (rimN T L - 1) = (nk T - 1, 0) := by
-    -- the last position of a list ending with side 0 of the Γ child
-    have last := ownGo_last (L := L) (c := nk T - 1) (j := 0) (len_pos _ 0) ((nk T - 1, 5) :: mid)
-    rw [← pcs_shape] at last
-    exact last
-  -- the first rim position is the Γ child's last edge
-  have at_zero : ownGo L (pcs T) 0 = (nk T - 1, pos (L (nk T - 1)) 6 - 1) := by
-    rw [pcs_shape, List.cons_append, ownGo_zero (len_pos _ 5), (pos6 len_pos _).2]
-  -- the rim length, with the last piece split off
-  have total : rimN T L = totL L ((nk T - 1, 5) :: mid) + L (nk T - 1) 0 := by
-    show totL L (pcs T) = _
-    rw [pcs_shape, totL_append]; simp only [totL]; omega
-  -- the second-last rim position is the Γ child's edge 1
-  have at_last2 : ownGo L (pcs T) (rimN T L - 2) = (nk T - 1, 1) := by
-    rw [total, pcs_shape, ownGo_append, ite_eq_right (by omega), show totL L ((nk T - 1, 5) :: mid) + L (nk T - 1) 0 -
-      2 - totL L ((nk T - 1, 5) :: mid) = L (nk T - 1) 0 - 2 by omega]
-    simp only [ownGo]
-    rw [ite_eq_left (by omega)]
-    simp only [pos]
-    congr 1; omega
-  -- the rim has at least two edges
-  have rim_ge_two : 2 ≤ rimN T L := by
-    rw [total]; simp only [totL]
-    -- the Γ child's side 5 has an edge
-    have := len_pos (nk T - 1) 5
-    omega
-  rw [gA_last last_lt', gB_last len_pos last_lt']
-  -- the step back from 0 wraps round to the last position
-  have prv_zero : prv (rimN T L) 0 = rimN T L - 1 := by simp [prv]
-  cases ω with
-  | true =>
-    -- two steps back from 0
-    have prv_prv : prv (rimN T L) (prv (rimN T L) 0) = rimN T L - 2 := by
-      rw [prv_zero]; simp only [prv]; rw [ite_eq_right (show ¬ (rimN T L - 1 = 0) by omega)]; omega
-    simp only [Bool.not_true, ite_false, Bool.false_eq_true, ite_true]
-    refine ⟨by omega, prv_lt (by omega), by rw [prv_zero]; omega, by rw [prv_zero, at_last], ?_⟩
-    rw [prv_prv, at_last2]
-  | false =>
-    -- one step forwards from 0
-    have nxt_zero : nxt (rimN T L) 0 = 1 := by simp only [nxt]; rw [ite_eq_right (show ¬ (0 + 1 = rimN T L) by omega)]
-    -- and back again
-    have prv_nxt_zero : prv (rimN T L) (nxt (rimN T L) 0) = 0 := by rw [nxt_zero]; rfl
-    simp only [Bool.not_false, ite_true, ite_false, Bool.false_eq_true]
-    refine ⟨by omega, by rw [nxt_zero]; omega, by rw [nxt_zero]; omega, by rw [prv_zero, at_last], ?_⟩
-    rw [prv_nxt_zero, at_zero]
-
-/-- The corners of a Σ parent: `A` on side 5, after the pieces `preS` and the Γ child's side 0. -/
-theorem corners_sigma (len_pos : ∀ c j, 1 ≤ L c j) (side0_ge_two : 2 ≤ L 7 0) :
-    totL L preS + L 7 0 < rimN .Sigma L ∧
-    (if !ω then nxt (rimN .Sigma L) (totL L preS + L 7 0) else prv (rimN .Sigma L) (totL L preS + L 7 0)) <
-      rimN .Sigma L ∧
-    totL L preS + L 7 0 ≠
-      (if !ω then nxt (rimN .Sigma L) (totL L preS + L 7 0) else prv (rimN .Sigma L) (totL L preS + L 7 0)) ∧
-    ownGo L (pcs .Sigma) (prv (rimN .Sigma L) (totL L preS + L 7 0)) =
-      (7, (Comp.ofLens .Sigma L d ω).toGluing.A 7) ∧
-    ownGo L (pcs .Sigma) (prv (rimN .Sigma L)
-      (if !ω then nxt (rimN .Sigma L) (totL L preS + L 7 0) else prv (rimN .Sigma L) (totL L preS + L 7 0))) =
-      (7, (Comp.ofLens .Sigma L d ω).toGluing.B 7) := by
-  -- the Γ child, child 7, is an actual child
-  have last_lt' : nk .Sigma - 1 < nk .Sigma := by decide
-  -- its corner `A` is its vertex 0
-  have A_zero : (Comp.ofLens .Sigma L d ω).toGluing.A 7 = 0 := gA_last last_lt'
-  -- and its corner `B` is vertex 1 or its last vertex
-  have B_eq : (Comp.ofLens .Sigma L d ω).toGluing.B 7 = if ω then 1 else pos (L 7) 6 - 1 := gB_last len_pos last_lt'
-  -- the rim length, piece by piece
-  have total : rimN .Sigma L = totL L preS + L 7 0 + L 7 5 + L 6 4 := by
-    show totL L (pcs .Sigma) = _
-    rw [pcs_sigma, totL_append]; simp only [totL]; omega
-  -- past `preS`, the rim is the last three pieces
-  have after_preS : ∀ q, ownGo L (pcs .Sigma) (totL L preS + q) = ownGo L [(7, 0), (7, 5), (6, 4)] q := by
-    intro q
-    rw [pcs_sigma, ownGo_append, ite_eq_right (show ¬ (totL L preS + q < totL L preS) by omega),
-      Nat.add_sub_cancel_left]
-  -- the Γ child's rim starts at vertex 0
-  have pos_zero : pos (L 7) 0 = 0 := rfl
-  -- the last position in the Γ child's side 0 is its edge 0
-  have at_edge0 : ownGo L (pcs .Sigma) (totL L preS + (L 7 0 - 1)) = (7, 0) := by
-    rw [after_preS]; simp only [ownGo]; rw [ite_eq_left (show L 7 0 - 1 < L 7 0 by omega), pos_zero,
-      show 0 + L 7 0 - 1 - (L 7 0 - 1) = 0 by omega]
-  -- the one before it is its edge 1
-  have at_edge1 : ownGo L (pcs .Sigma) (totL L preS + (L 7 0 - 2)) = (7, 1) := by
-    rw [after_preS]; simp only [ownGo]; rw [ite_eq_left (show L 7 0 - 2 < L 7 0 by omega), pos_zero,
-      show 0 + L 7 0 - 1 - (L 7 0 - 2) = 1 by omega]
-  -- the next position, the first of the piece `(7, 5)`, is the Γ child's last edge
-  have at_last : ownGo L (pcs .Sigma) (totL L preS + L 7 0) = (7, pos (L 7) 6 - 1) := by
-    rw [after_preS]; simp only [ownGo]
-    rw [ite_eq_right (show ¬ (L 7 0 < L 7 0) by omega), Nat.sub_self, ite_eq_left (show 0 < L 7 5 from len_pos 7 5),
-      (pos6 len_pos 7).2, Nat.sub_zero]
-  -- the Γ child's side 5 has an edge
-  have len_75 := len_pos 7 5
-  -- and so does child 6's side 4
-  have len_64 := len_pos 6 4
-  -- the step back from the corner position
-  have prv_corner : prv (rimN .Sigma L) (totL L preS + L 7 0) = totL L preS + (L 7 0 - 1) := by
-    simp only [prv]; rw [ite_eq_right (show ¬ (totL L preS + L 7 0 = 0) by omega)]; omega
-  rw [A_zero, B_eq]
-  cases ω with
-  | true =>
-    -- two steps back
-    have prv_prv : prv (rimN .Sigma L) (totL L preS + (L 7 0 - 1)) = totL L preS + (L 7 0 - 2) := by
-      simp only [prv]; rw [ite_eq_right (show ¬ (totL L preS + (L 7 0 - 1) = 0) by omega)]; omega
-    simp only [Bool.not_true, Bool.false_eq_true, ↓reduceIte]
-    refine ⟨by omega, by rw [prv_corner]; omega, by rw [prv_corner]; omega, by rw [prv_corner, at_edge0], ?_⟩
-    rw [prv_corner, prv_prv, at_edge1]
-  | false =>
-    -- one step forwards from the corner position
-    have nxt_corner : nxt (rimN .Sigma L) (totL L preS + L 7 0) = totL L preS + L 7 0 + 1 := by
-      simp only [nxt]; rw [ite_eq_right (show ¬ (totL L preS + L 7 0 + 1 = rimN .Sigma L) by omega)]
-    -- and back again
-    have prv_nxt_corner : prv (rimN .Sigma L) (totL L preS + L 7 0 + 1) = totL L preS + L 7 0 := by
-      simp only [prv]; rw [ite_eq_right (show ¬ (totL L preS + L 7 0 + 1 = 0) by omega)]; omega
-    simp only [Bool.not_false, Bool.false_eq_true, ↓reduceIte]
-    refine ⟨by omega, by rw [nxt_corner]; omega, by rw [nxt_corner]; omega, by rw [prv_corner, at_edge0], ?_⟩
-    rw [nxt_corner, prv_nxt_corner, at_last]
-
-end Corners
-
 /-! ### The induction -/
 
 /-- The children of a composition of level-`m` supertiles satisfy the bridge's hypotheses. -/
@@ -254,7 +68,7 @@ theorem kids_at {m : Nat} (m_pos : 1 ≤ m) (T : Kind) (good_m : ∀ K, Good m K
     have B_eq : (Comp.ofLens T (Lk m T) (dOff m) (ori m)).toGluing.B c = bPos m (kidAt T c) := by
       rw [ofLens_B c_lt, A_eq]; rfl
     rw [A_eq, B_eq]; exact has_sig
-  gsig := parity_lemma m m_pos T (ori m)
+  csig := prop_7_4 m m_pos T (ori m)
 
 /-- The orientation flips from each level to the next. -/
 theorem ori_succ (m : Nat) : ori (m + 1) = !ori m := by
@@ -265,6 +79,30 @@ theorem ori_succ (m : Nat) : ori (m + 1) = !ori m := by
   · have succ_even : (m + 1) % 2 = 0 := by omega -- `m` odd, so `m + 1` even
     simp [odd, succ_even]
 
+/-- **The parent's corner `A`**: where the induction puts it (`aPos`, Lemma 6.4) is the rim position `cA` of its Γ
+child's corner `A` (Table 3). For a Σ parent, `d_{m+1}` is the length of the pieces `0.2`, `0.1`, `7.0`. -/
+theorem aPos_succ {m : Nat} (m_pos : 1 ≤ m) (T : Kind) : aPos (m + 1) T = cA T (Lk m T) := by
+  obtain ⟨m', rfl⟩ : ∃ m', m = m' + 1 := ⟨m - 1, by omega⟩
+  by_cases is_sigma : T = .Sigma
+  · subst is_sigma
+    -- `d_{m+1}` is the length of the first three pieces of side 5
+    have dOff_eq :
+        dOff (m' + 2) = Lk (m' + 1) .Sigma 0 2 + Lk (m' + 1) .Sigma 0 1 + Lk (m' + 1) .Sigma 7 0 := by
+      simp only [dOff, sigma_side5_start.1, List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Lk]
+      rw [sideLen_eq_letterLen _ (by omega) _ 2 (by omega), sideLen_eq_letterLen _ (by omega) _ 1 (by omega),
+        sideLen_eq_letterLen _ (by omega) _ 0 (by omega)]
+      omega
+    simp only [aPos, cA]
+    rw [vpos_eq m_pos _ (by omega), ← totL_take _ _ 5 (by omega), preS_eq, totL_append, dOff_eq]
+    simp [totL]; omega
+  · simp only [aPos, cA, ite_eq_right is_sigma]
+
+/-- **The parent's corner `B`**: where the induction puts it (`bPos`, `B = A + ω_{m+1}`) is the rim position `cB`
+of its Γ child's corner `B`. -/
+theorem bPos_succ {m : Nat} (m_pos : 1 ≤ m) (T : Kind) : bPos (m + 1) T = cB T (Lk m T) (ori m) := by
+  simp only [bPos, cB, aPos_succ m_pos T, ori_succ]
+  rw [vpos_eq m_pos T (Nat.le_refl _), ← rimN_eq]
+
 /-- **The induction step**: if every level-`m` supertile has the signature, so does every level-`(m+1)` one. -/
 theorem good_succ {m : Nat} (m_pos : 1 ≤ m) (good_m : ∀ K, Good m K) (T : Kind) : Good (m + 1) T := by
   obtain ⟨m', rfl⟩ : ∃ m', m = m' + 1 := ⟨m - 1, by omega⟩
@@ -272,13 +110,6 @@ theorem good_succ {m : Nat} (m_pos : 1 ≤ m) (good_m : ∀ K, Good m K) (T : Ki
   have kids := kids_at m_pos T good_m
   -- the parent is the composition of its children
   have super_eq : super (m' + 1 + 1) T = compose T fun c => super (m' + 1) (kidAt T c) := rfl
-  -- the children's sides have positive lengths
-  have len_pos := kids.len_pos
-  -- the Γ child's side 0 has at least two edges
-  have side0_ge_two : 2 ≤ Lk (m' + 1) T (nk T - 1) 0 := by
-    -- every side is at least 5 long (Lemma 6.5)
-    have := (bounds (m' + 1) m_pos).1 (letterOf (kidAt T (nk T - 1)) 0)
-    simp only [Lk]; omega
   -- the parent's rim length is where its vertex 6 sits
   have rim_len : rimN T (Lk (m' + 1) T) = vpos (m' + 1 + 1) T 6 := by
     rw [rimN_eq, vpos_eq m_pos T (Nat.le_refl _)]
@@ -293,42 +124,9 @@ theorem good_succ {m : Nat} (m_pos : 1 ≤ m) (good_m : ∀ K, Good m K) (T : Ki
   have len_eq : (compose T fun c => super (m' + 1) (kidAt T c)).E = vpos (m' + 1 + 1) T 6 := by
     rw [compose_E kids.shape, rim_len]
   refine ⟨?_, by rw [super_eq]; exact vtx_eq, by rw [super_eq]; exact len_eq⟩
-  rw [super_eq, ori_succ]
-  by_cases is_sigma : T = .Sigma
-  · -- a Σ parent: `A` on side 5
-    subst is_sigma
-    obtain ⟨pA_lt, pB_lt, pA_ne_pB, at_A, at_B⟩ :=
-      corners_sigma (d := dOff (m' + 1)) (ω := ori (m' + 1)) len_pos side0_ge_two
-    -- `aPos` is where `corners_sigma` puts `A`
-    have aPos_eq : aPos (m' + 1 + 1) .Sigma = totL (Lk (m' + 1) .Sigma) preS + Lk (m' + 1) .Sigma 7 0 := by
-      -- `d_{m+1}` is the length of the first three pieces of side 5
-      have dOff_eq :
-          dOff (m' + 2) = Lk (m' + 1) .Sigma 0 2 + Lk (m' + 1) .Sigma 0 1 + Lk (m' + 1) .Sigma 7 0 := by
-        simp only [dOff, sigma_side5_start.1, List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Lk]
-        rw [sideLen_eq_letterLen _ (by omega) _ 2 (by omega), sideLen_eq_letterLen _ (by omega) _ 1 (by omega),
-          sideLen_eq_letterLen _ (by omega) _ 0 (by omega)]
-        omega
-      simp only [aPos, ite_eq_left rfl]
-      rw [vpos_eq m_pos _ (by omega), ← totL_take _ _ 5 (by omega), preS_eq, totL_append, dOff_eq]
-      simp [totL]; omega
-    -- `bPos` is where `corners_sigma` puts `B`
-    have bPos_eq : bPos (m' + 1 + 1) .Sigma = if !ori (m' + 1) then nxt (rimN .Sigma (Lk (m' + 1) .Sigma))
-        (totL (Lk (m' + 1) .Sigma) preS + Lk (m' + 1) .Sigma 7 0) else prv (rimN .Sigma (Lk (m' + 1) .Sigma))
-        (totL (Lk (m' + 1) .Sigma) preS + Lk (m' + 1) .Sigma 7 0) := by
-      simp only [bPos, aPos_eq, rim_len, ori_succ]
-    rw [aPos_eq, bPos_eq]
-    exact kids.parent_sig pA_lt pB_lt pA_ne_pB at_A at_B
-  · -- any other parent: `A` at vertex 0
-    obtain ⟨pA_lt, pB_lt, pA_ne_pB, at_A, at_B⟩ :=
-      corners_nonSigma (d := dOff (m' + 1)) (ω := ori (m' + 1)) is_sigma len_pos side0_ge_two
-    -- `aPos` is vertex 0
-    have aPos_eq : aPos (m' + 1 + 1) T = 0 := by simp only [aPos, ite_eq_right is_sigma]
-    -- `bPos` is where `corners_nonSigma` puts `B`
-    have bPos_eq : bPos (m' + 1 + 1) T = if !ori (m' + 1) then nxt (rimN T (Lk (m' + 1) T)) 0
-        else prv (rimN T (Lk (m' + 1) T)) 0 := by
-      simp only [bPos, aPos_eq, rim_len, ori_succ]
-    rw [aPos_eq, bPos_eq]
-    exact kids.parent_sig pA_lt pB_lt pA_ne_pB at_A at_B
+  -- the parent has the signature at its Γ child's corners, which are where the induction puts them
+  rw [super_eq, ori_succ, bPos_succ m_pos T, aPos_succ m_pos T]
+  exact kids.parent_sig
 
 /-- **Thm 7.6, at tile level**: every supertile of level `m ≥ 1` has the signature. -/
 theorem good : ∀ m K, 1 ≤ m → Good m K := by
@@ -340,6 +138,40 @@ theorem good : ∀ m K, 1 ≤ m → Good m K := by
     rcases Nat.eq_zero_or_pos m with rfl | m_pos
     · exact good_one K
     · exact good_succ m_pos (fun K' => ih K' m_pos) K
+
+/-- **Prop 6.1 for the supertiles themselves** (`m ≥ 1`): side `j` of `super m K` has `ℓ_m(K, j)` edges, the length
+`letterLen m` of its letter (Table 4); this is also `sideLen m K j`, the count by Table 3 (`sideLen_eq_letterLen`). -/
+theorem super_side_length {m : Nat} (m_pos : 1 ≤ m) (K : Kind) {j : Nat} (j_lt : j < 6) :
+    ((super m K).side j).length = letterLen m (letterOf K j) ∧ letterLen m (letterOf K j) = sideLen m K j :=
+  ⟨side_length (good m K m_pos).vtx (good m K m_pos).len j_lt, (sideLen_eq_letterLen m m_pos K j j_lt).symm⟩
+
+/-- The claim's corner `A` (`cornerA`, placed by position as in Lemma 6.4) is the induction's (`aPos`), since
+`d_m = 2 F_{3m+1}`. -/
+theorem cornerA_eq_aPos {m : Nat} (m_pos : 1 ≤ m) (K : Kind) : cornerA m K = aPos m K := by
+  -- vertex 5 lies where the side lengths put it
+  have vtx5 : (super m K).vtx.getD 5 0 = vpos m K 5 := by rw [(good m K m_pos).vtx]; rfl
+  unfold cornerA aPos
+  rw [vtx5, (dOff_fib m m_pos).1]
+
+/-- **The corner `A` of a supertile is that of its Γ child** (the paper's recursive definition of `A`, §2.3): for
+`m ≥ 1`, the port `L` of `super (m + 1) T` at its corner `A` is the port `R` of its Γ child, the last child, at the
+child's own corner `A`, with the child's tiles numbered as in the parent. (Parent and child are oriented oppositely, so
+`R` and `L` swap.) -/
+theorem cornerA_succ {m : Nat} (m_pos : 1 ≤ m) (T : Kind) :
+    (super (m + 1) T).bport (ori (m + 1)) (cornerA (m + 1) T, false) =
+      shiftP (fun c => super m (kidAt T c)) (nk T - 1) ((super m .Gamma).bport (ori m) (cornerA m .Gamma, true)) := by
+  -- the children have the signature, with the side lengths of the composition
+  have kids := kids_at m_pos T (fun K => good m K m_pos)
+  obtain ⟨m', rfl⟩ : ∃ m', m = m' + 1 := ⟨m - 1, by omega⟩
+  -- the parent is the composition of its children
+  have super_eq : super (m' + 1 + 1) T = compose T fun c => super (m' + 1) (kidAt T c) := rfl
+  -- the Γ child's corner `A` is its vertex 0
+  have gamma_A : aPos (m' + 1) .Gamma = 0 := rfl
+  -- the claim's corners are the induction's; the parent's is where Table 3 puts the Γ child's corner `A`
+  rw [cornerA_eq_aPos (by omega) T, aPos_succ m_pos T, cornerA_eq_aPos m_pos .Gamma, gamma_A, super_eq, ori_succ,
+    kids.bport_L kids.csig.cA_lt, kids.csig.at_A, gA_last (Nat.sub_lt (last_lt T) Nat.one_pos)]
+  show shiftP _ _ ((super (m' + 1) (kidAt T (nk T - 1))).bport _ _) = _
+  rw [kid_last T]
 
 /-- **`compose` never falls back on a default** in the supertiles of the statement. Let `m ≥ 1` and let `(t, i)` be an
 unglued edge of child `c` of `super (m + 1) T`. Then `compose` finds the edge on the child's rim list, at the one
@@ -382,7 +214,7 @@ theorem compose_no_default {m : Nat} (m_pos : 1 ≤ m) (T : Kind) {c t i : Nat} 
 theorem theoremA : TheoremA := by
   intro m K
   rcases Nat.eq_zero_or_pos m with rfl | m_pos
-  · exact tile_noClosed
+  · exact tile_hasSig.noClosed
   · exact (good m K m_pos).sig.noClosed
 
 /-! ### A negative control -/

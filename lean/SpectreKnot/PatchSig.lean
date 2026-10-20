@@ -100,6 +100,21 @@ theorem sigCheck_sound {o : Bool} {A B f : Nat} (check : P.sigCheck o A B f = tr
   · have found := sig_ok k on_rim s (by cases s <;> simp) -- the walk from this rim port ends at its partner
     exact P.follow_sound f _ _ found
 
+/-- **The box of a patch with the signature** (Lemma 4.1, for the patches the proof uses): the ribbon from each rim
+port leaves the patch at the rim port that `btau` pairs it with, and `btau` is an involution on the rim ports without
+fixed points. -/
+theorem HasSig.box {o : Bool} {A B : Nat} (has_sig : P.HasSig o A B) (A_lt : A < P.E) (B_lt : B < P.E)
+    (A_ne_B : A ≠ B) (k : Nat) (s : Bool) (k_lt : k < P.E) :
+    P.Follow (P.bport o (k, s)) (P.bport o (btau A B (k, s))) ∧ (btau A B (k, s)).1 < P.E ∧
+      btau A B (btau A B (k, s)) = (k, s) ∧ btau A B (k, s) ≠ (k, s) := by
+  refine ⟨has_sig.sig k s k_lt, ?_⟩
+  simp only [btau]
+  by_cases at_A : k = A
+  · subst at_A; simp [Ne.symm A_ne_B, B_lt]
+  · by_cases at_B : k = B
+    · subst at_B; simp [at_A, A_lt, Ne.symm at_A]
+    · simp [at_A, at_B, k_lt]
+
 end Patch
 
 /-! ### The level-`m` data: lengths, orientation, corners -/
@@ -131,10 +146,9 @@ structure Good (m : Nat) (K : Kind) : Prop where
 
 /-! ### The base cases -/
 
-/-- A single tile has no closed strand: every ribbon leaves it after one piece. -/
-theorem tile_noClosed : tile.NoClosedStrand := fun p _ => ⟨pieceEnd p, .leave (by
-  obtain ⟨t, i, s⟩ := pieceEnd p
-  cases s <;> rfl)⟩
+/-- **Lemma 4.4: a tile has the signature**, at its corners `A = v_0` and `B = v_1`, its rim listed counter-clockwise
+(checked by the kernel). In particular it has no closed strand. -/
+theorem tile_hasSig : tile.HasSig true 0 1 := tile.sigCheck_sound (f := 2) (by decide +kernel)
 
 /-- The kernel's check of the nine level-1 supertiles. -/
 def level1Check (K : Kind) : Bool :=

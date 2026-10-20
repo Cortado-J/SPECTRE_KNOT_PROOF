@@ -256,7 +256,7 @@ theorem mate_other_child {T : Kind} {L : Nat → Nat → Nat} {d : Nat} {ω : Bo
 theorem Kids.noSelf {T : Kind} {child : Nat → Patch} {L : Nat → Nat → Nat} {d : Nat} {ω o : Bool}
     (kids : Kids T child L d ω o) (children : ∀ c, c < nk T → NoSelf (child c)) : NoSelf (compose T child) := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   intro t i t' j ht hi glued
   -- the child `c` that tile `t` belongs to, and its number `t₀` there
   obtain ⟨c, hc, lo, hi_c⟩ := owner_exists child (nk T) t ht

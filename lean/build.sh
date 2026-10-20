@@ -10,14 +10,13 @@
 #   - leanchecker, replaying every declaration of SpectreKnot through Lean's kernel, finds no problem.
 #
 #   ./build.sh            build everything (needs elan and the toolchain in lean-toolchain)
-#   ./build.sh --data     first regenerate the data files from paper/code (needs python3 and node)
+#   ./build.sh --data     first regenerate the data files from paper/code (needs python3)
 #   ./build.sh --slow     also run the slower tests (TestsSlow.lean, about 6 minutes)
 set -euo pipefail
 cd "$(dirname "$0")"
 export PATH="$HOME/.elan/bin:$PATH"
 if [ "${1:-}" = "--data" ]; then
   python3 tools/gen_pattern.py
-  node tools/gen_skeletons.js
   python3 tools/gen_clusters.py
 fi
 python3 tools/check_trusted.py || exit 1
@@ -35,6 +34,11 @@ n=$(grep -cE "depends on axioms|does not depend on any axioms" .lake-build.log |
 expected=$(grep -c '^#print axioms ' Axioms.lean)
 [ "$expected" -gt 0 ] && [ "$n" -eq "$expected" ] || { echo "FAIL: $n of the $expected axiom reports found"; exit 1; }
 t1=$SECONDS
+# leanchecker replays every module built in .lake, so first remove the build files of any module whose source has gone
+# (left by an earlier build, or in a restored CI cache).
+find .lake/build/lib/lean -name '*.olean' | while read -r o; do
+  m=${o#.lake/build/lib/lean/}; [ -f "${m%.olean}.lean" ] || rm -f "${o%.olean}".*
+done
 lake env leanchecker || { echo "FAIL: leanchecker found a declaration the kernel rejects"; exit 1; }
 echo "OK: build in $((t1 - t0)) s; $n theorems checked, axioms used: $(printf '%s ' $axioms)"
 echo "OK: leanchecker found no problem, in $((SECONDS - t1)) s"

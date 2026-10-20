@@ -285,7 +285,7 @@ theorem turns_lift {c : Nat} (c_lt : c < nk T) :
 theorem bstep_valid {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) {y : Nat × Nat}
     (stepped : bstep (Comp.ofLens T L d ω).toGluing o (c, u) = some y) : y.1 < nk T ∧ y.2 < (child y.1).E := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   -- `c` is a child of the composition
   have c_lt_n : c < (Comp.ofLens T L d ω).toGluing.n := by rw [ofLens_n]; exact c_lt
   -- and `u` a rim vertex of it
@@ -332,7 +332,7 @@ theorem turn_fC {c u : Nat} (c_lt : c < nk T) (u_lt : u < (child c).E) :
     (compose T child).turn (shiftC child c ((child c).fC o u)) =
       (bstep (Comp.ofLens T L d ω).toGluing o (c, u)).map fun y => shiftC child y.1 ((child y.1).sC o y.2) := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   -- `c` is a child of the composition
   have c_lt_n : c < (Comp.ofLens T L d ω).toGluing.n := by rw [ofLens_n]; exact c_lt
   cases o
@@ -460,7 +460,7 @@ theorem on_parent_chain (chains : ∀ c, c < nk T → (child c).RimChains o) {p 
 children's chains, joined as the gluing turns about the vertex. -/
 theorem rimChains (chains : ∀ c, c < nk T → (child c).RimChains o) : (compose T child).RimChains (!o) := by
   -- the composition is well formed
-  have wf := kids.gsig.wf
+  have wf := kids.csig.wf
   intro p p_lt
   rw [compose_E kids.shape] at p_lt
   -- the vertex of `R(p)` and that of `L(p)`, as rim vertices of actual children

@@ -18,10 +18,10 @@ none proved in Lean:
 
   (M1) In every homochiral tiling by Tile(1,1), every level-m supertile of kind K, m ≥ 1, is glued exactly like
        `super m K`, with its tiles numbered as `super` numbers them (child by child in the order of Table 1, down to
-       the order of the level-1 data) and its rim listed from vertex 0 in its own orientation. Argued in the paper's
-       §2: Thm 2.1 (the hierarchy, from the spectre paper), Prop 2.4 (the composition pattern holds at every level;
-       cross-checked in Remark 2.5) and Lemma 2.6 (rigidity, which makes the numbering the same at every level).
-       Level 0 is not part of it: `super 0 K` is one tile for every K, while the paper's level-0 Γ is the Mystic.
+       the order of the level-1 data) and its rim listed from vertex 0 in its own orientation. Argued in the paper:
+       Thm 2.1 (the hierarchy, from the spectre paper), Prop 2.4 (the composition pattern at every level, checked in
+       Remark 2.5), Lemma 2.6 (rigidity: the same numbering at every level), step (ii) of §7.1 (children meet only in
+       the sides they share). Level 0 is not part of it: `super 0 K` is one tile, the paper's level-0 Γ a Mystic.
   (M2) So a tiling whose hierarchy covers the plane is the union of a chain of supertiles as in §7, and the chain
        covers (`Chain.Covers`). Argued in the first half of the proof of Theorem A (§7.4), about points of the plane:
        every tile lies in a supertile of the chain, and each edge, shared with exactly one other tile (Lemma 3.4),

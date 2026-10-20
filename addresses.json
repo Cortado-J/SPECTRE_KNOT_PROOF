@@ -16,8 +16,7 @@
    "def:decoration",
    "def:rule",
    "def:strandgraph",
-   "lem:degree2",
-   "rem:periodic"
+   "lem:degree2"
   ],
   "4": [
    "lem:box",
@@ -26,9 +25,7 @@
    "lem:tilesig"
   ],
   "5": [
-   "lem:zigzag",
-   "prop:reduce",
-   "cor:placement"
+   "lem:zigzag"
   ],
   "6": [
    "prop:letters",
@@ -59,9 +56,7 @@
    "lem:junctions",
    "thm:B"
   ],
-  "10": [
-   "rem:three"
-  ]
+  "10": []
  },
  "results": {
   "thm:A": {
@@ -150,7 +145,7 @@
    "number": "3.1",
    "name": "The decoration",
    "status": null,
-   "lean": true,
+   "lean": false,
    "lean_part": false,
    "step": 3
   },
@@ -184,34 +179,14 @@
    "lean_part": false,
    "step": 3
   },
-  "rem:periodic": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-periodic",
-   "kind": "Remark",
-   "number": "3.5",
-   "name": "A single strand needs a non-periodic tiling",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": 3
-  },
-  "rem:overunder": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-overunder",
-   "kind": "Remark",
-   "number": "3.6",
-   "name": "Over and under",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": null
-  },
   "lem:box": {
    "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-box",
    "kind": "Lemma",
    "number": "4.1",
    "name": "The box of a patch",
    "status": "argued",
-   "lean": false,
-   "lean_part": false,
+   "lean": true,
+   "lean_part": true,
    "step": 4
   },
   "lem:gluing": {
@@ -221,7 +196,7 @@
    "name": "Gluing",
    "status": "argued",
    "lean": true,
-   "lean_part": false,
+   "lean_part": true,
    "step": 4
   },
   "def:signature": {
@@ -238,10 +213,10 @@
    "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-lem-tilesig",
    "kind": "Lemma",
    "number": "4.4",
-   "name": "Signature of the tile and the Mystic",
+   "name": "Signature of the tile",
    "status": "argued",
    "lean": true,
-   "lean_part": true,
+   "lean_part": false,
    "step": 4
   },
   "lem:zigzag": {
@@ -251,46 +226,6 @@
    "name": "Zigzag Lemma",
    "status": "argued",
    "lean": true,
-   "lean_part": false,
-   "step": 5
-  },
-  "def:marks": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-marks",
-   "kind": "Definition",
-   "number": "5.2",
-   "name": "Marks and runs",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": null
-  },
-  "def:skeleton": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-def-skeleton",
-   "kind": "Definition",
-   "number": "5.3",
-   "name": "Skeleton",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": null
-  },
-  "prop:reduce": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-prop-reduce",
-   "kind": "Proposition",
-   "number": "5.4",
-   "name": "Reduced composition",
-   "status": "argued",
-   "lean": true,
-   "lean_part": true,
-   "step": 5
-  },
-  "cor:placement": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-cor-placement",
-   "kind": "Corollary",
-   "number": "5.5",
-   "name": "Where a hook goes",
-   "status": "argued",
-   "lean": false,
    "lean_part": false,
    "step": 5
   },
@@ -404,26 +339,6 @@
    "lean_part": false,
    "step": 7
   },
-  "rem:ccw": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-ccw",
-   "kind": "Remark",
-   "number": "7.7",
-   "name": "",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": null
-  },
-  "rem:skeleton": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-skeleton",
-   "kind": "Remark",
-   "number": "7.8",
-   "name": "Other checks of the signature",
-   "status": null,
-   "lean": true,
-   "lean_part": true,
-   "step": null
-  },
   "con:nest": {
    "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-con-nest",
    "kind": "Construction",
@@ -503,26 +418,6 @@
    "lean": true,
    "lean_part": false,
    "step": 9
-  },
-  "rem:labels": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-labels",
-   "kind": "Remark",
-   "number": "9.5",
-   "name": "Other checks of Theorem 9.1",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": null
-  },
-  "rem:three": {
-   "url": "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#r-rem-three",
-   "kind": "Remark",
-   "number": "10.1",
-   "name": "Three strands: a computation, not a theorem",
-   "status": null,
-   "lean": false,
-   "lean_part": false,
-   "step": 10
   }
  }
 }

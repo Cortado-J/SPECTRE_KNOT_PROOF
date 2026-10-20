@@ -1,8 +1,8 @@
 /-
 **The junction map at tile level.** `N_{m+1}` is the Δ composition whose child 1 is `N_m`. A rim port of `N_m`
 (outside child 1's side 2) lies, in `N_{m+1}`, on the strand of the parent hook at the junction that `StepMap.lean`'s
-map names (`step_tile`; the paper's Lemma 9.3). Also: where the pieces of the parent's rim start (`jpos`), lifting strands up the nest
-(`lift_nest`), and the hooks of `N_m` (`hook`).
+map names (`step_tile`; the paper's Lemma 9.3). Also: where the pieces of the parent's rim start (`jpos`), lifting
+strands up the nest (`lift_nest`), and the hooks of `N_m` (`hook`).
 -/
 import SpectreKnot.StepMap
 import SpectreKnot.Linked
