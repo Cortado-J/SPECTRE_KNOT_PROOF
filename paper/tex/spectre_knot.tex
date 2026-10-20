@@ -59,7 +59,7 @@
 \author{Justin Roughley}
 \address{Independent researcher}
 \email{cortado.just@gmail.com}
-\date{19 October 2026}
+\date{20 October 2026}
 \subjclass[2020]{Primary 52C20; Secondary 05B45, 52C23, 57K10}
 \keywords{aperiodic monotile, Spectre, substitution tiling, Celtic knot, knot tile, computer-assisted proof}
 
@@ -86,14 +86,17 @@ author working with an AI system. This paper has not been peer reviewed (\cref{s
 A \emph{Celtic knot} is a pattern of interlaced ribbons~\cite{Bain,Cromwell1993}; the number of strands in finite
 designs of this kind has been studied, for instance, by Fisher and Mellor~\cite{FisherMellor}. A \emph{knot tile} is a
 polygon carrying ribbon segments that end on its edges, so that copies of the tile, placed edge to edge, link up into
-longer ribbons. We ask for a knot tile whose ribbons, in a tiling of the whole plane, form one endless strand. In a
+longer ribbons; knot mosaics~\cite{LomonacoKauffman} assemble knot diagrams in this way from a set of square tiles. We
+ask for a knot tile whose ribbons, in a tiling of the whole plane, form one endless strand. In a
 periodic tiling this cannot happen:
 if the pieces formed one strand, a period $\tau$ would shift it along itself by some $k\neq0$ ($\tau^2$ moves every
 tile, so $\tau$ cannot reverse it), leaving $|k|$ orbits of pieces under $\langle\tau\rangle$ but infinitely many of
 tiles, as $\RR^2/\langle\tau\rangle$ has infinite area.
 So we look at a tile that tiles only non-periodically.
 
-In 2023 Smith, Myers, Kaplan and Goodman-Strauss described the \emph{hat}, an aperiodic monotile~\cite{SMKGS-hat}, and
+Socolar and Taylor~\cite{SocolarTaylor} had found a hexagonal tile that, with its mirror image, tiles only
+non-periodically when its markings are matched. In 2023 Smith, Myers, Kaplan and Goodman-Strauss described the \emph{hat}, an aperiodic
+monotile~\cite{SMKGS-hat}, and
 then the \emph{Spectre}~\cite{SMKGS-spectre}: a shape that tiles the plane, admits only non-periodic tilings, and
 admits only tilings in which all tiles have the same handedness, even when reflections are
 allowed~\cite[Thm.~2.2]{SMKGS-spectre}. The Spectre is a curved-edge form of the polygon $\Tile$ (\cref{fig:tile},
@@ -211,17 +214,23 @@ argued in words.}
 
 \subsection*{Related work}
 Curves drawn on tiles and joined across edges, each closed or two-way infinite as in \cref{lem:degree2}, have been
-studied for random Truchet tilings~\cite{Pete2008,Hooper2011}; for the mirror curves of Celtic, Tchokwe and Tamil
-designs~\cite{JablanKnotsArt}; for the Conway--Penrose arcs on Penrose rhombs, all closed apart from at most two (see~\cite{FlickerSimonParameswaran}
-and the references there); and for Girih interlace on Penrose tilings~\cite{Cline2024}. Single curves through every
-tile of finite patches have been built as Hamiltonian cycles on Ammann--Beenker tilings~\cite{SinghLloydFlicker} and
-as space-filling curves from aperiodic substitution tilings~\cite{Pautze2021}. Closest to ours, an online
-project~\cite{BohemianMiserSpectre} decorates selected edges of $\Tile$ and describes, in one nested tiling, a single
-non-crossing curve through every tile, with a machine check of its combinatorial core. Here every edge carries a
-ribbon end and the pieces cross;
+studied for random Truchet tilings~\cite{Pete2008,Hooper2011} and a deterministic family of them, where a
+renormalisation, akin to our induction on supertiles, shows that for almost every parameter almost every curve is
+closed~\cite{Hooper2013}; for the mirror curves of Celtic, Tchokwe and Tamil designs~\cite{Gerdes2007,JablanKnotsArt},
+where a design drawn as a single line is called \emph{monolinear}, and a rectangular grid of $m\times n$ cells with no
+inner mirrors carries $\gcd(m,n)$ curves~\cite{Gerdes2007}; for the Conway--Penrose arcs on Penrose tiles,
+where at most two curves of each colour fail to close~\cite[Ch.~1]{Gardner1989} (see
+also~\cite{FlickerSimonParameswaran}); and for girih interlace on Penrose tilings, whose strands close into loops and
+knots~\cite{Cline2024,Cline2025,Gaenshirt2024}. Single curves through finite patches have been built as Hamiltonian
+cycles, through every vertex of arbitrarily large regions of Ammann--Beenker tilings~\cite{SinghLloydFlicker} and through every
+tile of finite Penrose and Ammann--Beenker patches~\cite{LiuChoiMahadevan}, and as space-filling curves from aperiodic
+substitution tilings~\cite{Pautze2021}. Closest to ours, an online project~\cite{BohemianMiserSpectre} decorates
+selected edges of $\Tile$ and describes, in one nested tiling, a single non-crossing curve through every tile, with a
+machine check of its combinatorial core. Here every edge carries a ribbon end and the pieces cross;
 in our drawing they cross only transversally and in pairs (\cref{app:computations}), so over and under can alternate by
 the checkerboard rule~\cite{CromwellKnots}, and the single strand becomes an alternating diagram of a line, as in Celtic
-knotwork.
+knotwork, whose designs are alternating and give every alternating link projection up to topological
+equivalence~\cite{GrossTucker}.
 We are not aware of earlier full knotwork decorations that form a single strand.
 
 \subsection*{Use of AI and verification status}
@@ -1405,8 +1414,9 @@ plain English. No human has checked that these formal statements say what the th
 \subsection*{Tool and computational resource disclosure}
 \emph{AI system:} Claude, by Anthropic (various Claude models, primarily Opus), used in the Claude app and through
 Claude Code from August to October 2026; no other AI or machine-learning system was used. \emph{Proof assistant:}
-Lean~4, version 4.34.1, core library only; \code{leanchecker} replays every declaration through the kernel, and
-\code{comparator} checks that the main theorems prove exactly the statements of \code{Statement.lean}. \emph{Other
+Lean~4, version 4.34.1, core library only; \code{leanchecker}~\cite{Leanchecker} replays every declaration through
+the kernel, and \code{comparator}~\cite{Comparator} checks that the main theorems prove exactly the statements of
+\code{Statement.lean}. \emph{Other
 software:} Python~3 (SymPy for \cref{sec:lengths}; NumPy and SciPy only to propose certificates, then checked in exact
 arithmetic; Matplotlib and Pillow for the comparisons with~\cite{SMKGS-spectre}), Node.js~18 or later, Poppler and
 \LaTeX; one cross-check downloads Kaplan's \code{spectre.js}, which is not included. \emph{Computing:} the computations

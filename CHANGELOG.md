@@ -44,6 +44,15 @@ themselves. Dates are UK dates.
 - **Site:** the graph joins Lemmas 4.1 and 4.2 to the rest of the argument again, and fits the page without
   scrolling sideways.
 - **Paper:** the contact address at the end of the paper is now cortado.just@gmail.com.
+- **Paper:** the related work is wider, with eleven new references: Hooper on a family of Truchet tilings whose
+  curves a renormalisation shows to be almost all closed; Gerdes on mirror curves; Gardner on the Conway–Penrose
+  arcs; a second paper by Cline, and one by Gaenshirt, on girih interlace on Penrose tilings; Liu, Choi and Mahadevan
+  on Hamiltonian cycles through every tile of finite patches; and Gross and Tucker on Celtic knotwork as alternating
+  diagrams. §1 mentions knot mosaics (Lomonaco and Kauffman) and the Socolar–Taylor tile, and Appendix B cites
+  `leanchecker` and `comparator`. The paper is dated 20 October 2026 and has 22 pages.
+- **Paper:** two statements about earlier work are corrected: on Penrose tiles, at most two Conway–Penrose curves
+  *of each colour* fail to close (it said at most two in all); and the Hamiltonian cycles of Singh, Lloyd and Flicker
+  go through every vertex of arbitrarily large regions of Ammann–Beenker tilings (it said every tile).
 
 ## 19 October 2026
 

@@ -250,7 +250,7 @@ def bib_text(s):
     s = re.sub(r'\\texttt\{([^}]*)\}', lambda m: keep('<code>%s</code>' % esc(m.group(1).replace('\\_', '_'))), s)
     s = ''.join(part if part.startswith('$') else re.sub(r'[{}]', '', part)     # braces go; maths stays for MathJax
                 for part in re.split(r'(\$[^$]*\$)', s))
-    s = esc(s.replace('--', '\u2013').replace('~', '\u00a0'), quote=False)
+    s = esc(s.replace('--', '\u2013').replace('~', '\u00a0').replace('\\&', '&'), quote=False)
     s = re.sub(r'(?<![/>])arXiv:(\d{4}\.\d{4,5})', r'<a href="https://arxiv.org/abs/\1">arXiv:\1</a>', s)
     return re.sub(r'\x00(\d+)\x00', lambda m: links[int(m.group(1))], s)
 
