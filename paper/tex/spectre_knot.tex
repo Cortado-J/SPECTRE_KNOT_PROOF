@@ -59,7 +59,7 @@
 \author{Justin Roughley}
 \address{Independent researcher}
 \email{cortado.just@gmail.com}
-\date{20 October 2026}
+\date{21 October 2026}
 \subjclass[2020]{Primary 52C20; Secondary 05B45, 52C23, 57K10}
 \keywords{aperiodic monotile, Spectre, substitution tiling, Celtic knot, knot tile, computer-assisted proof}
 
@@ -1344,9 +1344,11 @@ finite computations can be run; their outcome may differ.
 \appendix
 \section{The computations}\label{app:computations}
 
-All programs and their logs are in the ancillary files of this paper, folder \code{code/}: \code{./run\_all.sh}
-re-runs everything the proof needs, and \code{code/README.md} maps every statement of this paper to the script that
-checks it. The Lean formalisation is in the folder \code{lean/} (\cref{app:ai}).
+All programs and their logs are in the public repository \url{https://github.com/Cortado-J/SPECTRE_KNOT_PROOF},
+folder \code{paper/code/}: \code{./run\_all.sh} re-runs everything the proof needs, and its \code{README.md} maps every
+statement of this paper to the script that checks it. The Lean formalisation is in the folder \code{lean/}
+(\cref{app:ai}). The proof site, \url{https://cortado-j.github.io/SPECTRE_KNOT_PROOF/}, gives each result with its
+proof, what it cites and the Lean that formalises it.
 
 \emph{What the proof computes.} The geometric computations on actual supertiles (the level-$1$ data and
 \cref{comp:base}; the patterns of the compositions $m\to m+1$ for $m\le3$) are done in exact
@@ -1384,7 +1386,9 @@ ribbons by hand. From then on the author and the AI system worked together: the 
 programs, the proof, the Lean formalisation and this paper), and the author directed, guided and corrected it. The
 author has read parts of this paper and spot-checked figures and counts; no professional mathematician has reviewed
 it. The AI system reviewed its own argument in several passes. A program or check called \emph{independent} or
-\emph{separate} here is a separate implementation by the same AI system. A fuller account:
+\emph{separate} here is a separate implementation by the same AI system. At the author's direction, the AI system
+also searched the literature for related work. AI systems can reproduce published ideas without naming their source,
+so this paper may use an idea whose source it does not cite. A fuller account:
 \url{https://cortado-j.github.io/SPECTRE_KNOT/made.html}.
 
 \subsection*{Formal verification}
@@ -1418,8 +1422,9 @@ Lean~4, version 4.34.1, core library only; \code{leanchecker}~\cite{Leanchecker}
 the kernel, and \code{comparator}~\cite{Comparator} checks that the main theorems prove exactly the statements of
 \code{Statement.lean}. \emph{Other
 software:} Python~3 (SymPy for \cref{sec:lengths}; NumPy and SciPy only to propose certificates, then checked in exact
-arithmetic; Matplotlib and Pillow for the comparisons with~\cite{SMKGS-spectre}), Node.js~18 or later, Poppler and
-\LaTeX; one cross-check downloads Kaplan's \code{spectre.js}, which is not included. \emph{Computing:} the computations
+arithmetic; Matplotlib and Pillow for the comparisons with~\cite{SMKGS-spectre}), Node.js and Poppler, in the versions
+recorded in \code{logs/A00\_environment.log}, and \LaTeX; one cross-check downloads
+Kaplan's \code{spectre.js}, which is not included. \emph{Computing:} the computations
 the proof needs take about twelve minutes on a four-core machine, the corroborating ones to level~$9$ about an hour
 (up to $6.5$\,GB of memory), and the formalisation about ten minutes; none of the checks the proof needs uses the AI
 system or proprietary software. The AI system ran on Anthropic's servers; its computing is not known to the author.

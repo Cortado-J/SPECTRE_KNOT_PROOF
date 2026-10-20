@@ -1,4 +1,4 @@
-real build to level 9: 266 s
+real build to level 9: 392 s
 S_2 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
 S_3 = F(C, v_1, d_1, beta=+1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok
 S_4 = F(C, v_1, d_1, beta=-1): Gamma:ok Delta:ok Theta:ok Lambda:ok Xi:ok Pi:ok Sigma:ok Phi:ok Psi:ok

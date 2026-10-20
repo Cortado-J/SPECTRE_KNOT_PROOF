@@ -7,7 +7,8 @@ checked and printed in the logs) and gave the same logs as before. A22 downloads
 spectre's substitution (`spectre.js`, the program of the interactive application on the spectre authors' page,
 https://cs.uwaterloo.ca/~csk/spectre/), which is published without a licence and so is not included; it was run
 separately on 15 Oct 2026 (the file's SHA-256 is checked and printed in the log). Apart from these two inputs it is
-self-contained: it reads nothing outside this folder.
+self-contained: it reads nothing outside this folder. Every run first records its date, system and tool versions in
+`logs/A00_environment.log`.
 
 ## Running
 

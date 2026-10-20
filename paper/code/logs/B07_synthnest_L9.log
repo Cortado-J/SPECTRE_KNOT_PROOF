@@ -1,4 +1,4 @@
-real build to level 9: 271 s
+real build to level 9: 378 s
 synth beta=+1 proxy u8:4 (Delta sides 8,9,8,9,8,8, Sigma offset 4): same as first proxy; min interval piece 6 vertices; carried interval lengths 7; classes 4(c0h/1i) 2(c1h/0i) 1 1 1 1 1 1
 synth beta=+1 proxy u10:6 (Delta sides 10,11,10,11,10,10, Sigma offset 6): same as first proxy; min interval piece 8 vertices; carried interval lengths 9; classes 4(c0h/1i) 2(c1h/0i) 1 1 1 1 1 1
 synth beta=+1 proxy u20:8 (Delta sides 20,21,20,21,20,20, Sigma offset 8): same as first proxy; min interval piece 18 vertices; carried interval lengths 19; classes 4(c0h/1i) 2(c1h/0i) 1 1 1 1 1 1

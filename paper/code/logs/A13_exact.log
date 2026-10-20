@@ -1,5 +1,5 @@
 Tile(1,1): 14 vertices in Z[zeta]; area 8.196152; pieces: hooks at v2..v13, crossover at v0 v1; non-hook corners [0, 1]
-built levels 0..7 exactly in 53.5 s; Delta rims: 14, 46, 182, 758, 3198, 13534, 57318, 242790
+built levels 0..7 exactly in 68.5 s; Delta rims: 14, 46, 182, 758, 3198, 13534, 57318, 242790
 Mystic: rim 20, non-hook corners 2, A=0 B=1, crossover True, loops 0
 level 1: signature at the Gamma child's A,B with B = A + (-1)^N, crossover R-R/L-L, no loops: Gamma:44e/8t ok Delta:46e/9t ok Theta:46e/9t ok Lambda:46e/9t ok Xi:46e/9t ok Pi:46e/9t ok Sigma:46e/9t ok Phi:46e/9t ok Psi:46e/9t ok
 level 2: signature at the Gamma child's A,B with B = A + (-1)^N, crossover R-R/L-L, no loops: Gamma:160e/62t ok Delta:182e/71t ok Theta:182e/71t ok Lambda:182e/71t ok Xi:182e/71t ok Pi:182e/71t ok Sigma:182e/71t ok Phi:182e/71t ok Psi:182e/71t ok
@@ -24,5 +24,5 @@ comparison with hierarchy/combin_8.json (JavaScript, floating point): C True, pa
 nest base 1: L2: 10 arcs of N_2 carry the 46 arcs of N_1 (10 classes); L3: 2 arcs of N_3 carry the 46 arcs of N_1 (2 classes); L4: 2 arcs of N_4 carry the 46 arcs of N_1 (2 classes); L5: 1 arc of N_5 carry the 46 arcs of N_1 (1 class); L6: 1 arc of N_6 carry the 46 arcs of N_1 (1 class); L7: 1 arc of N_7 carry the 46 arcs of N_1 (1 class)
 nest base 2: L3: 37 arcs of N_3 carry the 182 arcs of N_2 (37 classes); L4: 2 arcs of N_4 carry the 182 arcs of N_2 (2 classes); L5: 1 arc of N_5 carry the 182 arcs of N_2 (1 class); L6: 1 arc of N_6 carry the 182 arcs of N_2 (1 class); L7: 1 arc of N_7 carry the 182 arcs of N_2 (1 class)
 nest base 3: L4: 146 arcs of N_4 carry the 758 arcs of N_3 (146 classes); L5: 2 arcs of N_5 carry the 758 arcs of N_3 (2 classes); L6: 2 arcs of N_6 carry the 758 arcs of N_3 (2 classes); L7: 1 arc of N_7 carry the 758 arcs of N_3 (1 class)
-total 157.2 s
+total 187.6 s
 EXACT: ALL CHECKS PASS

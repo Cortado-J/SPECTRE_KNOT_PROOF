@@ -1,7 +1,27 @@
 # Changes
 
 What changed each time this site was published, newest first: in the paper, the Lean, the code and the pages
-themselves. Dates are UK dates.
+themselves. Dates are UK dates. From 21 October 2026, each publication is tagged in the repository with its date, so
+that every published version of the paper, with its code, can be found again.
+
+## 21 October 2026
+
+- **Paper:** Appendix A gives the addresses of the public repository and of this site, in place of the ancillary files
+  of a paper not on arXiv. Appendix B says that the AI system also searched the literature for related work, and that
+  an AI system can reproduce published ideas without naming their source, so the paper may use an idea whose source it
+  does not cite; its tool disclosure points to the run log for the versions of the software. Three references are made
+  exact: the spectre paper's theorem, figure, section and page numbers refer to its published version; Tatham's paper
+  is cited as arXiv version 2; the bohemian-miser project is cited at the commit read. The paper is dated 21 October
+  2026 and still has 22 pages.
+- **Code:** every run of `run_all.sh` first records its date, system and tool versions, in `logs/A00_environment.log`.
+  The logs are those of a new full run (`./run_all.sh --all`), with the same results.
+- **Lean:** the README and the note on the `Statement.lean` guide name Justin Roughley instead of "the owner". The
+  statement is unchanged.
+- **Site:** the overview's title is "The Spectre Knot theorems and their proof". The page description says which
+  tilings each theorem covers, and that the proof is a draft, not peer reviewed. About says how to cite the paper, and
+  who wrote the parts of this site that are not generated; What has been checked no longer says that the paper gives
+  the version of every tool. The repository has a `CITATION.cff`, for GitHub's *Cite this repository*, and each
+  publication from today is tagged with its date.
 
 ## 20 October 2026
 

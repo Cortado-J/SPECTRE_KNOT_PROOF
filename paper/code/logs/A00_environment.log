@@ -1,0 +1,10 @@
+date 2026-10-20
+system Linux x86_64, 4 cores
+node v22.22.0
+python 3.13.16
+numpy 2.5.3
+scipy 1.18.1
+sympy 1.14.0
+matplotlib 3.11.2
+pillow 12.3.0
+pdftoppm version 24.02.0

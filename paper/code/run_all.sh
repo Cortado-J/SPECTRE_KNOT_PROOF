@@ -20,6 +20,17 @@ BIG="--max-old-space-size=6500"
 DIG=01222222222222
 mkdir -p logs
 run() { local log=$1; shift; printf '\n== %s  (> logs/%s)\n' "$*" "$log"; local t0=$SECONDS; "$@" > "logs/$log" 2>&1 || { echo "FAILED: $*  (see logs/$log)"; exit 1; }; echo "   $(tail -1 logs/$log)   [$((SECONDS - t0)) s]"; }
+# A00: the environment of this run (date, system, versions), which the paper's tool disclosure points to.
+environment() {
+  date -u +'date %Y-%m-%d'
+  echo "system $(uname -sm), $(nproc 2>/dev/null || sysctl -n hw.ncpu) cores"
+  echo "node $(node --version)"
+  python3 -c 'import sys, numpy, scipy, sympy, matplotlib, PIL
+print("python", sys.version.split()[0])
+for n, m in (("numpy", numpy), ("scipy", scipy), ("sympy", sympy), ("matplotlib", matplotlib), ("pillow", PIL)): print(n, m.__version__)'
+  if command -v pdftoppm > /dev/null; then pdftoppm -v 2>&1 | head -1; else echo "pdftoppm not installed (only A17 and A18 use it)"; fi
+}
+run A00_environment.log       environment
 
 if [ $A = 1 ]; then
   echo "### Stage A: the computations the proof depends on (A01-A07, A13, A15-A16, A19), and quick corroboration"

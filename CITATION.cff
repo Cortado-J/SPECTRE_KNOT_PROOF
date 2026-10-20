@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite the paper as below. It is a draft and has not been peer reviewed."
+title: "The Spectre Knot: the proof"
+authors:
+  - family-names: Roughley
+    given-names: Justin
+repository-code: "https://github.com/Cortado-J/SPECTRE_KNOT_PROOF"
+url: "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/"
+license: [MIT, CC-BY-4.0]
+preferred-citation:
+  type: unpublished
+  title: "The Spectre Knot: one endless strand on an aperiodic monotile"
+  authors:
+    - family-names: Roughley
+      given-names: Justin
+  year: 2026
+  url: "https://cortado-j.github.io/SPECTRE_KNOT_PROOF/"
+  notes: "Draft, not peer reviewed."
