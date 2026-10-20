@@ -35,6 +35,10 @@ themselves. Dates are UK dates.
   opening paragraph and its line about AI.
 - **Site:** the pages follow the shortened paper: the computations each result's page lists come from
   `paper/code/README.md`, step 1 shows the new route figure, and step 10 shows §10 in full.
+- **Site:** a new page, What has been checked: what has been checked by Lean, by computer, by the AI and by a
+  human, and what has not. The line under the menu on every page links to it, instead of to the public site's Made
+  with AI page; so do the overview's line about AI, About and the search box. The public site now links here for
+  everything about checking.
 
 ## 19 October 2026
 

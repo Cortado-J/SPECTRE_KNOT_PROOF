@@ -6,7 +6,8 @@ graph of the results; a page for every Lean declaration; and Statement.lean line
 Sources: paper/tex/spectre_knot.tex (numbering checked against paper/spectre_knot.pdf), lean/README.md, the Lean files
 under lean/SpectreKnot/, lean/guide/, and two hand-kept files: proofmap/notes.json (short labels for untitled
 results, what part of a result the Lean covers, the AI-written reading aids, and which results belong to each step of
-the public site's Prove page) and proofmap/status.html (the line about AI, linking to the public site's Made with AI page).
+the public site's Prove page), proofmap/status.html (the line about AI on the overview) and proofmap/checked.html (the
+page What has been checked).
 
     python3 proofmap/build.py              # the site into out/site/ (index.html, statement.html, figures,
                                            # downloads), the artifact files into out/, and addresses.json
@@ -646,7 +647,8 @@ def run_logs():
 
 
 def status_box():
-    """The line about AI at the top of the map (proofmap/status.html), linking to the public site's Made with AI page."""
+    """The line about AI on the overview (proofmap/status.html): how this was made (the public site's Made with AI
+    page) and what has been checked (#checked)."""
     return re.sub(r'<!--.*?-->', '', (HERE / 'status.html').read_text(encoding='utf8'), flags=re.S).strip()   # notes for us stay out of the page
 
 
@@ -886,6 +888,7 @@ def build(site_dir=None):
     views.append(code_view(comp_ordered, files, pdf, len(code_zip)))
     views.append(about_view(data, decls, lean_all, rows, notes, files))
     views.append(changes_view())
+    views.append(checked_view(info))
 
     views = [titled(v) for v in views]
     macros = json.dumps({k: v[0] if v[1] == 0 else [v[0], v[1]] for k, v in data['macros'].items() if k != 'code'})
@@ -899,7 +902,8 @@ def build(site_dir=None):
         (STATEMENT_FILE, 'Statement.lean, line by line', 'the statement file beside a plain reading of each piece'),
         ('#code', 'The code', 'the repository, the downloads, and how to build and run them'),
         ('#about', 'About this site', 'how these pages are made'),
-        ('#changes', 'Changes', 'what changed each time this site was published'))]
+        ('#changes', 'Changes', 'what changed each time this site was published'),
+        ('#checked', 'What has been checked', 'by Lean, by computer, by the AI and by a human; and what has not'))]
     search += [['#' + rid(l), 'paper', info[l]['head'], info[l]['short'], search_text(R[l]['statement']),
                 search_text(' '.join(pr['tex'] for pr in R[l]['proofs']))] for l in sorted(R, key=order.get)]
     search += [['#' + sanchor(k), 'route', 'Step ' + k, notes['route'][k]['title'],
@@ -989,7 +993,8 @@ def map_nav(base, current=None):
 
 def map_header(base, current=None):
     """The top bar: brand, navigation, the search box (search.js and SEARCH_JS, on every page), the link to the
-    public site, and under them the line saying the proof is a draft, not peer reviewed (owner, 19 Oct 2026)."""
+    public site, and under them the line saying the proof is a draft, not peer reviewed (owner, 19 Oct 2026), with a
+    link to What has been checked on this site (owner, 20 Oct 2026)."""
     search = ('<div class="pm-search" role="search"><input id="pm-q" type="search" placeholder="Search\u2026" '
               'autocomplete="off" spellcheck="false" title="%s" aria-label="%s"><div id="pm-qr" hidden></div></div>'
               % (esc(SEARCH_LABEL), esc(SEARCH_LABEL)))
@@ -998,8 +1003,8 @@ def map_header(base, current=None):
             '<span>the proof</span></a>%s%s<a class="pm-public" href="%s">Pictures<span class="lg"> and ideas</span> '
             '&rarr;</a></div>'
             '<div class="pm-draft"><div class="in"><b>Draft proof, not peer reviewed.</b> '
-            '<a href="%smade.html#checked">What has been checked</a></div></div></header>'
-            % (base, map_nav(base, current), search, PUBLIC_BASE, PUBLIC_BASE))
+            '<a href="%s#checked">What has been checked</a></div></div></header>'
+            % (base, map_nav(base, current), search, PUBLIC_BASE, base))
 
 
 def proof_code_zip():
@@ -1067,7 +1072,7 @@ def write_addresses(R, info, notes, linked):
     out = {'_about': 'Written by proofmap/build.py in SPECTRE_KNOT_PROOF. The addresses of the proof site that the '
                      'public site may link to.',
            'base': PROOF_BASE, 'statement': PROOF_BASE + STATEMENT_FILE, 'lean': PROOF_BASE + '#lean',
-           'paper': PROOF_BASE + PDF_FILE, 'code': PROOF_BASE + ZIP_FILE,
+           'paper': PROOF_BASE + PDF_FILE, 'code': PROOF_BASE + ZIP_FILE, 'checked': PROOF_BASE + '#checked',
            'steps': {k: v for k, v in notes['prove_steps'].items() if not k.startswith('_')}, 'results': res}
     (ROOT / 'addresses.json').write_text(json.dumps(out, ensure_ascii=False, indent=1) + '\n', encoding='utf8')
 
@@ -1294,7 +1299,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
   <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it. The paper has not been peer reviewed.</p>
 </div>
 <div class="ways">%s</div>
-<h2 class="sh">What is proved</h2>
+<h2 class="sh" id="proved">What is proved</h2>
 <div class="hero">
 <div class="hero-l">
   %s%s
@@ -2474,7 +2479,7 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <tr><td>%s</td><td>the generator of this site (<a href="#about">how it works</a>)</td></tr>
 </tbody></table></div>
 <p class="small mut gl">The zip holds the programs and their logs as <code>code/</code> and the Lean as <code>lean/</code>. Licences: the code is under the MIT licence (<code>LICENSE</code>); the paper, the text and the pictures under CC&nbsp;BY&nbsp;4.0 (<code>LICENSE-CONTENT.md</code>).</p>
-<h2 class="sh">The Lean</h2>
+<h2 class="sh" id="code-lean">The Lean</h2>
 <div class="prose gl">
 <p>Lean 4, <code>%s</code> (pinned in <code>lean/lean-toolchain</code>), with the core library only: no Mathlib. With <a href="https://github.com/leanprover/elan">elan</a> installed:</p>
 <pre class="cmd">cd lean
@@ -2483,7 +2488,7 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <p class="small"><code>build.sh</code> fails if the statement file or a file it imports has changed since its SHA-256 was recorded (<code>lean/TRUSTED.sha256</code>), if any source uses <code>sorry</code>, <code>admit</code>, <code>native_decide</code> or another way round the kernel, if a theorem or a <code>have</code> has no comment, if the build or a test fails, if a main theorem no longer proves exactly its claim, if a main theorem depends on an axiom other than Lean&rsquo;s standard three (<a href="lean-Axioms.html"><code>Axioms.lean</code></a>), or if <code>leanchecker</code>, replaying every declaration through Lean&rsquo;s kernel, finds a problem.</p>
 <p class="small">GitHub builds it in the public repository whenever <code>lean/</code> changes: <a href="%s/actions/workflows/lean.yml">the Lean builds, with their logs</a>; and checks that the Lean&rsquo;s data files are exactly what <code>paper/code/</code> generates whenever either changes (<code>lean/tools/check_data.sh</code>).</p>
 </div>
-<h2 class="sh">The computations</h2>
+<h2 class="sh" id="code-computations">The computations</h2>
 <div class="prose gl">
 <p>The programs are in JavaScript (node 18 or later) and Python 3 (with numpy, scipy, sympy, matplotlib and pillow). <code>run_all.sh</code> runs the computations the proof depends on, with quick corroboration (about 12 minutes on 4 cores); with <code>--all</code> it adds the corroboration up to level 9 (about 1 hour). Each step writes its log into <code>logs/</code>.</p>
 <pre class="cmd">cd paper/code
@@ -2493,7 +2498,7 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <p>Which script checks which statement, from <code>paper/code/README.md</code> (the map the paper&rsquo;s Appendix&nbsp;A points to), with each program and the logs of its steps:</p>
 </div>
 <div class="tablebox"><table class="lt comptab"><thead><tr><th>for</th><th>computation</th><th>programs</th><th>logs</th></tr></thead><tbody>%s</tbody></table></div>
-<h2 class="sh">Every step of the run</h2>
+<h2 class="sh" id="code-run">Every step of the run</h2>
 <p class="small mut gl">As <code>run_all.sh</code> runs them, from <code>paper/code/</code>: stage A always, stage B with <code>--all</code>; A17 and A18 only when <code>SMKGS_PDF</code> names the spectre paper&rsquo;s PDF; A22 only with <code>--kaplan</code>. Each command can be run on its own.</p>
 <div class="tablebox"><table class="lt steps"><thead><tr><th>step</th><th>command</th><th>log</th></tr></thead><tbody>%s</tbody></table></div>
 <h2 class="sh">The paper, and this site</h2>
@@ -2514,7 +2519,8 @@ def about_view(data, decls, lean_all, rows, notes, files):
     n_thm = sum(1 for v in decls.values() if v['kw'] in ('theorem', 'lemma'))
     return '''<section class="view" id="v-about" data-view="about" hidden><div class="pm-hero">
 <h1>About this site</h1></div><div class="prose">
-<p>What changed each time this site was published: <a href="#changes">Changes</a>.</p>
+<p>What has been checked, by what, and what has not: <a href="#checked">What has been checked</a>. What changed each
+time this site was published: <a href="#changes">Changes</a>.</p>
 <p>This site is generated by <code>proofmap/build.py</code> from the sources, so it changes when they change:</p>
 <ul class="md">
 <li>statements and proofs: the paper&rsquo;s LaTeX, <code>paper/tex/spectre_knot.tex</code>, converted for the web; the numbers are checked against the built PDF, and the build stops if they differ;</li>
@@ -2524,6 +2530,7 @@ def about_view(data, decls, lean_all, rows, notes, files):
 <li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
 <li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
 <li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX; the drawing beside the overview&rsquo;s title is drawn by <code>proofmap/make_hero.py</code> from the paper&rsquo;s own figure code (the same tiles and ribbons);</li>
+<li>written by hand: the page What has been checked (<code>proofmap/checked.html</code>) and the line about AI on the overview (<code>proofmap/status.html</code>);</li>
 <li>written by hand, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries were written by the AI and are labelled where they appear.</li>
 <li>the numbers on the overview, the depths and the chains of citations up to a main theorem: counted from the above when the site is built.</li>
 </ul>
@@ -2547,6 +2554,20 @@ def changes_view():
                  'commit for each publication: <a href="%s/commits/main">its history</a>.</p></div></section>'
                  % (REPO_URL, REPO_URL))
     return ''.join(parts)
+
+
+def checked_view(info):
+    """What has been checked (proofmap/checked.html): what has been checked, by what, and what has not; the one full
+    statement of it (owner, 20 Oct 2026). Reached from the banner under the menu of every page, the overview's line
+    about AI, About and the search box; not from the menu. A result is cited as <!--#res LABEL-->."""
+    src = (HERE / 'checked.html').read_text(encoding='utf8')
+    src = re.sub(r'<!--#res ([\w:]+)-->', lambda m: rlink_head(m.group(1), info), src)
+    src = re.sub(r'<!--.*?-->', '', src, flags=re.S).strip()   # notes for us stay out of the page
+    lede, body = re.match(r'(<p class="lede">.*?</p>)\s*(.*)', src, flags=re.S).groups()
+    return ('<section class="view" id="v-checked" data-view="checked" hidden>'
+            '<nav class="crumbs small"><a href="#map">Overview</a></nav>'
+            '<div class="pm-hero"><h1>What has been checked</h1>%s</div><div class="prose">%s</div></section>'
+            % (lede, body))
 
 
 TEMPLATE = r'''<title>The Spectre Knot: the proof</title>

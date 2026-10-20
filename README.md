@@ -15,8 +15,9 @@ closes into a loop.
 The pictures and the ideas, for everyone: [The Spectre Knot](https://cortado-j.github.io/SPECTRE_KNOT/).
 
 **Made with AI.** An experiment in using AI (Claude, by Anthropic) for mathematical exploration, by Justin Roughley and
-the AI working together. The one full statement of how, and of what has been checked, is the public site's Made with AI
-page, https://cortado-j.github.io/SPECTRE_KNOT/made.html. The paper has not been peer reviewed.
+the AI working together. How: the public site's Made with AI page, https://cortado-j.github.io/SPECTRE_KNOT/made.html.
+What has been checked, and what has not: https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#checked. The paper has not
+been peer reviewed.
 
 The spectre was discovered in 2023 by David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman‑Strauss
 (*A chiral aperiodic monotile*, Combinatorial Theory 4(2), 2024). The knot: Justin Roughley came up with the original
