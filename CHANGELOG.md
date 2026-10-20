@@ -39,6 +39,10 @@ themselves. Dates are UK dates.
   human, and what has not. The line under the menu on every page links to it, instead of to the public site's Made
   with AI page; so do the overview's line about AI, About and the search box. The public site now links here for
   everything about checking.
+- **Paper:** the proof of the Signature Theorem (Theorem 7.6) cites Lemma 4.2 where it uses it, to read the box of
+  a supertile off its composition; two phrases in the same proof are shorter, so the paper keeps its 21 pages.
+- **Site:** the graph joins Lemmas 4.1 and 4.2 to the rest of the argument again, and fits the page without
+  scrolling sideways.
 
 ## 19 October 2026
 

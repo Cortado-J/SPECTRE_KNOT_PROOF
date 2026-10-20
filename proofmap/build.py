@@ -788,6 +788,12 @@ def build(site_dir=None):
             if u not in up:
                 up[u] = [u] + up[v]
                 todo.append(u)
+    # every result in the graph leads up to Theorem A or B by citations; one that does not is used only in the running
+    # text, and the graph would draw it apart from the argument (20 Oct 2026: Lemmas 4.1 and 4.2)
+    cut_off = [l for l in linked if l not in up]
+    if cut_off:
+        raise SystemExit('not joined to Theorem A or B by citations (cite them by number where a proof uses them): '
+                         + ', '.join(info[l]['head'] for l in sorted(cut_off, key=order.get)))
     steps = sorted((k for k in notes['prove_steps'] if k.isdigit()), key=int)   # step n follows section n of the paper
     step_of = {l: k for k in steps for l in notes['prove_steps'][k]}
     geo = dict(below=below, up=up, step_of=step_of, used_by=used_by, uses=uses)

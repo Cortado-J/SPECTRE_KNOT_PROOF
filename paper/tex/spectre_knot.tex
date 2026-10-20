@@ -1035,11 +1035,12 @@ order. In particular no such supertile contains a closed strand.
 \end{theorem}
 
 \begin{proof}
-For $m=1$ this is \cref{comp:base}. Let $m\ge1$, assume the theorem for level
-$m$, and let $Y$ be a level-$(m+1)$ supertile of kind $T$. Its children have the signature at $(A_c,A_c+\omega_m)$, so
-by \cref{sec:comp} its box is that of $C_T(\ell_m,d_m,\omega_m)$, which has the signature by \cref{prop:compose}.
-Hence $Y$ has no closed strand, and hooks at all its rim vertices except the crossover corners $A_\Gamma,B_\Gamma$ of
-its $\Gamma$ child, which are adjacent and carry the crossover. By definition $A_\Gamma$ is the crossover corner of
+For $m=1$ this is \cref{comp:base}. Assume the theorem for level $m\ge1$ and let $Y$
+be a level-$(m+1)$ supertile of kind $T$. Its children have the signature at $(A_c,A_c+\omega_m)$, so
+by \cref{sec:comp} (with \cref{lem:gluing}) its box is that of $C_T(\ell_m,d_m,\omega_m)$, which has the signature by
+\cref{prop:compose}.
+Hence $Y$ has no closed strand, and hooks at all its rim vertices except the adjacent crossover corners
+$A_\Gamma,B_\Gamma$ of its $\Gamma$ child, which carry the crossover. By definition $A_\Gamma$ is the crossover corner of
 $Y$, placed as in \cref{lem:Apos}. Finally $B_\Gamma=A_\Gamma+\omega_m$ in the child's own order, which is opposite to
 that of $Y$; so $B=A-\omega_m=A+\omega_{m+1}$ in the own order of $Y$.
 \end{proof}
