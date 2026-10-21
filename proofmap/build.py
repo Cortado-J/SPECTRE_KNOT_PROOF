@@ -1273,13 +1273,13 @@ def thm_card(l, R, info, tex, geo):
 
 WAYS = [   # the overview's first choice: how to read the proof (title, what it gives, links)
     ('#paper', 'Read the paper', 'The whole proof as the paper sets it out: the PDF, or here, result by result, each '
-     'with its statement and proof.', [(PDF_FILE, 'the PDF of %(date)s, %(pages)d pages'), ('#paper', 'contents')]),
+     'with its statement and proof.', [(PDF_FILE, 'the PDF of %(date)s, %(pages)d pages')]),
     ('#route', 'Follow the argument', 'Ten steps, one for each section of the paper, each with its results and a '
      'small graph of how they depend on each other.', []),
     ('#graph', 'See the structure', 'Every result in one graph: what rests on what, and which are argued, computed, '
      'cited or also in Lean.', []),
     ('#lean', 'Read the Lean', 'The statement file line by line, beside a plain reading of each piece; then every '
-     'file of the formalisation, in full.', [(STATEMENT_FILE, 'Statement.lean'), ('#lean', 'every file')]),
+     'file of the formalisation, in full.', [(STATEMENT_FILE, 'Statement.lean')]),
     ('#code', 'Get the code', 'The programs the computations use, with their logs, and the Lean: where they are, '
      'and how to build and run them.', [(REPO_URL, 'GitHub'), (ZIP_FILE, 'the zip')]),
 ]
@@ -2657,12 +2657,24 @@ pre.hero-lean { border: 1.5px solid var(--mint); background: var(--surf); font-s
 .numbers-grid span { font: .8rem/1.4 var(--font); color: var(--mut); }
 ul.howto { max-width: 90ch; }
 .ways { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
-.way { background: var(--surf); border: 1px solid var(--line); border-top: 3px solid var(--mint); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-family: var(--font); }
+.way { position: relative; background: var(--surf); border: 1px solid var(--line); border-top: 3px solid var(--mint); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-family: var(--font); transition: border-color .15s, box-shadow .15s, background-color .15s; }
 .way h2 { font: 600 1.08rem/1.25 var(--serif); }
-.way h2 a { color: var(--ink); text-decoration: none; }
-.way h2 a:hover { color: var(--mint); text-decoration: underline; }
+.way h2 a { color: var(--ink); text-decoration: none; -webkit-tap-highlight-color: rgba(31, 106, 76, .15); }
+/* The whole card is its title's link (the link's box is stretched over the card, border and all); the links under it
+   stay links of their own, above it. Hover and press only where there is a pointer, so a tap on a phone leaves no
+   stuck hover (the tap flashes the card instead). Nothing moves on hover: a card that rose would slip out from under
+   a pointer at its bottom edge. */
+.way h2 a::after { content: ""; position: absolute; inset: -3px -1px -1px; border-radius: var(--r); }
+.way h2 a:focus-visible { outline: none; }
+.way h2 a:focus-visible::after { outline: 2px solid var(--mint); outline-offset: 2px; }
 .way p { font-size: .88rem; line-height: 1.45; color: var(--mut); }
 .way .go { margin-top: auto; padding-top: 2px; font-size: .86rem; }
+.way .go a { position: relative; z-index: 1; }
+@media (hover: hover) {
+  .way:hover { border-color: var(--mint); box-shadow: 0 4px 16px rgba(31, 106, 76, .16); }
+  .way:hover h2 a { color: var(--mint); text-decoration: underline; text-underline-offset: 3px; }
+  .way:has(h2 a:active) { background: var(--surf2); }
+}
 @media (max-width: 560px) { .ways { gap: 8px; } .way { padding: 10px 12px; } }
 .contents { max-width: 820px; }
 .crumbs.pnrow { display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; }

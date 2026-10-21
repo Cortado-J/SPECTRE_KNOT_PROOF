@@ -26,6 +26,9 @@ that every published version of the paper, with its code, can be found again.
   `2026-10-21`, and this one `2026-10-21.2`.
 - **Site:** the README says that Justin Roughley is the author and is responsible for the work, and that the AI is not
   an author.
+- **Site:** the overview's five cards are buttons: a click or tap anywhere on a card opens what its title names. The
+  links inside a card still go to their own places; "contents" and "every file", which went where their cards go, are
+  dropped.
 
 ## 20 October 2026
 
