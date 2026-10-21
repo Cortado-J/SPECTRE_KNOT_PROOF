@@ -361,11 +361,12 @@ NODE_W, NODE_H, GAP_X, GAP_Y, DUMMY_W = 120, 98, 14, 56, 12   # a card: heading,
 FIT_W, FIT_GAP = 1034, 44
 
 
-def layout(nodes, uses, order_key, pack=False, fit=None):
+def layout(nodes, uses, order_key, pack=False, fit=None, untangle=False):
     """Layered drawing: premises above conclusions. Returns positions, the drawn (reduced) edges with routes. With
-    `pack`, each row is packed tight and centred (for small graphs, which are shown scaled down). With `fit` (a width,
-    for the whole graph), every sweep also swaps neighbours while that removes crossings and the order with the fewest
-    is kept, the cards are FIT_GAP apart, and the drawing is pulled in to that width (if its widest row allows)."""
+    `pack`, each row is packed tight and centred (for small graphs, which are shown scaled down). With `untangle`,
+    every sweep also swaps neighbours while that removes crossings, and the order with the fewest is kept. With `fit`
+    (a width, for the whole graph), the cards are FIT_GAP apart and the drawing is pulled in to that width (if its
+    widest row allows)."""
     gap = FIT_GAP if fit else GAP_X
     reach = {}
 
@@ -435,7 +436,7 @@ def layout(nodes, uses, order_key, pack=False, fit=None):
             c += sum(1 for i, (a1, b1) in enumerate(s) for a2, b2 in s[i + 1:] if (a1 - a2) * (b1 - b2) < 0)
         return c
     number()
-    best = (crossings(range(nl - 1)), [list(r) for r in rows]) if fit else None
+    best = (crossings(range(nl - 1)), [list(r) for r in rows]) if untangle else None
     for it in range(24):
         rng = range(1, nl) if it % 2 == 0 else range(nl - 2, -1, -1)
         for L in rng:
@@ -446,7 +447,7 @@ def layout(nodes, uses, order_key, pack=False, fit=None):
             rows[L].sort(key=bc)
             for i, v in enumerate(rows[L]):
                 pos[v] = i
-        if fit:
+        if untangle:
             swapped = True
             while swapped:
                 swapped = False
@@ -464,7 +465,7 @@ def layout(nodes, uses, order_key, pack=False, fit=None):
             c = crossings(range(nl - 1))
             if c < best[0]:
                 best = (c, [list(r) for r in rows])
-    if fit:
+    if untangle:
         rows[:] = best[1]
         number()
     # x coordinates: pack, then pull each node towards its neighbours, keeping order and spacing (and, with `fit`,
@@ -801,7 +802,7 @@ def build(site_dir=None):
     linked = [l for l in graph_nodes if uses[l] or any(l in uses[k] for k in graph_nodes)]
     loose = [l for l in graph_nodes if l not in linked]
     order = {r['label']: k for k, r in enumerate(results)}
-    lay = layout(linked, {l: uses[l] for l in linked}, lambda n: order[n], fit=FIT_W)
+    lay = layout(linked, {l: uses[l] for l in linked}, lambda n: order[n], fit=FIT_W, untangle=True)
     graph = svg_graph(linked, lay, info)
 
     # what each result rests on (everything below it in the graph), and one shortest chain of citations from it up to
@@ -839,10 +840,9 @@ def build(site_dir=None):
     geo = dict(below=below, up=up, step_of=step_of, used_by=used_by, uses=uses)
 
     # the top of the proof: the two theorems and the results they cite
-    top = ['thm:A', 'thm:B']
-    top += [u for n in list(top) for u in lay['red'][n] if u not in top]
-    top = sorted(top, key=order.get)
-    top_lay = layout(top, {n: [u for u in top if u in below[n]] for n in top}, lambda n: order[n], pack=True)
+    top = sorted({'thm:A', 'thm:B'} | {u for n in ('thm:A', 'thm:B') for u in lay['red'][n]}, key=order.get)
+    top_lay = layout(top, {n: [u for u in top if u in below[n]] for n in top}, lambda n: order[n], pack=True,
+                     untangle=True)
     top_svg = svg_graph(top, top_lay, info, gid='top', label='The top of the proof')
     # each step of the route: its results, with their neighbours in other steps drawn dashed
     step_svgs = {}

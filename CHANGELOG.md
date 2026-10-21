@@ -77,6 +77,8 @@ tagged in the repository with its date, so that every published version of them 
 - **Lean:** the README points to §9.2, not §9.1, for the paper's route to the merging.
 - **Site:** the graph of all the results fits the width of the page: its cards are arranged so that no arrows cross,
   set a little further apart and centred; in a narrow window it still scrolls sideways.
+- **Site:** the overview's graph of the top of the proof draws Lemma 3.4 once (it was drawn twice, one card over the
+  other, with its arrows doubled), and its cards are arranged so that no arrows cross.
 
 ## 20 October 2026
 
