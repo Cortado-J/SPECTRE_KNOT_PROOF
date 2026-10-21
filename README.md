@@ -14,8 +14,9 @@ closes into a loop.
 
 The pictures and the ideas, for everyone: [The Spectre Knot](https://cortado-j.github.io/SPECTRE_KNOT/).
 
-**Made with AI.** An experiment in using AI (Claude, by Anthropic) for mathematical exploration, by Justin Roughley and
-the AI working together. Justin Roughley is the author and is responsible for the work; the AI is not an author. How:
+**Made with AI.** An experiment in using AI (Claude, by Anthropic) for mathematical exploration: Justin Roughley used
+an AI system at every stage; it did the detailed work, and he directed, guided and corrected it. He is the author and
+is responsible for the work; the AI is not an author. How:
 the public site's Made with AI page, https://cortado-j.github.io/SPECTRE_KNOT/made.html.
 What has been checked, and what has not: https://cortado-j.github.io/SPECTRE_KNOT_PROOF/#checked. The paper has not
 been peer reviewed.

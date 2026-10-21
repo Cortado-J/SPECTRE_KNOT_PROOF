@@ -74,8 +74,8 @@ all the pieces join into a single strand, a two-way infinite path through every 
 tilings. Every supertile connects the ribbon ends on its boundary in the same pattern; ribbons zigzag along a shared
 boundary, so lengthening it by two edges changes nothing; and the side lengths at every level are reached from those at
 level~$1$ in such steps. So finitely many computations at level~$1$ settle every level. The combinatorial core is
-formalised in the Lean proof assistant. The proof, the programs, the formalisation and this text were produced by the
-author working with an AI system. This paper has not been peer reviewed (\cref{sec:intro}).
+formalised in the Lean proof assistant. The author used an AI system to produce the proof, the programs, the
+formalisation and this text. This paper has not been peer reviewed (\cref{sec:intro}).
 \end{abstract}
 
 \maketitle
@@ -234,8 +234,9 @@ equivalence~\cite{GrossTucker}.
 We are not aware of earlier full knotwork decorations that form a single strand.
 
 \subsection*{Use of AI and verification status}
-This work is an experiment in using AI for mathematical exploration: the author worked with an AI system (Claude, by
-Anthropic), which did the detailed work, including the programs, the proofs, the Lean formalisation and this text.
+This work is an experiment in using AI for mathematical exploration: the author used an AI system (Claude, by
+Anthropic) at every stage; it did the detailed work, including the programs, the proofs, the Lean formalisation and
+this text, and the author directed, guided and corrected it.
 The author is responsible for the paper: for the correctness of its arguments and results, and for the completeness and
 accuracy of its citations of prior work. The AI system is not an author. Lean checks the combinatorial core of the
 proof; the link with actual tilings is argued in words. Most of the proof has not been reviewed by a human, and the
@@ -1382,12 +1383,12 @@ the curves cross only in pairs.
 \subsection*{How the work was done}
 The author came up with the original idea of looking for a mono-stranded aperiodic knot, and then used an AI system
 (Claude, by Anthropic) to search for it; from the $34$ candidates found, the author chose design $0.1{:}01$ and drew its
-ribbons by hand. From then on the author and the AI system worked together: the AI system did the detailed work (the
-programs, the proof, the Lean formalisation and this paper), and the author directed, guided and corrected it. The
-author has read parts of this paper and spot-checked figures and counts; no professional mathematician has reviewed
-it. The AI system reviewed its own argument in several passes. A program or check called \emph{independent} or
-\emph{separate} here is a separate implementation by the same AI system. At the author's direction, the AI system
-also searched the literature for related work. AI systems can reproduce published ideas without naming their source,
+ribbons by hand. From then on the author used the AI system at every stage: it did the detailed work (the programs,
+the proof, the Lean formalisation and this paper), and the author directed, guided and corrected it. The author has
+read parts of this paper and spot-checked figures and counts; no professional mathematician has reviewed it. A
+program or check called \emph{independent} or \emph{separate} here is a separate implementation, written with the
+same AI system. At the author's direction, the AI system also reviewed the argument in several passes and searched
+the literature for related work. AI systems can reproduce published ideas without naming their source,
 so this paper may use an idea whose source it does not cite. A fuller account:
 \url{https://cortado-j.github.io/SPECTRE_KNOT/made.html}.
 
@@ -1411,7 +1412,8 @@ proofs of \cref{lem:lengthen,prop:compose} a composition's rim vertices are foun
 which cutting an edge leaves unchanged, with the positions of \cref{tab:psides} and the adjacency of $A$ and $B$
 recovered at the end. The formalisation also proves that a lengthened composition is the one with an edge cut into
 three, and facts the paper takes from the geometry: every supertile is a disc at its rim, and its gluing is symmetric and
-glues no tile to itself. The proofs use only Lean's standard axioms. The formalisation was written by the AI system as well; its statement file
+glues no tile to itself. The proofs use only Lean's standard axioms. Like the rest of the work, the formalisation was written with the AI
+system; its statement file
 (\code{lean/SpectreKnot/Statement.lean}) contains every definition that the formal theorems depend on, with comments in
 plain English. No human has checked that these formal statements say what the theorems of this paper say.
 

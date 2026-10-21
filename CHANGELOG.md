@@ -31,6 +31,16 @@ tagged in the repository with its date, so that every published version of them 
   dropped.
 - **Site:** only a publication that changes the paper, its code or the Lean is now tagged, so that each tag is a new
   version of them; the three tags given earlier today to publications that changed only the site are removed.
+- **Paper:** the account of the use of AI, in the abstract, §1 and Appendix B, says that the author used an AI system at
+  every stage, which did the detailed work while the author directed, guided and corrected it, in place of "the author
+  and the AI system worked together"; the formalisation and the separate checks were written with the AI system, not
+  by it. The paper is dated 21 October 2026 and still has 22 pages.
+- **Code:** the README and the comments of two programs say "written with the AI system", not "by" it.
+- **Lean:** the README says that Justin Roughley used an AI system to write the formalisation, and the note on the
+  `Statement.lean` guide that the guide was generated with an AI system. The statement is unchanged.
+- **Site:** What has been checked, the overview's line about AI, About and the README say that Justin Roughley used an
+  AI system to write the proofs, the Lean and the programs, in place of "written by an AI system working with Justin
+  Roughley"; the reading aids and the one-sentence summaries are labelled "AI-generated".
 
 ## 20 October 2026
 

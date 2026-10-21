@@ -29,7 +29,7 @@ exit status. Requirements:
 - `exact/exact.py` needs only the Python standard library; A22 needs node, the Python standard library and the
   internet.
 
-## Two separate implementations (both written by the AI system)
+## Two separate implementations (both written with the same AI system)
 
 - **JavaScript** (`core/` and most of `hierarchy/`): builds the supertiles with the key-point construction of the
   spectre paper (App. A) in floating point. Points are identified by rounding to 1/100 (`core/reduce.js`,
@@ -45,14 +45,14 @@ exit status. Requirements:
 
 A third implementation of the key-point construction, by Craig S. Kaplan, one of the spectre's authors, is the
 program of their interactive application (`spectre.js`, JavaScript, floating point). It is the only program in these
-checks that the AI system did not write. A22 (`crosscheck/kaplan_compare.py`, written by the AI system) runs it and
+checks not written with the AI system. A22 (`crosscheck/kaplan_compare.py`, written with the AI system) runs it and
 finds the same Table 1 and, tile for tile, the same supertiles as `exact/exact.py` up to level 4; and, from its tiles
 alone, the level-1 vertices, side lengths and Sigma offset of `hierarchy/combin_8.json` and `letters.json`.
 
 The two computations on compositions that the proof uses (Computations 7.3 and 9.2) need no geometry: they use only
 the tables and the level-1 side lengths, with integers. `hierarchy/compositions.py` (Python, standard library only)
 does them, and the Lean formalisation (`lean/` in the repository) does them again in its kernel; the two were written
-separately (both by the AI system).
+separately (both with the same AI system).
 
 In the comments and printed output of the JavaScript programs, "exact" usually means the direct composition of
 the actual tiles (floating point, with rounded keys), as opposed to the reduced walk. Exact arithmetic in the strict
@@ -134,9 +134,9 @@ results of the paper's long version (19 October 2026), which the shortened paper
   (`exact/exact.py`) on 60 chains chosen at random, to level 8 (about an hour, 10 GB). Experiments only, not run by
   `run_all.sh`.
 - `exact/exact.py`: the second, separate exact implementation.
-- `crosscheck/chain_check.py`, `crosscheck/junction_actual.py`: checks added by the AI review pass of 11 Oct 2026
+- `crosscheck/chain_check.py`, `crosscheck/junction_actual.py`: checks added in the AI review pass of 11 Oct 2026
   (corroboration of Lemma 7.2 and of Table 6).
-- `crosscheck/` (called `referee/` before 12 Oct 2026; second checks, all written by the AI): comparison with Fig. 5.1 (`fig51_compare.py` with the hand encoding `fig51_encoding.json` and
+- `crosscheck/` (called `referee/` before 12 Oct 2026; second checks, all written with the AI system): comparison with Fig. 5.1 (`fig51_compare.py` with the hand encoding `fig51_encoding.json` and
   `gamma_centres.json`; `blobs.py` and `anchor.py` first located the vertex dots on a 400-dpi render of the figure and are
   kept for the record; `fig51_raster.py` redoes this from the PDF), comparison with Fig. 4.1 (`fig41_compare.py` with
   the hand reading `fig41_labels.json`; `fig41_render.py` draws the clusters), overlap check (`overlap.js`), comparison

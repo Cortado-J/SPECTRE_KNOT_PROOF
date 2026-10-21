@@ -14,8 +14,8 @@ the Grandparent Lemma's part (a) at the vertices of tiles (`Statement.grandparen
 supertiles that covers, so that Theorem A in its final form is not vacuous (`Statement.nestCovers`). On 19 October 2026
 the Signature Theorem itself became a claim of the statement file (`Statement.signatureTheorem`), after a comparison of
 the paper with the Lean. Stage 8 shortened the paper and put the paper and the Lean on the same route, result by
-result, and removed what neither then used: Prop 5.4 with its reduced walk, and the pilot's skeleton walks. Written
-by the AI system (Claude), working with Justin Roughley, like everything else in this repository.
+result, and removed what neither then used: Prop 5.4 with its reduced walk, and the pilot's skeleton walks. Justin
+Roughley used an AI system (Claude) to write the formalisation, as he did everything else in this repository.
 
 The paper's proofs and the formal proofs take the same route; see *How the formal proof relates to the paper* below.
 

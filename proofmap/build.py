@@ -5,7 +5,7 @@ graph of the results; a page for every Lean declaration; and Statement.lean line
 
 Sources: paper/tex/spectre_knot.tex (numbering checked against paper/spectre_knot.pdf), lean/README.md, the Lean files
 under lean/SpectreKnot/, lean/guide/, and two hand-kept files: proofmap/notes.json (short labels for untitled
-results, what part of a result the Lean covers, the AI-written reading aids, and which results belong to each step of
+results, what part of a result the Lean covers, the AI-generated reading aids, and which results belong to each step of
 the public site's Prove page), proofmap/status.html (the line about AI on the overview) and proofmap/checked.html (the
 page What has been checked).
 
@@ -1405,7 +1405,7 @@ def route_view(R, info, tex, notes, steps):
             'each, with the exact statements of the results each step is made of and how they depend on each other. '
             'Step <i>n</i> follows section <i>n</i> of the paper. Step 1 sets out the two theorems and the method; '
             'steps 2&ndash;7 prove the Daedalus Theorem; steps 8 and 9 add the Ariadne Theorem; step 10 says what is '
-            'covered. The one-sentence summaries are a paraphrase, written by the AI; where they and the paper differ, '
+            'covered. The one-sentence summaries are an AI-generated paraphrase; where they and the paper differ, '
             'the paper is right. The method, as the paper&rsquo;s introduction states it, is on '
             '<a href="#s1">step 1&rsquo;s page</a>.</p></div>%s'
             '</section>' % (PUBLIC_BASE, route_cards(R, info, notes, steps)))
@@ -1426,7 +1426,7 @@ def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label)
     parts = ['<section class="view" id="v-%s" data-view="%s" hidden>' % (sanchor(k), sanchor(k)),
              '<nav class="crumbs small"><a href="#map">Overview</a> &rsaquo; <a href="#route">Route</a></nav>',
              '<div class="pm-hero"><h1>%s</h1><p class="lede">%s</p>'
-             '<p class="small mut">A paraphrase, written by the AI; the statements below are the paper&rsquo;s.</p>'
+             '<p class="small mut">An AI-generated paraphrase; the statements below are the paper&rsquo;s.</p>'
              '<p class="small pub"><a href="%sprove.html#%s">Explained with pictures: %s &rarr;</a></p>'
              '</div>' % (esc(sname(k, notes)), tex.inline(rt['summary']), PUBLIC_BASE, panchor(k),
                          'step %s of the Prove page' % k),
@@ -1735,7 +1735,7 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
     statement = '<div class="stblock"><h2 class="sh">Statement</h2><div class="stmt">%s</div></div>' % tex.block(
         r['statement'])
     if l in notes['notes']:   # the reading aid, then the statement (on a phone the other way round, CSS)
-        parts.append('<div class="aidst"><aside class="ainote"><p class="kick">Reading aid, written by the AI</p><p>%s</p>'
+        parts.append('<div class="aidst"><aside class="ainote"><p class="kick">Reading aid, AI-generated</p><p>%s</p>'
                      '<p class="small mut">The paper&rsquo;s statement and proof are the text of record.</p>'
                      '</aside>%s</div>' % (tex.inline(notes['notes'][l]), statement))
     else:
@@ -2540,8 +2540,8 @@ time this site was published: <a href="#changes">Changes</a>.</p>
 <li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
 <li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
 <li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX; the drawing beside the overview&rsquo;s title is drawn by <code>proofmap/make_hero.py</code> from the paper&rsquo;s own figure code (the same tiles and ribbons);</li>
-<li>not generated, but written by the AI with Justin Roughley: the page What has been checked (<code>proofmap/checked.html</code>) and the line about AI on the overview (<code>proofmap/status.html</code>);</li>
-<li>likewise, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries were written by the AI and are labelled where they appear.</li>
+<li>not generated: Justin Roughley used an AI system to write the page What has been checked (<code>proofmap/checked.html</code>) and the line about AI on the overview (<code>proofmap/status.html</code>);</li>
+<li>likewise, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries are AI-generated, and labelled where they appear.</li>
 <li>the numbers on the overview, the depths and the chains of citations up to a main theorem: counted from the above when the site is built.</li>
 </ul>
 <p>The layout follows the reader&rsquo;s guide to the Lean proof of Fermat&rsquo;s Last Theorem (tianyipeng.github.io/fermats-last-theorem): an overview with the statement and the top of the proof, the route step by step, the graph with a table, a page for every result, every declaration and every Lean file, and a search box.</p>

@@ -6,7 +6,7 @@ Input: spectre.js, the program of the interactive application on the spectre aut
 (https://cs.uwaterloo.ca/~csk/spectre/, by Craig S. Kaplan). It is published without a licence, so it is not included
 here: this script downloads it, or reads a copy given by its path, and checks its SHA-256 (below: the file compared on
 15 Oct 2026). A downloaded file with another SHA-256 is not run. kaplan_run.js runs it in a V8 context of its own,
-with no access to node. It is the only program in these checks that the AI system did not write.
+with no access to node. It is the only program in these checks not written with the AI system.
 
   1. Table 1: Kaplan's table of the children (super_rules, read from the file) is exact.py's, including the empty slot
      of Gamma, and has the kinds of the children in hierarchy/combin_8.json at each of its levels;
