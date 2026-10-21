@@ -1,8 +1,8 @@
 # Changes
 
 What changed each time this site was published, newest first: in the paper, the Lean, the code and the pages
-themselves. Dates are UK dates. From 21 October 2026, each publication is tagged in the repository with its date, so
-that every published version of the paper, with its code, can be found again.
+themselves. Dates are UK dates. From 21 October 2026, each publication that changes the paper, its code or the Lean is
+tagged in the repository with its date, so that every published version of them can be found again.
 
 ## 21 October 2026
 
@@ -23,12 +23,14 @@ that every published version of the paper, with its code, can be found again.
   the version of every tool. The repository has a `CITATION.cff`, for GitHub's *Cite this repository*, and each
   publication from today is tagged with its date.
 - **Site:** a workflow in the repository, `.github/workflows/tag.yml`, tags each publication; today's first is tagged
-  `2026-10-21`, and this one `2026-10-21.2`.
+  `2026-10-21`.
 - **Site:** the README says that Justin Roughley is the author and is responsible for the work, and that the AI is not
   an author.
 - **Site:** the overview's five cards are buttons: a click or tap anywhere on a card opens what its title names. The
   links inside a card still go to their own places; "contents" and "every file", which went where their cards go, are
   dropped.
+- **Site:** only a publication that changes the paper, its code or the Lean is now tagged, so that each tag is a new
+  version of them; the three tags given earlier today to publications that changed only the site are removed.
 
 ## 20 October 2026
 

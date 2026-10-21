@@ -1,8 +1,9 @@
-# Tag each publication with its UK date (a second one that day gets .2, then .3), so that every published version of
-# the paper, with its code, can be found again (CHANGELOG.md). Runs only in SPECTRE_KNOT_PROOF, where publish_proof.sh
-# makes one commit per publication ("Published from SPECTRE_KNOT_PROOF_DEV <sha>: ..."); it tags every such commit
-# since tagging began on 21 October 2026 that has no tag yet, so a missed run is made up next time. Tags pushed with
-# the workflow's own token start no other workflow, and the site deploys only from main. Skipped in
+# Tag each publication that changes the paper, its code or the Lean (paper/ or lean/) with its UK date (a second one
+# that day gets .2, then .3), so that every published version of them can be found again; a publication that changes
+# only the site gets no tag, and a date tag on one is removed (owner, 21 Oct 2026). Runs only in SPECTRE_KNOT_PROOF,
+# where publish_proof.sh makes one commit per publication ("Published from SPECTRE_KNOT_PROOF_DEV <sha>: ..."); it
+# looks at every such commit since tagging began on 21 October 2026, so a missed run is made up next time. Tags pushed
+# with the workflow's own token start no other workflow, and the site deploys only from main. Skipped in
 # SPECTRE_KNOT_PROOF_DEV, whose commits are not publications.
 name: tag
 on:
@@ -23,14 +24,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Tag every publication since 21 October 2026 that has no tag yet
+      - name: Tag every publication since 21 October 2026 that changes paper/ or lean/, and only those
         run: |
           git log --first-parent --reverse --since=2026-10-20T23:00:00Z --format='%H %ct %s' HEAD |
           while read -r sha t subject; do
             case "$subject" in "Published from SPECTRE_KNOT_PROOF_DEV "*) ;; *) continue;; esac
-            if git tag --points-at "$sha" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.[0-9]+)?$'; then continue; fi
+            dated=$(git tag --points-at "$sha" | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.[0-9]+)?$' || true)
+            if git diff --quiet "$sha^" "$sha" -- paper lean; then
+              for tag in $dated; do
+                git push -q origin --delete "refs/tags/$tag"
+                git tag -d "$tag" > /dev/null
+                echo "$sha: $tag removed (only the site changed)"
+              done
+              continue
+            fi
+            if [ -n "$dated" ]; then continue; fi
             day=$(TZ=Europe/London date -d "@$t" +%F); tag=$day; i=1
             while git rev-parse -q --verify "refs/tags/$tag" > /dev/null; do i=$((i + 1)); tag="$day.$i"; done
-            git tag "$tag" "$sha" && echo "$sha: $tag"
+            git tag "$tag" "$sha"
+            git push -q origin "refs/tags/$tag"
+            echo "$sha: $tag"
           done
-          git push origin --tags
