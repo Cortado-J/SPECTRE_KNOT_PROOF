@@ -4,6 +4,11 @@ What changed each time this site was published, newest first: in the paper, the 
 themselves. Dates are UK dates. From 21 October 2026, each publication that changes the paper, its code or the Lean is
 tagged in the repository with its date, so that every published version of them can be found again.
 
+## 22 October 2026
+
+- **Site:** the picture of Figure 3, cut from the PDF, no longer includes Table 1, which sits just above it on the same
+  page of the paper.
+
 ## 21 October 2026
 
 - **Paper:** Appendix A gives the addresses of the public repository and of this site, in place of the ancillary files
