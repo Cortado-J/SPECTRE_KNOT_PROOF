@@ -24,6 +24,8 @@ that every published version of the paper, with its code, can be found again.
   publication from today is tagged with its date.
 - **Site:** a workflow in the repository, `.github/workflows/tag.yml`, tags each publication; today's first is tagged
   `2026-10-21`, and this one `2026-10-21.2`.
+- **Site:** the README says that Justin Roughley is the author and is responsible for the work, and that the AI is not
+  an author.
 
 ## 20 October 2026
 
