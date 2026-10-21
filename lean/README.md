@@ -364,7 +364,7 @@ The tool has one blind spot: a `@[simp]` lemma proved by `rfl` leaves no trace i
     (b odd), every strand reaches junction 12 of N_{b+3} or N_{b+4}, the paper's bounds. "Same strand" also needed
     symmetry, so gluing is proved symmetric for every supertile. In Lean, Theorem B rests on Theorem A's inputs and
     three more kernel checks (the map at ℓ₁, both signs, and the symmetry of the level-1 gluing); it needs no
-    certificates, and no separate computation for b = 1. The paper then took this route (§9.1); the label states
+    certificates, and no separate computation for b = 1. The paper then took this route (§9.2); the label states
     became its Remark 9.5, and are now one of the second routes of its Appendix A.
 12. **Lemma 3.4, applied.** The nest tiling is built as one tiling: its tiles are numbered so that every block keeps
     its own numbering (`gid`, `loc`), and its gluing is read off a block two levels above the tile. That every block

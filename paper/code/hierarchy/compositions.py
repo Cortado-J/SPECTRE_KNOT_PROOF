@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The compositions C_T(L, d, omega) of Section 7.1, walked port by port, and the junction map of Section 9.1.
+"""The compositions C_T(L, d, omega) of Section 7.1, walked port by port, and the junction map of Section 9.2.
 
 Built from the tables alone (Tables 1-3 from combin_8.json, the letters of Table 4 and l_1 from letters.json),
 with no geometry, no skeleton and no reduced walk: every child is a box with the signature (Def 4.3), glued to its

@@ -72,6 +72,11 @@ tagged in the repository with its date, so that every published version of them 
   part: the position of the crossover corner at level 1 is input, not checked. The statement is unchanged.
 - **Site:** the proof map follows the paper: Computation 7.5 is marked as checked by Lean in part, and the reading aid
   for Computation 7.3 says Tables 1 to 4.
+- **Code:** `hierarchy/compositions.py` points to Section 9.2 for the junction map, now that §9 has its subsection
+  Junctions.
+- **Lean:** the README points to §9.2, not §9.1, for the paper's route to the merging.
+- **Site:** the graph of all the results fits the width of the page: its cards are arranged so that no arrows cross,
+  set a little further apart and centred; in a narrow window it still scrolls sideways.
 
 ## 20 October 2026
 

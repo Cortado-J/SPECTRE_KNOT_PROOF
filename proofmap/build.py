@@ -356,11 +356,17 @@ def lean_html(code):
 # ---------------------------------------------------------------- the graph
 
 NODE_W, NODE_H, GAP_X, GAP_Y, DUMMY_W = 120, 98, 14, 56, 12   # a card: heading, up to three lines of name, marks
+# The whole graph is drawn to fit the page without sideways scrolling, with wider gaps between cards: the page's 1120 px,
+# less its padding (2 x 20), the box's (2 x 9) and the drawing's (2 x 14)
+FIT_W, FIT_GAP = 1034, 44
 
 
-def layout(nodes, uses, order_key, pack=False):
+def layout(nodes, uses, order_key, pack=False, fit=None):
     """Layered drawing: premises above conclusions. Returns positions, the drawn (reduced) edges with routes. With
-    `pack`, each row is packed tight and centred (for small graphs, which are shown scaled down)."""
+    `pack`, each row is packed tight and centred (for small graphs, which are shown scaled down). With `fit` (a width,
+    for the whole graph), every sweep also swaps neighbours while that removes crossings and the order with the fewest
+    is kept, the cards are FIT_GAP apart, and the drawing is pulled in to that width (if its widest row allows)."""
+    gap = FIT_GAP if fit else GAP_X
     reach = {}
 
     def below(n):   # everything n's proof rests on, transitively
@@ -421,7 +427,15 @@ def layout(nodes, uses, order_key, pack=False):
         for row in rows:
             for i, v in enumerate(row):
                 pos[v] = i
+
+    def crossings(Ls):   # crossings among the edges leaving the rows Ls
+        c = 0
+        for L in Ls:
+            s = [(pos[a], pos[b]) for a in rows[L] for b in nbr_dn[a]]
+            c += sum(1 for i, (a1, b1) in enumerate(s) for a2, b2 in s[i + 1:] if (a1 - a2) * (b1 - b2) < 0)
+        return c
     number()
+    best = (crossings(range(nl - 1)), [list(r) for r in rows]) if fit else None
     for it in range(24):
         rng = range(1, nl) if it % 2 == 0 else range(nl - 2, -1, -1)
         for L in rng:
@@ -432,13 +446,35 @@ def layout(nodes, uses, order_key, pack=False):
             rows[L].sort(key=bc)
             for i, v in enumerate(rows[L]):
                 pos[v] = i
-    # x coordinates: pack, then pull each node towards its neighbours, keeping order and spacing
+        if fit:
+            swapped = True
+            while swapped:
+                swapped = False
+                for L, row in enumerate(rows):
+                    near = [M for M in (L - 1, L) if 0 <= M < nl - 1]
+                    for i in range(len(row) - 1):
+                        c = crossings(near)
+                        row[i], row[i + 1] = row[i + 1], row[i]
+                        pos[row[i]], pos[row[i + 1]] = i, i + 1
+                        if crossings(near) < c:
+                            swapped = True
+                        else:
+                            row[i], row[i + 1] = row[i + 1], row[i]
+                            pos[row[i]], pos[row[i + 1]] = i, i + 1
+            c = crossings(range(nl - 1))
+            if c < best[0]:
+                best = (c, [list(r) for r in rows])
+    if fit:
+        rows[:] = best[1]
+        number()
+    # x coordinates: pack, then pull each node towards its neighbours, keeping order and spacing (and, with `fit`,
+    # inside that width)
     x = {}
     for row in rows:
         cx = 0
         for v in row:
             x[v] = cx + width[v] / 2
-            cx += width[v] + GAP_X
+            cx += width[v] + gap
     for it in range(40):
         for L in (range(nl) if it % 2 == 0 else range(nl - 1, -1, -1)):
             row = rows[L]
@@ -448,23 +484,27 @@ def layout(nodes, uses, order_key, pack=False):
                 want[v] = sum(x[n] for n in ns) / len(ns) if ns else x[v]
             for v in row:
                 x[v] = 0.5 * x[v] + 0.5 * want[v]
+            if fit:
+                x[row[0]] = max(x[row[0]], width[row[0]] / 2)
             for i in range(1, len(row)):
                 a, b = row[i - 1], row[i]
-                lo = x[a] + (width[a] + width[b]) / 2 + GAP_X
+                lo = x[a] + (width[a] + width[b]) / 2 + gap
                 if x[b] < lo:
                     x[b] = lo
+            if fit:
+                x[row[-1]] = min(x[row[-1]], fit - width[row[-1]] / 2)
             for i in range(len(row) - 2, -1, -1):
                 a, b = row[i], row[i + 1]
-                hi = x[b] - (width[a] + width[b]) / 2 - GAP_X
+                hi = x[b] - (width[a] + width[b]) / 2 - gap
                 if x[a] > hi:
                     x[a] = hi
     if pack:
-        rw = [sum(width[v] for v in row) + GAP_X * (len(row) - 1) for row in rows]
+        rw = [sum(width[v] for v in row) + gap * (len(row) - 1) for row in rows]
         for row, w in zip(rows, rw):
             cx = (max(rw) - w) / 2
             for v in row:
                 x[v] = cx + width[v] / 2
-                cx += width[v] + GAP_X
+                cx += width[v] + gap
     minx = min(x[v] - width[v] / 2 for v in x)
     for v in x:
         x[v] -= minx
@@ -761,7 +801,7 @@ def build(site_dir=None):
     linked = [l for l in graph_nodes if uses[l] or any(l in uses[k] for k in graph_nodes)]
     loose = [l for l in graph_nodes if l not in linked]
     order = {r['label']: k for k, r in enumerate(results)}
-    lay = layout(linked, {l: uses[l] for l in linked}, lambda n: order[n])
+    lay = layout(linked, {l: uses[l] for l in linked}, lambda n: order[n], fit=FIT_W)
     graph = svg_graph(linked, lay, info)
 
     # what each result rests on (everything below it in the graph), and one shortest chain of citations from it up to
@@ -1479,8 +1519,8 @@ def graph_view(R, info, graph, loose, off, linked, geo, notes, order):
   <span><span class="st cited">cited</span> from the spectre paper</span>
   <span><span class="st lean">Lean</span> also checked by the Lean proof assistant (<span class="st lean part">Lean&frac12;</span> in part)</span>
 </div>
-<p class="mut small gl">An arrow runs from a result to one whose statement or proof cites it by number; an arrow is left out when a longer chain of arrows already joins the two. Each result&rsquo;s page lists everything it cites, including definitions, remarks and tables. Uses described only in words are not drawn. Wider than the screen: scroll sideways. The <a href="#route">route</a> pages carry one smaller graph per step.</p>
-<div class="graphbox" tabindex="0">%s</div>
+<p class="mut small gl">An arrow runs from a result to one whose statement or proof cites it by number; an arrow is left out when a longer chain of arrows already joins the two. Each result&rsquo;s page lists everything it cites, including definitions, remarks and tables. Uses described only in words are not drawn. On a narrow screen, scroll sideways. The <a href="#route">route</a> pages carry one smaller graph per step.</p>
+<div class="graphbox whole" tabindex="0">%s</div>
 %s
 <h2 class="sh">The results as a table</h2>
 <p class="small mut gl"><i>Step</i>: the step of the route. <i>Rests on</i>: the results below it in the graph. <i>Depth</i>: the length of a shortest chain of citations from it up to Theorem A or B.</p>
@@ -2753,6 +2793,7 @@ table.lt td.n { text-align: right; font-variant-numeric: tabular-nums; }
 .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; vertical-align: 2px; }
 .graphbox { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surf); padding: 8px; }
 .graph { display: block; max-width: none; }
+.graphbox.whole .graph { margin: 0 auto; }
 .graph .edges path { fill: none; stroke: var(--edge); stroke-width: 1.4; transition: stroke .15s, opacity .15s; }
 .graph .node rect:first-of-type { fill: var(--surf); stroke-width: 1.6; }
 .graph .node.argued > rect:first-of-type { stroke: var(--mint); }
