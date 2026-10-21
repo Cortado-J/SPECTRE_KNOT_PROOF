@@ -22,6 +22,8 @@ that every published version of the paper, with its code, can be found again.
   who wrote the parts of this site that are not generated; What has been checked no longer says that the paper gives
   the version of every tool. The repository has a `CITATION.cff`, for GitHub's *Cite this repository*, and each
   publication from today is tagged with its date.
+- **Site:** a workflow in the repository, `.github/workflows/tag.yml`, tags each publication; today's first is tagged
+  `2026-10-21`, and this one `2026-10-21.2`.
 
 ## 20 October 2026
 

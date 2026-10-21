@@ -1,0 +1,36 @@
+# Tag each publication with its UK date (a second one that day gets .2, then .3), so that every published version of
+# the paper, with its code, can be found again (CHANGELOG.md). Runs only in SPECTRE_KNOT_PROOF, where publish_proof.sh
+# makes one commit per publication ("Published from SPECTRE_KNOT_PROOF_DEV <sha>: ..."); it tags every such commit
+# since tagging began on 21 October 2026 that has no tag yet, so a missed run is made up next time. Tags pushed with
+# the workflow's own token start no other workflow, and the site deploys only from main. Skipped in
+# SPECTRE_KNOT_PROOF_DEV, whose commits are not publications.
+name: tag
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: tag
+  cancel-in-progress: false
+jobs:
+  tag:
+    if: github.repository == 'Cortado-J/SPECTRE_KNOT_PROOF'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag every publication since 21 October 2026 that has no tag yet
+        run: |
+          git log --first-parent --reverse --since=2026-10-20T23:00:00Z --format='%H %ct %s' HEAD |
+          while read -r sha t subject; do
+            case "$subject" in "Published from SPECTRE_KNOT_PROOF_DEV "*) ;; *) continue;; esac
+            if git tag --points-at "$sha" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.[0-9]+)?$'; then continue; fi
+            day=$(TZ=Europe/London date -d "@$t" +%F); tag=$day; i=1
+            while git rev-parse -q --verify "refs/tags/$tag" > /dev/null; do i=$((i + 1)); tag="$day.$i"; done
+            git tag "$tag" "$sha" && echo "$sha: $tag"
+          done
+          git push origin --tags
