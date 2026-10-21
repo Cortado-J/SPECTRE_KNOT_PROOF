@@ -50,6 +50,28 @@ tagged in the repository with its date, so that every published version of them 
   note on the `Statement.lean` guide says the same of the guide. The statement is unchanged.
 - **Site:** What has been checked, the overview's line about AI and About say that an AI system generated the proofs,
   the Lean and the programs at Justin Roughley's instruction.
+- **Paper:** a revision for readability, from an AI-generated review applied at the author's instruction; no result
+  changes and none is renumbered. Each section opens by saying what it does, §1 has an Organisation paragraph and
+  §2 an index of notation, and terms are defined before they are used (arc and block in §1, own order, the corner
+  B); the parts of the partition in §9 are called classes. §1 and Appendix A say exactly which computations are exact
+  and which Lean repeats, and that the agreement with the spectre paper's figures is checked by scripts. The account
+  of the use of AI in §1 and Appendix B says that, at the author's instruction, an AI system generated the programs,
+  the proofs, the Lean formalisation, the figures and the text, and that the author asked the question, steered the
+  work, made the choices and decisions, corrected what was generated and answers for the work.
+- **Paper:** in the proof of the Zigzag Lemma the second connection is traced explicitly, as the symmetry it cited
+  does not hold for odd n (the lemma is unchanged). The argument for Proposition 2.4 is headed Proof and shows why
+  the rotations of the inner hexagons are unique; §7.1 states "a supertile is its composition" as the Reduction; §8
+  shows that the nest tiling's own hierarchy is its chain of blocks; §9 has a new subsection, Junctions (One strand
+  is now §9.3), a check by hand of two rows of Table 6, and a proof of Theorem 9.1 that follows the sides.
+- **Paper:** Figure 1 shows the pieces of one tile joining up in the blocks N_1, N_2 and N_3; Figures 3 to 5 have
+  larger labels, and Figure 4 marks the junctions. Table captions are above the tables, "counter-clockwise" is
+  "anticlockwise", the references print their DOIs, and Appendix A says that `exact.py` uses reflections as well as
+  rotations. The paper is dated 21 October 2026 and has 27 pages.
+- **Code:** the README says that NumPy and SciPy are also used by the comparisons with the spectre paper's figures.
+- **Lean:** the README follows the paper's new wording, and its table says that the Lean checks Computation 7.5 in
+  part: the position of the crossover corner at level 1 is input, not checked. The statement is unchanged.
+- **Site:** the proof map follows the paper: Computation 7.5 is marked as checked by Lean in part, and the reading aid
+  for Computation 7.3 says Tables 1 to 4.
 
 ## 20 October 2026
 

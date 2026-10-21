@@ -24,7 +24,8 @@ Each step writes one log in `logs/` and prints its last line. A step that fails 
 exit status. Requirements:
 
 - node 18 or later (tested with v22);
-- python 3 with `numpy` and `scipy` (used only by `hierarchy/certify.py`), `sympy` (`hierarchy/letters.py`),
+- python 3 with `numpy` and `scipy` (used by `hierarchy/certify.py`, and in A17 and A18 by the comparison scripts in
+  `crosscheck/`), `sympy` (`hierarchy/letters.py`),
   `matplotlib` (A16) and `pillow` (A17, A18); `pdftoppm` (poppler) for A17 and A18;
 - `exact/exact.py` needs only the Python standard library; A22 needs node, the Python standard library and the
   internet.
