@@ -2769,6 +2769,9 @@ code { background: var(--surf2); border-radius: 5px; padding: 1px 5px; }
 %PMCSS%
 main { max-width: var(--max); margin: 0 auto; padding: 0 20px 80px; }
 .view { display: grid; gap: 18px; padding-top: 34px; }
+/* no column widens to fit a formula (the page would scroll sideways on a phone): a formula too wide for its column
+   scrolls sideways inside it (.mathd, .wide); without specificity, so that any rule giving a minimum width wins */
+:where(.view *) { min-width: 0; }
 .pm-hero { display: grid; gap: 12px; padding-bottom: 6px; }
 /* the overview: the drawing beside the title and lede (proofmap/hero.svg); left out on narrow screens */
 .home-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); grid-template-rows: auto 1fr; column-gap: 32px; align-items: start; }
@@ -2841,7 +2844,7 @@ ul.howto { max-width: 90ch; }
 .mfilter button[aria-pressed="true"] { border-color: var(--mint); box-shadow: 0 0 0 1.5px var(--mint) inset; background: var(--surf2); }
 .mfilter .n { color: var(--mut); font-size: .78rem; font-variant-numeric: tabular-nums; }
 .cworks { display: grid; gap: 14px; max-width: 900px; }
-.cwork { display: grid; gap: 6px; }
+.cwork { display: grid; gap: 6px; overflow-wrap: anywhere; }   /* a long address breaks on a phone */
 .cwork .ref { font-size: .97rem; }
 table.lt.cw th { width: 13em; font-weight: 400; color: var(--ink); }
 table.lt.cw th, table.lt.cw td { padding: 4px 10px; }
@@ -2954,6 +2957,8 @@ ul.md { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
 .proof { display: grid; gap: 10px; }
 .proof .qed { justify-self: end; color: var(--mut); }
 .mathd { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.mp { white-space: nowrap; }   /* glue() and fit() in the script */
+mjx-container.wide, .mp.wide { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
 ul.tl { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 ul.tl li { display: grid; grid-template-columns: 2.4em 1fr; }
 ul.tl li .lm { color: var(--mut); }
@@ -2987,7 +2992,7 @@ table.lt th { color: var(--mut); font-weight: 650; }
 .pm-fig.big .figimg img { width: auto; max-width: 100%; margin: 0 auto; }
 .pm-fig figcaption { color: var(--mut); font-size: .9rem; }
 .idx ul.rl { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
-ul.ll { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; font-size: .92rem; }
+ul.ll { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; font-size: .92rem; overflow-wrap: anywhere; }
 details summary { cursor: pointer; color: var(--mint); font-weight: 650; }
 details pre { margin-top: 10px; }
 .claimdef summary { font-size: .88rem; }
@@ -3016,9 +3021,43 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
   function typeset(v) {
     if (done.has(v) || !window.MathJax || !MathJax.typesetPromise) return Promise.resolve();
     done.add(v);
-    return MathJax.typesetPromise([v]).catch(function () { done.delete(v); });
+    return MathJax.typesetPromise([v]).then(function () { glue(v); }, function () { done.delete(v); });
+  }
+  // a formula in the text keeps the punctuation after it on its line (browsers may break between them), once
+  function glue(v) {
+    v.querySelectorAll('mjx-container:not([display])').forEach(function (m) {
+      var h = m.parentNode.classList.contains('math') ? m.parentNode : m, t = h.nextSibling, p;
+      if (h.parentNode.classList.contains('mp') || !t || t.nodeType !== 3) return;
+      if (!(p = /^[,.;:!?)\]]+/.exec(t.data))) return;
+      if (t.data.length > p[0].length) t.splitText(p[0].length);
+      var g = document.createElement('span');
+      g.className = 'mp';
+      h.parentNode.insertBefore(g, h);
+      g.appendChild(h);
+      g.appendChild(t);
+    });
+  }
+  // one wider than its column (on a phone) gets a line of its own, with that punctuation, and scrolls sideways
+  // there, as displayed ones do, instead of the whole page
+  function fit(v) {
+    v.querySelectorAll('mjx-container:not([display])').forEach(function (m) {
+      var u = m.closest('.mp') || m, s = m.firstElementChild, b = u.parentElement, r;
+      while (b && getComputedStyle(b).display === 'inline') b = b.parentElement;
+      if (!s || !b) return;
+      var w = s.getBoundingClientRect().width, cs = getComputedStyle(b);
+      if (u !== m) {   // and the punctuation
+        r = document.createRange();
+        r.selectNodeContents(u.lastChild);
+        w += r.getBoundingClientRect().width;
+      }
+      u.classList.toggle('wide', w > b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 0.5);
+    });
   }
   var cur = null, TITLE = document.title, top = document.querySelector('.pm-top');
+  function refit() { if (cur && done.has(views[cur])) fit(views[cur]); }
+  var fitting = 0;
+  window.addEventListener('resize', function () { clearTimeout(fitting); fitting = setTimeout(refit, 150); });
+  if (document.fonts) document.fonts.ready.then(refit);   // the formulas are sized in the text's font
   // what the address names: a view, or an element inside one (the view is shown and the element scrolled to)
   function target() {
     var h = decodeURIComponent((location.hash || '#map').slice(1));
@@ -3061,7 +3100,9 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
     place(el);
     var y = window.scrollY;
     if (again) typeset(views[h]).then(function () {   // the maths changes heights: place again unless the reader moved
-      if (cur === h && Math.abs(window.scrollY - y) < 2) place(el);
+      if (cur !== h) return;
+      fit(views[h]);
+      if (Math.abs(window.scrollY - y) < 2) place(el);
     });
   }
   window.addEventListener('hashchange', show);

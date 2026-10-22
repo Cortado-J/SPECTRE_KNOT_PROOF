@@ -34,18 +34,22 @@ tagged in the repository with its date, so that every published version of them 
   shared one).
 - **Paper:** 33 places where the paper compressed a step or left it to the reader are now spelled out; no result
   changes or moves. Among them: Theorem 2.1(b) says that the points where a level-1 supertile meets two others are those
-  marked in the spectre paper's Figure 4.1, which Lemma 2.6 uses; the argument in §1 that no periodic tiling carries one strand; why the children of a
-  supertile can be numbered by their places in the spectre paper's Figure 5.1; a direct argument for the vertex
-  colouring that makes the crossing points of two tiles meet; why every edge of a patch is a rim edge or is shared, and
-  how the pairing of a box arises (Lemma 4.1); the parities of the Fibonacci numbers, and the second distance in Lemma
-  6.4; what step (ii) of the Reduction is for, why a move is only a relabelling, and that each step back in Lemma 7.2
-  stays admissible; the tiling in which the Grandparent Lemma is proved, and the small steps of Proposition 8.4; and
-  the "more precisely" sentence of Theorem B, now derived in its proof. Lemma 2.6 says that the motion takes a Mystic's
-  first tile to the first tile, and Computation 9.2 the direction in which it follows a ribbon. Figure 2's Merging box
-  gives both bounds of Theorem 9.1, and an aside after Computation 7.3, that its hooks can also be traced by hand, which
-  the paper did not show, is gone. The paper now has 28 pages.
+  marked in the spectre paper's Figure 4.1, which Lemma 2.6 uses; the argument in §1 that no periodic tiling carries
+  one strand; why the children of a supertile can be numbered by their places in the spectre paper's Figure 5.1; a
+  direct argument for the vertex colouring that makes the crossing points of two tiles meet; why every edge of a patch
+  is a rim edge or is shared, and how the pairing of a box arises (Lemma 4.1); the parities of the Fibonacci numbers,
+  and the second distance in Lemma 6.4; what step (ii) of the Reduction is for, why a move is only a relabelling, and
+  that each step back in Lemma 7.2 stays admissible; the tiling in which the Grandparent Lemma is proved, and the small
+  steps of Proposition 8.4; and the "more precisely" sentence of Theorem B, now derived in its proof. Lemma 2.6 says
+  that the motion takes a Mystic's first tile to the first tile, and Computation 9.2 the direction in which it follows
+  a ribbon. Figure 2's Merging box gives both bounds of Theorem 9.1, and an aside after Computation 7.3, that its hooks
+  can also be traced by hand, which the paper did not show, is gone. The paper now has 28 pages.
 - **Lean:** the README says that the paper sketches, rather than takes as evident, the step from a move to an edge cut
   into three, which the Lean proves. The statement is unchanged.
+- **Site:** on a phone, the pages of step 6, Proposition 6.1 and Lemma 6.4 no longer scroll sideways: a formula too wide
+  for the screen gets a line of its own and scrolls sideways there, as displayed formulas already did. A long address
+  among the cited works, or a long Lean name on a declaration's page, breaks to fit the screen; and the full stop or
+  comma after a formula is no longer carried over to the start of the next line.
 
 ## 21 October 2026
 
