@@ -11,9 +11,10 @@ combinatorial form, in which a patch of tiles is described by which edges are gl
 supertile has the signature (<!--#res thm:signature-->); that in the union of any chain of supertiles in which every
 edge is eventually glued, every strand is two-way infinite (<!--#res thm:A-->), and that the nest is such a chain; that
 the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the
-next, is one two-way infinite strand (<!--#res thm:B-->), with the bounds of <!--#res thm:merge-->, which are exact;
-and that every vertex of a tile of a block of the nest is surrounded by the block two levels up (<!--#res lem:gap-->,
-at the vertices of tiles). Its kernel also re-runs the finite computations these use.</p>
+next, taken as the union of its blocks, is one two-way infinite strand (<!--#res thm:B-->), with the bounds of
+<!--#res thm:merge-->, which are exact; and that every vertex of a tile of a block of the nest is surrounded by the
+block two levels up (<!--#res lem:gap-->, at the vertices of tiles). Its kernel also re-runs the finite computations
+these use (<!--#res comp:base--> on the level-1 supertiles that <code>exact.py</code> computes, taken as input).</p>
 <p>The build fails unless the main theorems rest only on Lean&rsquo;s three standard axioms, each proves exactly its claim
 in the statement file, that file and the files it imports are unchanged since their SHA-256 was recorded, and
 <code>leanchecker</code>, replaying every declaration through the kernel, finds no problem. The public repository&rsquo;s

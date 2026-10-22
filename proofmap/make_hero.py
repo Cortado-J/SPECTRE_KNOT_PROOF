@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Draw proofmap/hero.svg, the fine-line drawing beside the overview's title: the block N_2 of the nest (71 tiles, in
 hairlines) with every ribbon piece drawn as a band in thin outline, over and under as in the paper's Figure 1; the
-blocks N_1 (dashed) and N_0 inside it, and the two strands that carry the pieces of N_0 tinted. No strand closes:
-each runs out to the rim (Theorem A for this block), where the drawing cuts it off.
+blocks N_1 (dashed) and N_0 inside it, and the two arcs of N_2 that carry the pieces of N_0 tinted. No strand closes:
+each ribbon runs out to the rim (the Signature Theorem for this block), where the drawing cuts it off.
 
     python3 proofmap/make_hero.py      # by hand, after a change to the geometry or the design; build.py embeds the file
 
@@ -112,8 +112,8 @@ def main():
 
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %s %s" role="img" aria-labelledby="kh-t">'
            '<title id="kh-t">The block N2 of the nest tiling, 71 tiles, with every ribbon piece drawn in thin outline, '
-           'over and under. The blocks N1 and N0 sit inside it, and the two strands through the first tile, N0, are '
-           'tinted. No strand closes: each one runs out to the edge of the block.</title>'
+           'over and under. The blocks N1 and N0 sit inside it, and the two arcs through the first tile, N0, are '
+           'tinted. No strand closes: every ribbon runs out to the edge of the block.</title>'
            '<style>%s</style>'
            '<defs><clipPath id="kh-clip"><path d="%s"/></clipPath>%s</defs>'
            '<path class="kh-tiles" vector-effect="non-scaling-stroke" d="%s"/>'

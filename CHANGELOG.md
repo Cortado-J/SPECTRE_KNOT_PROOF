@@ -8,6 +8,30 @@ tagged in the repository with its date, so that every published version of them 
 
 - **Site:** the picture of Figure 3, cut from the PDF, no longer includes Table 1, which sits just above it on the same
   page of the paper.
+- **Paper:** Figure 2 marks the boxes of Theorems A and B and of the nest tiling as checked by Lean in part (shaded and
+  dashed), as its caption now says, and the caption adds that Computation 7.5 is checked on the level-1 supertiles of
+  `exact.py`, taken as input; the box on boxes and the signature no longer names Lemma 4.4, which no proof uses. The
+  sentence before Corollary 6.3 cites Proposition 6.2. Appendix A says that the script on the spectre paper's Figure 5.1
+  checks the encoding against Tables 1 to 3 and the labels on the panels' outlines against Table 4, and that
+  `hierarchy/letters.py` repeats the inspection in the proof of Proposition 6.1. The paper is dated 22 October 2026 and
+  still has 27 pages.
+- **Lean:** the README lists the Lean's check of the parent's rim under §7.1 (step (v) of the Reduction), since
+  Proposition 2.4 itself is not formalised; it says that the statement file, with the three files it imports, holds
+  every definition the main theorems use, and it counts arcs where Table 5 does. The guide to `Statement.lean` uses the
+  paper's E(P), and says that a strand of a block is what the paper calls an arc. The statement is unchanged.
+- **Code:** the README's table says that the compositions of Computation 7.3 are built from Tables 1 to 4.
+- **Site:** the definitions that the paper makes in its running text, the Reduction of §7.1 and the paragraph after
+  Proposition 8.4 are on this site: on the page of their step, in full on the pages of the results whose proofs cite
+  them, in the contents and in the search; each result's page links the terms its statement uses. Step 2 also shows
+  the other numbered items of §2.
+- **Site:** Computation 7.5 is marked "Lean, in part" and Proposition 2.4 "not formalised", as the paper says; the
+  overview and What has been checked say that the Lean re-runs Computation 7.5 on input data. The graph joins
+  Proposition 6.1 to Proposition 6.2, and Proposition 6.2 to Corollary 6.3.
+- **Site:** the reading aids of Theorem 9.1, Computations 7.3, 7.5 and 9.2, Proposition 2.4 and Lemmas 2.6 and 7.1, the
+  wording of six more, and the summaries of steps 1, 2 and 6 now say what the paper says; the overview's drawing counts
+  arcs, as the paper does; the Paper page shows the paper's Organisation again; the Code page gives the Lean's build
+  times of its README; and each Lean declaration has a page of its own (17 pairs whose names differ only in a subscript
+  shared one).
 
 ## 21 October 2026
 

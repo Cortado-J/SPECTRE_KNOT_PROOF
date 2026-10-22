@@ -48,8 +48,20 @@ def rid(label):
     return 'r-' + re.sub(r'[^A-Za-z0-9]', '-', label)
 
 
+SUBSCRIPTS = {chr(0x2080 + d): str(d) for d in range(10)}
+
+
 def lid(name):
-    return 'lean-' + re.sub(r'[^A-Za-z0-9._~-]', '-', name)
+    """A Lean declaration's address on the map. An artifact's address carries only letters, digits and . _ ~ -, so every
+    other character is written out after a hyphen, which no Lean name contains: a subscript digit as -0 … -9, a prime
+    as -p, anything else as -x<hex>-. So no two names share an address (`build` checks it): sE₀ and sE₁ are sE-0, sE-1."""
+    def one(c):
+        if re.match(r'[A-Za-z0-9._~]', c):
+            return c
+        if c in SUBSCRIPTS:
+            return '-' + SUBSCRIPTS[c]
+        return '-p' if c == "'" else '-x%x-' % ord(c)
+    return 'lean-' + ''.join(one(c) for c in name)
 
 
 # ---------------------------------------------------------------- LaTeX to HTML
@@ -710,6 +722,10 @@ def build(site_dir=None):
     tex.tabpages = tab_page
 
     decls = leanparse.index(LEAN)
+    address = {}   # every declaration has an address of its own (lid), or one of its pages could not be reached
+    for k in decls:
+        if address.setdefault(lid(k), k) != k:
+            raise SystemExit('two Lean declarations would share the address %s: %s and %s' % (lid(k), address[lid(k)], k))
     short_index = defaultdict(list)
     for k in decls:
         short_index[k.split('.')[-1]].append(k)
@@ -755,6 +771,7 @@ def build(site_dir=None):
             lean_cited_by[c].append(k)
 
     comp_rows, comp_ordered = computations_table(by_num)
+    passages = read_passages(notes, data, R)
 
     figs = figmod.extract(PDF, OUT / 'proofmap_figs', [f['number'] for f in data['figures']])
     tex.figpages = set(figs)
@@ -891,7 +908,7 @@ def build(site_dir=None):
     views.append(route_view(R, info, tex, notes, steps))
     for k in steps:
         views.append(step_view(k, R, info, tex, notes, steps, step_svgs.get(k), geo, lean_rows,
-                               {f['label']: (f, figs[n]) for n, f in fig_by_num.items()}))
+                               {f['label']: (f, figs[n]) for n, f in fig_by_num.items()}, passages))
     views.append(graph_view(R, info, graph, loose, off, linked, geo, notes, order))
     # the Lean files, in full: one page each (lean-….html beside the map)
     files = lean_files()
@@ -904,12 +921,12 @@ def build(site_dir=None):
                 if lab not in paper_of[n]:
                     paper_of[n].append(lab)
     views.append(paper_view(results, info, data['sections'], data['figures'], tex, pdf,
-                            cited_works(data, bib, info, tex)))
+                            cited_works(data, bib, info, tex), passages))
     for r in results:
         if r['label']:
             views.append(result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title,
                                      [(fig_by_num[n], figs[n]) for n in figs_of[r['label']]], geo, where, pdf,
-                                     [x['label'] for x in results if x['label']]))
+                                     [x['label'] for x in results if x['label']], passages))
     for n, f in sorted(fig_by_num.items()):
         views.append(figure_view(f, figs[n], tex, [l for l in figs_of if n in figs_of[l]], info))
     # which paper results rest on a declaration: those whose named declarations reach it through the names in
@@ -952,6 +969,8 @@ def build(site_dir=None):
         ('#checked', 'What has been checked', 'by Lean, by computer, by the AI and by a human; and what has not'))]
     search += [['#' + rid(l), 'paper', info[l]['head'], info[l]['short'], search_text(R[l]['statement']),
                 search_text(' '.join(pr['tex'] for pr in R[l]['proofs']))] for l in sorted(R, key=order.get)]
+    search += [['#psg-' + p['key'], 'paper', '§' + p['sec'], p['title'], search_text(p['tex'])]
+               for p in sorted(passages.values(), key=lambda p: p['pos'])]
     search += [['#' + sanchor(k), 'route', 'Step ' + k, notes['route'][k]['title'],
                 search_text(notes['route'][k]['summary'])] for k in steps]
     search += [[f['page'], 'file', f['rel'], re.sub(r'\*\*|`', '', f['line1']), re.sub(r'\*\*|`', '', ' '.join(
@@ -959,8 +978,9 @@ def build(site_dir=None):
     search += [['#' + lid(n), 'Lean', n, decls[n]['file'][len('lean/'):]] for n in lean_all]
     global SEARCH_LABEL, SOURCES_DATE
     SOURCES_DATE = sources_date()
-    SEARCH_LABEL = ('Search the paper\u2019s %d numbered items (their names, statements and proofs), the ten steps, %d '
-                    'Lean files, %d Lean declarations, and these pages' % (len(R), len(files), len(lean_all)))
+    SEARCH_LABEL = ('Search the paper\u2019s %d numbered items (their names, statements and proofs) and %d passages of '
+                    'its running text, the ten steps, %d Lean files, %d Lean declarations, and these pages' % (
+                        len(R), len(passages), len(files), len(lean_all)))
     search_js = 'window.PM_SEARCH = %s;\n' % json.dumps(search, ensure_ascii=False, separators=(',', ':'))
     page = (TEMPLATE.replace('%MACROS%', macros).replace('%VIEWS%', '\n'.join(views)).replace('%PMCSS%', PM_CSS)
             .replace('%STATUS%', status_box()).replace('%FONTS%', FONTS).replace('%SEARCHJS%', SEARCH_JS))
@@ -1343,7 +1363,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
     return '''<section class="view" id="v-map" data-view="map">
 <div class="pm-hero home-hero">
   <h1>The Spectre Knot theorems and their proof</h1>
-  <figure class="home-art"><img src="hero.svg" width="400" height="321" alt="The block N2 of the nest tiling, its ribbons drawn in fine lines"><figcaption><i>N</i><sub>2</sub> of the nest, with <i>N</i><sub>1</sub> dashed and the first tile shaded: no strand closes, and the first tile&rsquo;s pieces lie on just the two tinted strands.</figcaption></figure>
+  <figure class="home-art"><img src="hero.svg" width="400" height="321" alt="The block N2 of the nest tiling, its ribbons drawn in fine lines"><figcaption><i>N</i><sub>2</sub> of the nest, with <i>N</i><sub>1</sub> dashed and the first tile shaded: no strand closes, and the first tile&rsquo;s pieces lie on just the two tinted arcs.</figcaption></figure>
   <p class="lede">A reader&rsquo;s guide to the proof that the Spectre Knot has no closed loop in any spectre tiling whose supertiles fill the plane, and is one endless strand in the nest tiling, grown outwards from a single tile, each block sitting in the same place (child number 1) inside the next. These pages show what is proved, by which route, and how the results of the paper hang together; every result has a page with its statement and proof from the paper, what it cites, what cites it, and the Lean that formalises it. The paper has not been peer reviewed.</p>
 </div>
 <div class="ways">%s</div>
@@ -1368,8 +1388,8 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
 <h2 class="sh" id="notcovered">What the Lean checks, and what it does not</h2>
 <div class="grid2">
 <div class="card"><h3 class="ch">What it checks</h3>
-<div class="md small"><p>The Lean formalisation proves the results marked <span class="st lean">Lean</span> about patches described by which edges are glued: every supertile has the signature (%s); in the union of any chain of supertiles in which every edge is eventually glued, every strand is two-way infinite (%s), and the nest is such a chain; the nest tiling is one two-way infinite strand (%s), with the bounds of %s, which are exact; and every vertex of a tile of a block of the nest is surrounded by the block two levels up (%s, at the vertices of tiles). Its kernel also re-runs the finite computations these use.</p>
-<p>Its statement file, <code>lean/SpectreKnot/Statement.lean</code>, holds every definition the main theorems use, so whether the right thing has been proved comes down to reading it: <a href="%s">line by line</a>.</p></div></div>
+<div class="md small"><p>The Lean formalisation proves the results marked <span class="st lean">Lean</span> about patches described by which edges are glued: every supertile has the signature (%s); in the union of any chain of supertiles in which every edge is eventually glued, every strand is two-way infinite (%s), and the nest is such a chain; the nest tiling, as the union of its blocks, is one two-way infinite strand (%s), with the bounds of %s, which are exact; and every vertex of a tile of a block of the nest is surrounded by the block two levels up (%s, at the vertices of tiles). Its kernel also re-runs the finite computations these use (%s on the level-1 supertiles that <code>exact.py</code> computes, taken as input).</p>
+<p>Its statement file, <code>lean/SpectreKnot/Statement.lean</code>, with the three files it imports, holds every definition the main theorems use, so whether the right thing has been proved comes down to reading them: <a href="%s">the statement file, line by line</a>.</p></div></div>
 <div class="card"><h3 class="ch">What it does not cover</h3>
 <p class="small mut">From <code>lean/README.md</code>.</p>
 <div class="md small">%s</div></div>
@@ -1384,7 +1404,7 @@ def front_view(R, info, tex, notes, decls, top_svg, steps, numbers, pdf):
                   lean_html(lean_st), rid('thm:A'), rid('thm:B'), top_svg, PUBLIC_BASE,
                   nums, rlink_head('thm:signature', info), rlink_head('thm:A', info),
                   rlink_head('thm:B', info), rlink_head('thm:merge', info), rlink_head('lem:gap', info),
-                  STATEMENT_FILE, notshown))
+                  rlink_head('comp:base', info), STATEMENT_FILE, notshown))
 
 
 
@@ -1437,6 +1457,58 @@ def scope_html(R, info, tex, geo, figs_by_label):
     return '\n'.join(out)
 
 
+def passage_tex(text):
+    """A passage's LaTeX for Tex.block: an unnumbered theorem-like environment (the Reduction) set as the paper sets
+    it, its name in bold, then its note and its text."""
+    text = re.sub(r'\\begin\{reduction\}(?:\[([^\]]*)\])?', lambda m: '\\textbf{Reduction}%s ' % (
+        ' (%s).' % m.group(1) if m.group(1) else '.'), text)
+    return text.replace('\\end{reduction}', '')
+
+
+def read_passages(notes, data, R):
+    """The passages of the paper's running text, outside any numbered item, that its proofs cite or whose terms its
+    statements use (notes.json "passages"): each with its LaTeX, its (sub)section and its step. Stops on a passage whose
+    start is not in the paper exactly once, or that names a result the paper does not have, so that a change to the
+    paper cannot drop one silently."""
+    body = strip_body(TEX).split('\\begin{document}', 1)[1]
+    out = {}
+    for key, p in notes.get('passages', {}).items():
+        if key.startswith('_'):
+            continue
+        k = body.find(p['start'])
+        if k < 0 or body.find(p['start'], k + 1) >= 0:
+            raise SystemExit('proofmap/notes.json, passage "%s": its start is %s the paper: %s' % (
+                key, 'not in' if k < 0 else 'more than once in', p['start']))
+        for l in p.get('cited_by', []) + p.get('terms_for', []) + ([p['follows']] if p.get('follows') else []):
+            if l not in R:
+                raise SystemExit('proofmap/notes.json, passage "%s": no result %s in the paper' % (key, l))
+        text = '\n\n'.join(re.split(r'\n\s*\n', body[k:])[:p.get('paras', 1)]).strip()
+        sec = [s for s in data['sections'] if s['pos'] <= k][-1]['number']
+        out[key] = dict(p, key=key, tex=passage_tex(text), sec=sec, step=sec.split('.')[0], pos=k)
+    return out
+
+
+def passage_card(p, info, tex):
+    """A passage on its step's page, where it has its address (#psg-…): the paper's text, and what uses it."""
+    meta = []
+    if p.get('cited_by'):
+        meta.append('cited in the proof%s of %s' % ('s' if len(p['cited_by']) > 1 else '',
+                                                    ' and '.join(rlink_head(l, info) for l in p['cited_by'])))
+    if p.get('terms_for'):
+        meta.append('its terms are used by %s' % ', '.join(rlink_head(l, info) for l in p['terms_for']))
+    return ('<div class="thm-card psg" id="psg-%s"><p class="tc-head"><b>%s</b> <span class="mut">&sect;%s, the '
+            'paper&rsquo;s running text</span></p><div class="tc-st">%s</div>%s</div>' % (
+                p['key'], esc(p['title']), p['sec'], tex.block(p['tex']),
+                '<p class="meta">%s</p>' % ' &middot; '.join(meta) if meta else ''))
+
+
+def passage_box(p, why, tex):
+    """A passage in full on the page of a result whose proof cites it, or which it follows."""
+    return ('<div class="psgbox"><p class="kick">&sect;%s &middot; %s</p>%s<p class="small mut">%s; '
+            '<a href="#psg-%s">its place in step %s</a>.</p></div>' % (
+                p['sec'], esc(p['title']), tex.block(p['tex']), why, p['key'], p['step']))
+
+
 def route_view(R, info, tex, notes, steps):
     return ('<section class="view" id="v-route" data-view="route" hidden>'
             '<nav class="crumbs small"><a href="#map">Overview</a></nav>'
@@ -1460,7 +1532,7 @@ def step_nav(k, steps, notes):
     return '<p class="small stepnav">%s<span>%s</span></p>' % (prev, nxt)
 
 
-def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label):
+def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label, passages):
     labels = notes['prove_steps'][k]
     rt = notes['route'][k]
     parts = ['<section class="view" id="v-%s" data-view="%s" hidden>' % (sanchor(k), sanchor(k)),
@@ -1485,6 +1557,18 @@ def step_view(k, R, info, tex, notes, steps, svg, geo, lean_rows, figs_by_label)
         parts.append('<h2 class="sh">The results of this step <span class="mut small">(%s)</span></h2>'
                      % counts(labels, R, info))
         parts += [thm_card(l, R, info, tex, geo) for l in labels]
+        # the section's other numbered items (the Prove page's step names only some of them), so that the step shows
+        # all of its section; and the passages of its running text that its proofs cite or its statements use
+        others = [l for l in R if l not in labels and (R[l]['section'] or '').split('.')[0] == k]
+        if others:
+            parts.append('<h2 class="sh">Also in &sect;%s <span class="mut small">(%s)</span></h2>'
+                         % (k, counts(others, R, info)))
+            parts += [thm_card(l, R, info, tex, geo) for l in others]
+        ps = [p for p in sorted(passages.values(), key=lambda p: p['pos']) if p['step'] == k]
+        if ps:
+            parts.append('<h2 class="sh">From the running text of &sect;%s</h2><p class="small mut gl">What the paper '
+                         'gives between its numbered items, and the results above use or cite.</p>' % k)
+            parts += [passage_card(p, info, tex) for p in ps]
     else:   # step 1, the paper's introduction: the two theorems (proved in steps 7 and 9) and the method
         parts.append('<h2 class="sh">The two theorems</h2><p class="small mut gl">As the paper&rsquo;s introduction '
                      'states them; they are proved in steps 7 and 9.</p>')
@@ -1519,7 +1603,7 @@ def graph_view(R, info, graph, loose, off, linked, geo, notes, order):
   <span><span class="st cited">cited</span> from the spectre paper</span>
   <span><span class="st lean">Lean</span> also checked by the Lean proof assistant (<span class="st lean part">Lean&frac12;</span> in part)</span>
 </div>
-<p class="mut small gl">An arrow runs from a result to one whose statement or proof cites it by number; an arrow is left out when a longer chain of arrows already joins the two. Each result&rsquo;s page lists everything it cites, including definitions, remarks and tables. Uses described only in words are not drawn. On a narrow screen, scroll sideways. The <a href="#route">route</a> pages carry one smaller graph per step.</p>
+<p class="mut small gl">An arrow runs from a result to one whose statement or proof cites it, or an equation in it, by number (for a result stated without a proof, the sentence that leads into it counts); an arrow is left out when a longer chain of arrows already joins the two. Each result&rsquo;s page lists everything it cites, including definitions, remarks and tables. Uses described only in words are not drawn. On a narrow screen, scroll sideways. The <a href="#route">route</a> pages carry one smaller graph per step.</p>
 <div class="graphbox whole" tabindex="0">%s</div>
 %s
 <h2 class="sh">The results as a table</h2>
@@ -1677,31 +1761,46 @@ def pdf_link(page, text=None):
         '' if text else ' class="pg"', PDF_FILE, page, page, text or 'p.&nbsp;%d' % page)
 
 
-def paper_view(results, info, sections, figures, tex, pdf, cites):
+def paper_view(results, info, sections, figures, tex, pdf, cites, passages):
     """The paper: the PDF; its own outline; its contents, every section and subsection with every numbered item in
-    it, each with its page in the PDF; and the works it cites, with where."""
+    it, each with its page in the PDF, and the passages of running text that the site shows; and the works it cites,
+    with where."""
     by_sec = defaultdict(list)
     for r in results:
         if r['label']:
             by_sec[r['section'] or ''].append(r)
+    for p in passages.values():
+        by_sec[p['sec']].append(p)
+
+    def item(x):
+        if 'key' in x:   # a passage of the running text, shown on its step's page
+            return ('<li id="in-psg-%s" data-m="text"><span><a href="#psg-%s">%s</a> <span class="mut">running '
+                    'text</span></span></li>' % (x['key'], x['key'], esc(x['title'])))
+        return '<li id="in-%s" data-m="%s"><span>%s %s</span> %s</li>' % (
+            rid(x['label']), marks_of(x, info), rlink(x['label'], info),
+            chips(info[x['label']]) if x['env'] in texparse.GRAPH_ENVS else
+            '<span class="st other">%s</span>' % x['kind'].lower(), pdf_link(pdf['res'].get(x['label'])))
     mb = pdf['size'] / 1048576
-    body = strip_body(TEX)   # the introduction's outline, if it has one
-    outline = body.split('\\subsection*{Outline}', 1)[1].split('\\section', 1)[0] if '\\subsection*{Outline}' in body else ''
-    marks = [marks_of(r, info) for r in results if r['label']]
+    body = strip_body(TEX)   # the introduction's plan of the paper (Organisation; once Outline), if it has one
+    m = re.search(r'\\subsection\*\{(Organisation|Outline)\}(.*?)(?=\\(?:sub)?section)', body, flags=re.S)
+    outline_name, outline = (m.group(1), m.group(2)) if m else ('', '')
+    marks = [marks_of(r, info) for r in results if r['label']] + ['text'] * len(passages)
     out = ['<section class="view" id="v-paper" data-view="paper" hidden>',
            '<nav class="crumbs small"><a href="#map">Overview</a></nav>',
            '<div class="pm-hero"><h1>The paper</h1>'
-           '<p class="lede"><i>%s</i>, of %s: the proof in full, in %d pages, with an appendix listing what was computed '
-           'and by which program.</p><p class="badges"><a class="badge root" href="%s">Read the PDF (%d pages, %.1f&nbsp;MB) '
+           '<p class="lede"><i>%s</i>, of %s: the proof in full, in %d pages, with an appendix on the computations, '
+           'whose programs and logs are in <code>paper/code/</code>.</p><p class="badges"><a class="badge root" href="%s">Read the PDF (%d pages, %.1f&nbsp;MB) '
            '&rarr;</a> <a class="badge" href="#route">the argument in ten steps</a> <a class="badge" href="#code">the '
            'programs and the Lean</a> <a class="badge" href="#cited">the works it cites</a></p></div>' % (
                esc(paper_title()), esc(paper_date()), pdf['pages'], PDF_FILE, pdf['pages'], mb),
-           ('<h2 class="sh">Outline</h2><p class="small mut gl">As the paper&rsquo;s introduction gives it.</p>'
-            '<div class="prose method">%s</div>' % tex.block(outline)) if outline else '',
+           ('<h2 class="sh">%s</h2><p class="small mut gl">As the paper&rsquo;s introduction gives it.</p>'
+            '<div class="prose method">%s</div>' % (outline_name, tex.block(outline))) if outline else '',
            '<h2 class="sh">Contents</h2><p class="small mut gl">Every section of the paper, and every numbered result, '
            'definition and remark, in the paper&rsquo;s order. Each has a page here with its statement and proof as the '
-           'paper gives them; the page number beside it opens the PDF there. The graph shows only the results the '
-           'argument is made of.</p>%s<div class="idx contents" id="contents">' % mark_filter('contents', marks)]
+           'paper gives them; the page number beside it opens the PDF there. Also listed: the passages of running text, '
+           'between the numbered items, that proofs cite or whose terms statements use; each is shown in full on its '
+           'step&rsquo;s page. The graph shows only the results the argument is made of.</p>%s'
+           '<div class="idx contents" id="contents">' % mark_filter('contents', marks)]
     for s_ in sections:
         num = s_['number']
         sec_name = ('&sect;%s' % num) if num[0].isdigit() else 'Appendix&nbsp;%s' % num
@@ -1711,13 +1810,9 @@ def paper_view(results, info, sections, figures, tex, pdf, cites):
         else:
             out.append('<h4 class="psub" id="sec-%s"><span class="sn">%s</span> <span>%s</span> %s</h4>' % (
                 num, num, esc(plain(s_['title'])), pdf_link(pdf['sec'].get(num))))
-        rs = by_sec.get(num, [])
+        rs = sorted(by_sec.get(num, []), key=lambda x: x['pos'])
         if rs:
-            out.append('<ul class="rl">%s</ul>' % ''.join('<li id="in-%s" data-m="%s"><span>%s %s</span> %s</li>' % (
-                rid(r['label']), marks_of(r, info), rlink(r['label'], info),
-                chips(info[r['label']]) if r['env'] in texparse.GRAPH_ENVS else
-                '<span class="st other">%s</span>' % r['kind'].lower(), pdf_link(pdf['res'].get(r['label'])))
-                for r in rs))
+            out.append('<ul class="rl">%s</ul>' % ''.join(item(x) for x in rs))
     figs = [f for f in figures if f['number'] in tex.figpages]
     if figs:
         out.append('<h3 class="psec" id="figures">Figures</h3><ul class="rl">%s</ul>' % ''.join(
@@ -1732,7 +1827,8 @@ def paper_view(results, info, sections, figures, tex, pdf, cites):
 
 
 
-def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title, rfigs, geo, where, pdf, seq):
+def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, sec_title, rfigs, geo, where, pdf, seq,
+                passages):
     l = r['label']
     k = seq.index(l)
     prev_, next_ = (seq[k - 1] if k else None), (seq[k + 1] if k + 1 < len(seq) else None)
@@ -1772,8 +1868,14 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
     if l == 'thm:smkgs':
         parts.append('<p class="small">Everything the paper cites from the spectre paper, and where: '
                      '<a href="#cited">the works it cites</a>.</p>')
-    statement = '<div class="stblock"><h2 class="sh">Statement</h2><div class="stmt">%s</div></div>' % tex.block(
-        r['statement'])
+    in_order = sorted(passages.values(), key=lambda p: p['pos'])
+    leadin = ('<p class="small mut leadin">In the paper, the sentence before it: %s</p>' % tex.inline(r['leadin'])
+              if r.get('leadin') else '')
+    terms = [p for p in in_order if l in p.get('terms_for', [])]
+    terms = ('<p class="small terms">Terms defined in the paper&rsquo;s running text: %s.</p>' % ', '.join(
+        '<a href="#psg-%s">%s</a> (&sect;%s)' % (p['key'], esc(p['term']), p['sec']) for p in terms) if terms else '')
+    statement = '<div class="stblock"><h2 class="sh">Statement</h2>%s<div class="stmt">%s</div>%s</div>' % (
+        leadin, tex.block(r['statement']), terms)
     if l in notes['notes']:   # the reading aid, then the statement (on a phone the other way round, CSS)
         parts.append('<div class="aidst"><aside class="ainote"><p class="kick">Reading aid, AI-generated</p><p>%s</p>'
                      '<p class="small mut">The paper&rsquo;s statement and proof are the text of record.</p>'
@@ -1786,6 +1888,15 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
             ptitle, tex.block(p['tex'])))
     if not r['proofs'] and r['env'] == 'computation':
         parts.append('<p class="mut">The paper gives no proof in words: this is a finite check, done by the programs below.</p>')
+    # passages of the running text that the proof cites, or that come right after the result, in full
+    shown = [(p, 'The paper&rsquo;s running text, cited in the proof above') for p in in_order
+             if l in p.get('cited_by', [])]
+    shown += [(p, 'The paper&rsquo;s running text right after this %s%s' % (r['kind'].lower(), (
+        ', cited in the proof of %s' % ' and '.join(rlink_head(x, info) for x in p['cited_by'])) if p.get('cited_by')
+        else '')) for p in in_order if p.get('follows') == l]
+    if shown:
+        parts.append('<h2 class="sh">From the running text</h2>')
+        parts += [passage_box(p, why, tex) for p, why in shown]
     if rfigs:
         parts.append('<h2 class="sh">Figure%s</h2>' % ('s' if len(rfigs) > 1 else ''))
         for f, img in rfigs:
@@ -1812,11 +1923,12 @@ def result_view(r, R, info, tex, notes, lean_rows, decls, used_by, comp_rows, se
         parts.append('<h2 class="sh">In Lean</h2>%s<p class="small mut">From the paper-to-Lean table of '
                      '<code>lean/README.md</code>; statements quoted from the Lean files.</p>%s' % (part, ''.join(rows_html)))
     elif r['env'] in texparse.GRAPH_ENVS:
-        m_part = {'thm:smkgs': 'M1', 'lem:rigid': 'M1', 'prop:nestwell': 'M3', 'prop:nesttiling': 'M3',
-                  'con:nest': 'M3'}.get(l)
-        parts.append('<h2 class="sh">In Lean</h2><p class="mut">Not formalised.%s</p>' % (
+        m_part = {'thm:smkgs': 'M1', 'prop:pattern': 'M1', 'lem:rigid': 'M1', 'prop:nestwell': 'M3',
+                  'prop:nesttiling': 'M3', 'con:nest': 'M3'}.get(l)
+        related = notes.get('lean_related', {}).get(l)
+        parts.append('<h2 class="sh">In Lean</h2><p class="mut">Not formalised.%s</p>%s' % (
             ' It is part of the link to real tilings: assumption (%s) of the statement file.' % m_part
-            if m_part else ''))
+            if m_part else '', '<p class="small mut">%s</p>' % md_inline(related) if related else ''))
     if comp_rows.get(l):
         lis = ''.join('<li><p>%s</p><p class="small mut">%s</p></li>' % (c['what'], script_links(c['scripts'])[0])
                       for c in comp_rows[l])
@@ -1888,8 +2000,9 @@ def lean_index_view(rows, decls, R, info, lean_all, rests, guide, files, where):
     out = ['<section class="view" id="v-lean" data-view="lean" hidden>'
            '<nav class="crumbs small"><a href="#map">Overview</a></nav><div class="pm-hero">'
            '<h1>The Lean formalisation</h1><p class="lede">%d files of Lean 4, with the core library only. Start with '
-           'the statement file: it holds every definition the main theorems use, and the theorems themselves as '
-           'claims. Every file can be read here in full, and every declaration has its own page.</p></div>'
+           'the statement file: it states the main theorems as claims, and with the three files it imports it holds '
+           'every definition they use. Every file can be read here in full, and every declaration has its own '
+           'page.</p></div>'
            '<div class="grid2"><div class="card"><h2 class="ch"><a href="%s">Statement.lean, line by line</a></h2><p>'
            'Whether the right thing has been proved comes down to reading the statement file. The line-by-line '
            'reading shows all %d lines beside a plain reading of each piece, in %d pieces, with a short introduction '
@@ -2531,8 +2644,8 @@ def code_view(comp_ordered, files, pdf, zip_size):
 <div class="prose gl">
 <p>Lean 4, <code>%s</code> (pinned in <code>lean/lean-toolchain</code>), with the core library only: no Mathlib. With <a href="https://github.com/leanprover/elan">elan</a> installed:</p>
 <pre class="cmd">cd lean
-./build.sh            # about 9 minutes from clean
-./build.sh --slow     # with the slower tests: 2 minutes more</pre>
+./build.sh            # about 10 minutes from clean
+./build.sh --slow     # with the slower tests: about 5 minutes more</pre>
 <p class="small"><code>build.sh</code> fails if the statement file or a file it imports has changed since its SHA-256 was recorded (<code>lean/TRUSTED.sha256</code>), if any source uses <code>sorry</code>, <code>admit</code>, <code>native_decide</code> or another way round the kernel, if a theorem or a <code>have</code> has no comment, if the build or a test fails, if a main theorem no longer proves exactly its claim, if a main theorem depends on an axiom other than Lean&rsquo;s standard three (<a href="lean-Axioms.html"><code>Axioms.lean</code></a>), or if <code>leanchecker</code>, replaying every declaration through Lean&rsquo;s kernel, finds a problem.</p>
 <p class="small">GitHub builds it in the public repository whenever <code>lean/</code> changes: <a href="%s/actions/workflows/lean.yml">the Lean builds, with their logs</a>; and checks that the Lean&rsquo;s data files are exactly what <code>paper/code/</code> generates whenever either changes (<code>lean/tools/check_data.sh</code>).</p>
 </div>
@@ -2574,21 +2687,22 @@ time this site was published: <a href="#changes">Changes</a>.</p>
 <p>This site is generated by <code>proofmap/build.py</code> from the sources, so it changes when they change:</p>
 <ul class="md">
 <li>statements and proofs: the paper&rsquo;s LaTeX, <code>paper/tex/spectre_knot.tex</code>, converted for the web; the numbers are checked against the built PDF, and the build stops if they differ;</li>
-<li>what a result cites: the references by number (<code>\\cref</code>) in its statement and proof;</li>
+<li>what a result cites: the references by number (<code>\\cref</code>) in its statement and proof, and in the sentence that leads into it where that sentence ends in a colon; a reference to a numbered equation counts as one to the result that states it;</li>
+<li>the passages of the paper&rsquo;s running text, between its numbered items, that proofs cite or whose terms statements use (its definitions in running text, the Reduction, and the paragraph after Proposition 8.4): the paper&rsquo;s text, found by the start of each, which <code>proofmap/notes.json</code> gives with where each is shown;</li>
 <li>the Lean declarations of a result: the paper-to-Lean table in <code>lean/README.md</code> (%d rows); the Lean statements are quoted from the Lean files (%d declarations read, %d of them theorems);</li>
 <li>the computations: the table &ldquo;Which script checks which statement&rdquo; of <code>paper/code/README.md</code>, each program linked to its file, with the logs of its steps as <code>paper/code/run_all.sh</code> names them;</li>
 <li>the Lean files in full (%d pages, one for each file of <code>lean/</code>, in a reading order set in <code>proofmap/build.py</code>): the files as they are, with a name linked to its declaration by the same reading of the text as below, except where a declaration binds the name itself;</li>
 <li>where each result, section and figure begins in the PDF: read from the built PDF (the results&rsquo; headings, and its outline);</li>
 <li>the figures: cut from the built PDF, <code>paper/spectre_knot.pdf</code>, with their captions from the LaTeX; the drawing beside the overview&rsquo;s title is drawn by <code>proofmap/make_hero.py</code> from the paper&rsquo;s own figure code (the same tiles and ribbons);</li>
 <li>not made by the build, but generated by the AI system at Justin Roughley&rsquo;s instruction: the page What has been checked (<code>proofmap/checked.html</code>) and the line about AI on the overview (<code>proofmap/status.html</code>);</li>
-<li>likewise, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers, and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries are AI-generated, and labelled where they appear.</li>
+<li>likewise, in <code>proofmap/notes.json</code>: short labels for %d untitled results, what part of %d results the Lean covers (and, for %d that it does not formalise, a related fact that it proves), and %d reading aids; which results make up each step of the route (the ten steps of the public site&rsquo;s Prove page), with a title and a one-sentence summary for each step. The reading aids and the summaries are AI-generated, and labelled where they appear.</li>
 <li>the numbers on the overview, the depths and the chains of citations up to a main theorem: counted from the above when the site is built.</li>
 </ul>
 <p>The layout follows the reader&rsquo;s guide to the Lean proof of Fermat&rsquo;s Last Theorem (tianyipeng.github.io/fermats-last-theorem): an overview with the statement and the top of the proof, the route step by step, the graph with a table, a page for every result, every declaration and every Lean file, and a search box.</p>
 <p>Lean dependencies are read from the text, not from Lean itself: a declaration counts as named in a proof when its name is written there, in full, relative to the enclosing namespace or to an <code>open</code>, or as field notation <code>x.foo</code> when <code>foo</code> names exactly one declaration. Names used only through notation, instances or tactics are missed. No Lean was run to make this page.</p>
 <p>Mathematics is typeset in the browser by MathJax.</p>
 </div></section>''' % (len(rows), len(decls), n_thm, len(files), len(notes['labels']), len(notes['lean_part']),
-                         len(notes['notes']))
+                         len(notes.get('lean_related', {})), len(notes['notes']))
 
 
 def changes_view():
@@ -2764,6 +2878,10 @@ table.comptab td:nth-child(3), table.comptab td:nth-child(4) { font-size: .84rem
 .tc-head a:hover { text-decoration: underline; }
 .tc-st { display: grid; gap: 8px; font-size: .97rem; }
 .thm-card .meta { font: .78rem var(--font); color: var(--mut); }
+.thm-card.psg { border-left-color: var(--edge); }
+.psgbox { max-width: var(--read); background: var(--surf); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 18px; display: grid; gap: 8px; }
+.psgbox .kick { color: var(--mut); }
+.leadin { font-style: italic; }
 nav.path { background: var(--surf); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; max-width: var(--read); line-height: 1.8; }
 nav.path .sep { color: var(--edge); }
 nav.path .here { font-weight: 700; }

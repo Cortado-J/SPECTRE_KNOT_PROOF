@@ -59,7 +59,7 @@
 \author{Justin Roughley}
 \address{Independent researcher}
 \email{cortado.just@gmail.com}
-\date{21 October 2026}
+\date{22 October 2026}
 \subjclass[2020]{Primary 52C20; Secondary 05B45, 52C23, 57K10, 68V05, 68V20}
 \keywords{aperiodic monotile, Spectre, substitution tiling, Celtic knot, knot tile, computer-assisted proof, formal
 verification, Lean}
@@ -199,17 +199,18 @@ encoding of Fig.~5.1 (\cref{app:computations}). \Cref{fig:roadmap} shows how the
     execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
   lean/.style={box,fill=oiyellow!40},
   word/.style={box,fill=white,densely dashed},
+  part/.style={box,fill=oiyellow!40,densely dashed},
   arr/.style={-{Stealth[length=4pt]},black!65,line width=0.5pt}]
 \node[word] (smkgs) at (0,3.6)     {Spectre hierarchy, cited (Thm.~\ref{thm:smkgs}); the pattern at every level (Prop.~\ref{prop:pattern}); rigidity (Lemma~\ref{lem:rigid})};
-\node[lean] (box)   at (0,1.7)    {Boxes and the signature (\S\ref{sec:boxes}); a tile has it (Lemma~\ref{lem:tilesig})};
+\node[lean] (box)   at (0,1.7)    {Boxes and the signature (\S\ref{sec:boxes})};
 \node[lean] (fib)   at (0,0)       {Side lengths are given by Fibonacci numbers and never change parity (\S\ref{sec:lengths})};
 \node[lean] (comp)  at (3.95,3.6)  {Level $1$: the $18$ compositions and the base, computed (Comps.~\ref{comp:compose}, \ref{comp:base})};
 \node[lean] (zig)   at (3.95,1.7) {Zigzag Lemma~\ref{lem:zigzag}: only parity matters; two-edge moves keep the signature (Lemma~\ref{lem:lengthen}) and reach every level (Lemma~\ref{lem:reach})};
-\node[lean] (A)     at (7.9,3.6)   {\textbf{Theorem A}: no closed strand if the hierarchy covers the plane};
+\node[part] (A)     at (7.9,3.6)   {\textbf{Theorem A}: no closed strand if the hierarchy covers the plane};
 \node[lean] (sig)   at (7.9,1.7)  {\textbf{Signature Theorem~\ref{thm:signature}}: every supertile has the signature};
 \node[lean] (junc)  at (7.9,0)     {Junction map, at level $1$ and every level (Comp.~\ref{comp:junction}; Lemmas~\ref{lem:junctionmap}, \ref{lem:junctions})};
-\node[word] (nest)  at (11.85,3.6) {The nest tiling covers the plane (\S\ref{sec:nest}; Grandparent Lemma~\ref{lem:gap})};
-\node[lean] (B)     at (11.85,1.7) {\textbf{Theorem B}: one strand in the nest tiling};
+\node[part] (nest)  at (11.85,3.6) {The nest tiling covers the plane (\S\ref{sec:nest}; Grandparent Lemma~\ref{lem:gap})};
+\node[part] (B)     at (11.85,1.7) {\textbf{Theorem B}: one strand in the nest tiling};
 \node[lean] (merge) at (11.85,0)   {Merging: the arcs of $N_b$ lie on one arc of $N_{b+4}$ (Thm.~\ref{thm:merge})};
 \draw[arr] (smkgs) -- (comp);
 \draw[arr] (box) -- (zig);
@@ -226,8 +227,9 @@ encoding of Fig.~5.1 (\cref{app:computations}). \Cref{fig:roadmap} shows how the
 \coordinate (top) at ($(smkgs.north)+(0,0.32)$); \draw[arr] (A.north |- top) -- (A.north);
 \end{tikzpicture}
 \caption{The route of the proof. Shaded: checked by the Lean formalisation in a combinatorial form, including the
-computations at level~$1$ (\cref{app:ai}). Dashed: the link with actual tilings, cited from~\cite{SMKGS-spectre} or
-argued in words.}
+computations at level~$1$ (\cref{comp:base} on the level-$1$ supertiles of \code{exact.py}, taken as input). Dashed: the
+link with actual tilings, cited from~\cite{SMKGS-spectre} or argued in words. Shaded and dashed: Lean checks the
+combinatorial part, and the link with actual tilings is argued in words (\cref{app:ai}).}
 \label{fig:roadmap}
 \end{figure}
 
@@ -1004,7 +1006,7 @@ $\gamma_m=\delta_m=\eta_m=2b$, $\epsilon_m=a+b$, $\zeta_m=2a$ and $\theta_m=a+2b
 \end{gather*}
 \end{proof}
 
-Since $\Fib_n$ is even exactly when $3\mid n$:
+Since $\Fib_n$ is even exactly when $3\mid n$, \cref{prop:fib} gives:
 
 \begin{corollary}[Parities are constant]\label{cor:parity}
 For every $m\ge1$ the lengths $\alpha_m$, $\beta_m$, $\theta_m$ are odd and $\gamma_m$, $\delta_m$, $\epsilon_m$,
@@ -1622,7 +1624,9 @@ residual below $1\%$ of an edge, while any other matching of the dots, or the ve
 $40$ times worse; our rim lies on the printed outline, and the first tile of our Mystic on the light tile of the
 printed Mystic; and the labels, transcribed from the figure (not read by the script), agree with \cref{tab:letters}.
 Another script reads an encoding of the nine panels of~\cite[Fig.~5.1]{SMKGS-spectre}, finds the unique consistent
-rotation of each inner hexagon and checks the encoding against \cref{tab:sides,tab:psides}.
+rotation of each inner hexagon, and checks the encoding against \cref{tab:children,tab:sides,tab:psides} and the labels
+on each panel's outline against \cref{tab:letters}. On the same pattern, \code{hierarchy/letters.py} repeats the
+inspection of the $54$ parent sides in the proof of \cref{prop:letters}.
 
 \emph{Evidence, not proof.} Besides the cross-checks of the pattern on actual supertiles (\cref{rem:patterncheck}),
 separate programs, mostly in JavaScript, sharing no code with \code{exact.py} and working in floating point (we do not

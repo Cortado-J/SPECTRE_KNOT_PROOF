@@ -418,11 +418,11 @@ items: [
 
 { id: 'E', section: 's2', kind: 'abbrev', title: 'E', lines: [121, 123],
   summary: 'P.E: the number of rim edges, which is also the number of rim vertices.',
-  what: `The number of edges on the rim. The rim is a closed path, so this is also the number of rim vertices. For a
-    supertile it is the paper's E<sub>m</sub>(K).`,
+  what: `The number of edges on the rim. The rim is a closed path, so this is also the number of rim vertices. It is
+    the paper's E = E(P), the number of rim edges of a patch (§4.1).`,
   how: `An <code>abbrev</code>, which Lean unfolds freely: <code>P.E</code> is just <code>P.rim.length</code>.`,
   examples: [{ expr: '((N 1).E, (N 2).E, (super 2 .Gamma).E)', out: '(46, 182, 160)',
-    note: 'E₁(Δ), E₂(Δ) and E₂(Γ), as in the paper.' }] },
+    note: 'E(N₁) = 46 and E(N₂) = 182 are the numbers of arcs of N₁ and N₂ in the paper\'s Table 5 (a patch has as many arcs as rim edges); 160 is the rim of a level-2 Γ.' }] },
 
 { id: 'edgeAt', section: 's2', kind: 'def', title: 'edgeAt', lines: [124, 126],
   summary: 'P.edgeAt k: rim edge number k, as a pair (tile, edge).',
@@ -790,8 +790,12 @@ items: [
     <code>b</code> is even, already of N<sub>b+3</sub>.`,
   how: `The hypotheses are joined by <code>→</code>; <code>b % 2 = 0</code> says <code>b</code> is even.`,
   checks: [{ tone: 'ok', title: 'Matches the paper\'s Table 5',
-    text: `N₁ (b = 1, odd): 10, 2, 2, then 1 strand four levels up. N₂ (b = 2, even): 37, 2, then 1 three levels up.
-      b = 0 (the original tile) is left out here; Theorem B (3) covers it.` }] },
+    text: `N₁ (b = 1, odd): 10, 2, 2, then 1 arc four levels up. N₂ (b = 2, even): 37, 2, then 1 three levels up.
+      b = 0 (the original tile) is left out here; Theorem B (3) covers it.` },
+    { tone: 'ok', title: 'Strands here, arcs in the paper',
+      text: `A block has no closed strand, so each of its strands runs from rim to rim: it is what the paper calls an
+        arc (§4.1). "One strand of N<sub>b+4</sub>" here is the paper's "a single arc of N<sub>b+4</sub>" (Theorem B),
+        and Table 5 counts arcs.` }] },
 
 { id: 'TwoStrands', section: 's5', kind: 'def', title: 'TwoStrands', lines: [288, 294],
   summary: 'k levels up, the ports of N_b lie on exactly two strands of N_{b+k}.',
@@ -811,12 +815,12 @@ items: [
   summary: 'For b ≥ 1: the ports of N_b lie on two strands of N_{b+2}, and, for odd b, of N_{b+3}.',
   what: `The paper's bound cannot be improved. For b ≥ 1 the ports of N<sub>b</sub> lie on exactly two strands of
     N<sub>b+2</sub>, and, if <code>b</code> is odd, on exactly two strands of N<sub>b+3</sub>. With [[TheoremB_sharp]]
-    this is the last two rows of the paper's Table 5: 2, 1, 1 strands two, three and four levels up for even
+    this is the last two rows of the paper's Table 5: 2, 1, 1 arcs two, three and four levels up for even
     <code>b</code>, and 2, 2, 1 for odd <code>b</code>. Proved in <code>ProofExact.lean</code>.`,
   how: `<code>b % 2 = 1</code> says <code>b</code> is odd.`,
   checks: [
     { tone: 'ok', title: 'Matches the computed counts',
-      text: `<code>Tests.lean</code> computes 10, 2, 2 strands one, two and three levels above N₁ (odd), and 37, 2 above
+      text: `<code>Tests.lean</code> computes 10, 2, 2 arcs one, two and three levels above N₁ (odd), and 37, 2 above
         N₂ (even), as in Table 5.` },
   ] },
 

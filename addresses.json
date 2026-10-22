@@ -116,8 +116,8 @@
    "number": "2.4",
    "name": "The pattern holds at every level",
    "status": "argued",
-   "lean": true,
-   "lean_part": true,
+   "lean": false,
+   "lean_part": false,
    "step": 2
   },
   "rem:patterncheck": {
@@ -327,7 +327,7 @@
    "name": "Base case",
    "status": "computed",
    "lean": true,
-   "lean_part": false,
+   "lean_part": true,
    "step": 7
   },
   "thm:signature": {

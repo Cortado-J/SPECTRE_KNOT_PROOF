@@ -197,14 +197,26 @@ def parse(tex_path):
             raise ValueError('proof at %d belongs to no result' % m.start())
         target['proofs'].append({'title': opt, 'tex': text, 'pos': m.start()})
 
+    # a sentence ending in a colon just before a result leads into it ("Since ..., Proposition 6.2 gives:"): what it
+    # cites, the result rests on, as for a corollary stated without a proof of its own
+    for r in results:
+        para = re.split(r'\n\s*\n', body[:r['pos']].rstrip())[-1].strip()
+        r['leadin'] = para if para.endswith(':') and not para.startswith('\\') else None
+    # a numbered equation stated inside a result: citing the equation cites that result (Prop 6.2 uses (1) of Prop 6.1)
+    eq_owner = {}
+    for r in results:
+        for lab in re.findall(r'\\label\{([^}]*)\}', r['statement']):
+            if r['label'] and labels.get(lab, {}).get('type') == 'equation':
+                eq_owner[lab] = r['label']
     for r in results:
         refs = []
-        for part in [r['statement']] + [p['tex'] for p in r['proofs']]:
+        for part in [r['statement']] + [p['tex'] for p in r['proofs']] + ([r['leadin']] if r['leadin'] else []):
             for m in REF_RE.finditer(part):
                 for lab in m.group(2).split(','):
                     lab = lab.strip()
-                    if lab and lab != r['label'] and lab not in refs:
-                        refs.append(lab)
+                    for x in (lab, eq_owner.get(lab)):
+                        if x and x != r['label'] and x not in refs:
+                            refs.append(x)
         r['refs'] = refs
         r['line'] = raw[:body_offset + r['pos']].count('\n') + 1
 
