@@ -4,6 +4,11 @@ What changed each time this site was published, newest first: in the paper, the 
 themselves. Dates are UK dates. From 21 October 2026, each publication that changes the paper, its code or the Lean is
 tagged in the repository with its date, so that every published version of them can be found again.
 
+## 7 November 2026
+
+- **Paper:** the contact address is now justin.roughley.maths@gmail.com. The paper is dated 7 November 2026 and
+  still has 28 pages.
+
 ## 22 October 2026
 
 - **Site:** the picture of Figure 3, cut from the PDF, no longer includes Table 1, which sits just above it on the same
