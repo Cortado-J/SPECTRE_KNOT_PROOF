@@ -4,6 +4,15 @@ What changed each time this site was published, newest first: in the paper, the 
 themselves. Dates are UK dates. From 21 October 2026, each publication that changes the paper, its code or the Lean is
 tagged in the repository with its date, so that every published version of them can be found again.
 
+## 12 November 2026
+
+- **Paper:** §1 now says that no human has checked the logic of the proof (in place of "most of the proof has not been
+  reviewed by a human"), and Appendix B that the author has read the whole paper and reviewed its figures, but has not
+  spot-checked figures or counts (in place of "has read parts"). §1 says that "nest tiling" is the paper's own name, and
+  §8 notes that the nest is the chain Kaplan's implementation follows when its Δ-supertile is built again and again.
+  The paper is dated 12 November 2026 and now has 29 pages.
+- **Site:** What has been checked has the same wording about the author's reading and the logic of the proof.
+
 ## 7 November 2026
 
 - **Paper:** the contact address is now justin.roughley.maths@gmail.com. The paper is dated 7 November 2026 and
